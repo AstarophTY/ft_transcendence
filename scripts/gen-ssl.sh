@@ -1,0 +1,7 @@
+#!/bin/bash
+mkdir -p nginx/ssl
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout nginx/ssl/key.pem \
+  -out nginx/ssl/cert.pem \
+  -subj "/C=FR/ST=IDF/L=Paris/O=42/CN=localhost" \
+  -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
