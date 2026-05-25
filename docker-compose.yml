@@ -1,7 +1,6 @@
 version: '3.9'
- 
+
 services:
- 
   postgres:
     image: postgres:16-alpine
     container_name: transcendence_postgres
@@ -19,7 +18,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
- 
+
   redis:
     image: redis:7-alpine
     container_name: transcendence_redis
@@ -34,7 +33,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
- 
+
   migrate:
     build:
       context: ./backend
@@ -48,7 +47,7 @@ services:
     networks:
       - transcendence_net
     restart: "no"
- 
+
   backend:
     build:
       context: ./backend
@@ -69,7 +68,7 @@ services:
       - transcendence_net
     expose:
       - "3000"
- 
+
   frontend:
     build:
       context: ./frontend
@@ -83,7 +82,7 @@ services:
     networks:
       - transcendence_net
     restart: "no"
- 
+
   nginx:
     image: nginx:1.25-alpine
     container_name: transcendence_nginx
@@ -101,13 +100,13 @@ services:
       - frontend
     networks:
       - transcendence_net
- 
+
 volumes:
   postgres_data:
   redis_data:
   uploads:
   frontend_build:
- 
+
 networks:
   transcendence_net:
     driver: bridge
