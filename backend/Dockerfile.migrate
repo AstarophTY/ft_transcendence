@@ -1,7 +1,12 @@
 FROM node:20-alpine
 WORKDIR /app
+
+RUN apk add --no-cache openssl libc6-compat
+
 COPY package*.json ./
 RUN npm ci
+
 COPY prisma ./prisma
-RUN npx prisma generate --allow-no-models
-CMD ["sh", "-c", "npx prisma migrate deploy && npx ts-node prisma/seed.ts"]
+RUN npx prisma generate
+
+CMD ["npx", "prisma", "migrate", "deploy"]
