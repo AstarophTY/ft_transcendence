@@ -5,7 +5,9 @@
     "build": "nest build",
     "start": "node dist/main",
     "start:dev": "nest start --watch",
-    "prisma:generate": "prisma generate",
+    "start:prod": "node dist/main",
+    "lint": "eslint \"{src,prisma}/**/*.ts\"",
+    "prisma:generate": "prisma generate --allow-no-models",
     "prisma:migrate": "prisma migrate deploy",
     "prisma:seed": "ts-node prisma/seed.ts"
   },
@@ -43,6 +45,10 @@
     "@types/node": "^20.0.0",
     "@types/passport-jwt": "^3.0.0",
     "@types/passport-local": "^1.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.31.1",
+    "@typescript-eslint/parser": "^8.31.1",
+    "eslint": "^9.27.0",
+    "globals": "^16.1.0",
     "prisma": "^5.0.0",
     "ts-node": "^10.9.0",
     "typescript": "^5.0.0"

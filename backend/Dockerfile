@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-RUN npx prisma generate
+RUN npx prisma generate --allow-no-models
 RUN npm run build
 
 FROM node:20-alpine AS runner

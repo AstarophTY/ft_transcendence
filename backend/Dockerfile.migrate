@@ -3,5 +3,5 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY prisma ./prisma
-RUN npx prisma generate
+RUN npx prisma generate --allow-no-models
 CMD ["sh", "-c", "npx prisma migrate deploy && npx ts-node prisma/seed.ts"]
