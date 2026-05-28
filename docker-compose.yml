@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -76,20 +74,22 @@ services:
       args:
         VITE_API_URL: ${VITE_API_URL}
         VITE_WS_URL: ${VITE_WS_URL}
-    container_name: transcendence_frontend_build
+    container_name: transcendence_frontend
     volumes:
       - frontend_build:/app/dist
     networks:
       - transcendence_net
     restart: "no"
+    expose:
+      - "80"
 
   nginx:
     image: nginx:1.25-alpine
     container_name: transcendence_nginx
     restart: unless-stopped
     ports:
-      - "443:443"
-      - "80:80"
+      - "8443:443"
+      - "8080:80"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
