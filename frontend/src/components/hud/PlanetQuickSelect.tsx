@@ -1,4 +1,4 @@
-import { usePlanetStore } from '../../../store/planetStore'
+import { usePlanetStore } from '../../store/planetStore'
 
 export default function PlanetQuickSelect() {
   const planetCount = usePlanetStore((state) => state.planetCount)

@@ -1,7 +1,7 @@
 import { UserIconProps } from "@/types/User";
 
 export default function UserIcon({ 
-  imageUrl = "https://ui-avatars.com/api/?name=User&background=random", 
+  imageUrl = "", 
   status = 'online', 
   onClick 
 }: UserIconProps) {
