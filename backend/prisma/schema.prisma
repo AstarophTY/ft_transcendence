@@ -8,5 +8,78 @@ datasource db {
 }
 
 model User {
-  email     String @id
+  id            String   @id @default(uuid())
+  email         String?  @unique
+  username      String   @unique
+  passwordHash  String?
+  fortyTwoId    Int?     @unique
+  fortyTwoLogin String?
+  avatar        String?
+  role          Role     @default(USER)
+  isVerified    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  refreshTokens    RefreshToken[]
+  sentMessages     Message[]  @relation("SentMessages")
+  receivedMessages Message[]  @relation("ReceivedMessages")
+  buildings        Building[]
+  apiKeys          ApiKey[]
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  content    String
+  senderId   String
+  receiverId String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  sender   User @relation("SentMessages",     fields: [senderId],   references: [id], onDelete: Cascade)
+  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([senderId, receiverId])
+}
+
+model Building {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  height    Float    @default(1.0)
+  color     String   @default("#7F77DD")
+  posX      Float    @default(0)
+  posZ      Float    @default(0)
+  campus    String
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([campus])
+}
+
+model ApiKey {
+  id         String    @id @default(uuid())
+  keyHash    String    @unique
+  label      String
+  userId     String
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  USER
+  ADMIN
 }

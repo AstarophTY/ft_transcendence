@@ -1,0 +1,44 @@
+{
+  "language": {
+    "label": "Langue",
+    "en": "English",
+    "fr": "Français",
+    "es": "Español"
+  },
+  "role": {
+    "USER": "Utilisateur",
+    "ADMIN": "Administrateur"
+  },
+  "auth": {
+    "signIn": "Se connecter",
+    "title": "Bienvenue sur ft_transcendence",
+    "description": "Connecte-toi ou crée un compte pour jouer.",
+    "tabLogin": "Connexion",
+    "tabRegister": "Inscription",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "username": "Nom d'utilisateur",
+    "loginButton": "Se connecter",
+    "registerButton": "Créer un compte",
+    "continueWith42": "Se connecter avec Forty Two",
+    "or": "ou",
+    "logout": "Se déconnecter",
+    "errorFallback": "Une erreur est survenue, réessaie.",
+    "emailPlaceholder": "toi@exemple.com",
+    "usernamePlaceholder": "pongmaster",
+    "passwordPlaceholder": "••••••••",
+    "newPasswordPlaceholder": "Mot de passe fort",
+    "passwordRequirements": "Le mot de passe doit contenir :",
+    "pwLength": "Au moins 8 caractères",
+    "pwUpper": "Une majuscule",
+    "pwLower": "Une minuscule",
+    "pwNumber": "Un chiffre",
+    "pwSpecial": "Un caractère spécial",
+    "confirmPassword": "Confirmer le mot de passe",
+    "passwordMismatch": "Les mots de passe ne correspondent pas",
+    "loginSuccess": "Content de te revoir !",
+    "registerSuccess": "Compte créé !",
+    "logoutSuccess": "Déconnecté",
+    "sessionExpired": "Session expirée, reconnecte-toi"
+  }
+}
