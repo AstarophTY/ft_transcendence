@@ -102,7 +102,7 @@ const PlanetRail = ({
           key={index}
           position={[(index - ((planetMaps.length - 1) / 2)) * PLANET_SPACING, 0, 0]}
         >
-          <SelectablePlanet map={planetMap} />
+          <SelectablePlanet map={planetMap} wheelOffset={wheelOffset} index={index} totalCount={planetMaps.length} />
         </group>
       ))}
     </group>
