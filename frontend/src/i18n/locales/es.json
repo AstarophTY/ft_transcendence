@@ -1,0 +1,42 @@
+{
+  "language": {
+    "label": "Idioma",
+    "en": "English",
+    "fr": "Français",
+    "es": "Español"
+  },
+  "role": {
+    "USER": "Usuario",
+    "ADMIN": "Administrador"
+  },
+  "auth": {
+    "signIn": "Iniciar sesión",
+    "title": "Bienvenido a ft_transcendence",
+    "description": "Inicia sesión o crea una cuenta para jugar.",
+    "tabLogin": "Iniciar sesión",
+    "tabRegister": "Registrarse",
+    "email": "Correo",
+    "password": "Contraseña",
+    "username": "Usuario",
+    "loginButton": "Iniciar sesión",
+    "registerButton": "Crear cuenta",
+    "continueWith42": "Iniciar sesión con Forty Two",
+    "or": "o",
+    "logout": "Cerrar sesión",
+    "errorFallback": "Algo salió mal, inténtalo de nuevo.",
+    "emailPlaceholder": "tu@ejemplo.com",
+    "usernamePlaceholder": "pongmaster",
+    "passwordPlaceholder": "••••••••",
+    "newPasswordPlaceholder": "Contraseña segura",
+    "passwordRequirements": "La contraseña debe contener:",
+    "pwLength": "Al menos 8 caracteres",
+    "pwUpper": "Una mayúscula",
+    "pwLower": "Una minúscula",
+    "pwNumber": "Un número",
+    "pwSpecial": "Un carácter especial",
+    "loginSuccess": "¡Bienvenido de nuevo!",
+    "registerSuccess": "¡Cuenta creada!",
+    "logoutSuccess": "Sesión cerrada",
+    "sessionExpired": "Sesión expirada, inicia sesión de nuevo"
+  }
+}
