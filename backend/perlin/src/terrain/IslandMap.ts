@@ -8,27 +8,13 @@ export class IslandMap {
 
     constructor(config: MapConfig) {
         this.config = config;
-        // Default to 4 octaves if not provided, for standard terrain bumpiness
-        this.config.octaves = config.octaves || 4;
+        this.config.octaves = config.octaves || 3;
+        this.config.persistence = config.persistence ?? 0.35;
+        this.config.lacunarity = config.lacunarity ?? 2;
+        this.config.baseHeight = config.baseHeight ?? Math.floor(config.maxHeight * 0.28);
+        this.config.variationRange = config.variationRange ?? Math.max(1, Math.floor(config.maxHeight * 0.25));
+        this.config.relief = config.relief ?? 0.65;
         this.perlin = new Perlin2D(config.seed);
-    }
-
-    /**
-     * Calculates a multiplier to force the edges of the map to 0 altitude.
-     * Creates a square island shape.
-     */
-    private getFalloff(x: number, z: number): number {
-        // Normalize coordinates to range [-1.0, 1.0]
-        const nx = (x / this.config.mapSize) * 2 - 1;
-        const nz = (z / this.config.mapSize) * 2 - 1;
-
-        // Calculate distance from center
-        const distance = Math.max(Math.abs(nx), Math.abs(nz));
-
-        if (distance >= 1) return 0;
-
-        // Smooth curve towards the ocean
-        return 1 - (distance * distance);
     }
 
     /**
@@ -41,22 +27,24 @@ export class IslandMap {
         let amplitude = 1;
         let maxValue = 0;
 
-        // Fractional Brownian Motion (Stacking noise layers)
+        // Fractional Brownian Motion with a very low contrast, suitable for plains.
         for (let i = 0; i < this.config.octaves!; i++) {
             total += this.perlin.getNoise(x * this.config.scale * frequency, z * this.config.scale * frequency) * amplitude;
             maxValue += amplitude;
-            amplitude *= 0.5;  // Persistence (each layer is half as strong)
-            frequency *= 2.0;  // Lacunarity (each layer has double the detail)
+            amplitude *= this.config.persistence!;
+            frequency *= this.config.lacunarity!;
         }
 
         // Normalize from [-1.0, 1.0] back to [0.0, 1.0]
         const normalizedNoise = (total / maxValue + 1) / 2;
+        const smoothNoise = normalizedNoise * normalizedNoise * (3 - 2 * normalizedNoise);
+        const softenedNoise = 0.5 + (smoothNoise - 0.5) * this.config.relief!;
 
-        // Apply the island mask
-        const falloff = this.getFalloff(x, z);
-        const finalHeightRaw = normalizedNoise * falloff;
+        // Keep the terrain mostly flat and avoid a radial "dome" shape.
+        const plainsHeight = this.config.baseHeight! + ((softenedNoise - 0.5) * this.config.variationRange!);
+        const finalHeightRaw = Math.max(0, plainsHeight);
 
         // Convert to integer block height
-        return Math.floor(finalHeightRaw * this.config.maxHeight);
+        return Math.min(this.config.maxHeight, Math.floor(finalHeightRaw));
     }
 }

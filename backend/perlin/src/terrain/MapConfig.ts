@@ -4,4 +4,9 @@ export interface MapConfig {
     maxHeight: number;
     scale: number;
     octaves?: number;
+    persistence?: number;
+    lacunarity?: number;
+    baseHeight?: number;
+    variationRange?: number;
+    relief?: number;
 }

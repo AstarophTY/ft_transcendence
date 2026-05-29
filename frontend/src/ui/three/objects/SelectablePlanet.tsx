@@ -12,6 +12,17 @@ const SelectablePlanet: React.FC<SelectablePlanetProps> = ({ map }) => {
     const factor = 16;
     const previewVoxels = useMemo(() => map.getPreview(factor), [map]);
     const scale = 1 / factor;
+    const half = 0.5;
+    const inset = 0.01;
+    const minHeight = useMemo(() => {
+        if (previewVoxels.length === 0) {
+            return 0;
+        }
+
+        return previewVoxels.reduce((lowest, voxel) => Math.min(lowest, voxel.y), previewVoxels[0]!.y);
+    }, [previewVoxels]);
+
+    const getHeight = (voxelHeight: number) => Math.max(0, voxelHeight - minHeight) * scale;
 
     return (
         <group>
@@ -21,21 +32,78 @@ const SelectablePlanet: React.FC<SelectablePlanetProps> = ({ map }) => {
                 <meshStandardMaterial color="#9ca3af" />
             </mesh>
 
-            {/* The Miniature Voxel Map */}
+            {/* Top face projection */}
             <group position={[0, 0.5, 0]}>
                 {previewVoxels.map((voxel, index) => {
                     const color = voxel.block === Block.Stone ? '#9ca3af' : '#fbbf24';
+                    const voxelHeight = getHeight(voxel.y);
+
+                    if (voxelHeight <= 0) {
+                        return null;
+                    }
 
                     return (
                         <mesh
                             key={index}
                             position={[
-                                (voxel.x * scale) - 0.5 + (scale / 2),
-                                (voxel.y * scale) / 2 - 0.01, // Center the Y position based on height
-                                (voxel.z * scale) - 0.5 + (scale / 2)
+                                (voxel.x * scale) - half + (scale / 2),
+                                voxelHeight / 2 - inset,
+                                (voxel.z * scale) - half + (scale / 2)
                             ]}
                         >
-                            <boxGeometry args={[scale, voxel.y * scale, scale]}/>
+                            <boxGeometry args={[scale, voxelHeight, scale]}/>
+                            <meshStandardMaterial color={color}/>
+                        </mesh>
+                    );
+                })}
+            </group>
+
+            {/* Right face projection */}
+            <group position={[0.5, 0, 0]}>
+                {previewVoxels.map((voxel, index) => {
+                    const color = voxel.block === Block.Stone ? '#9ca3af' : '#fbbf24';
+                    const voxelHeight = getHeight(voxel.y);
+
+                    if (voxelHeight <= 0) {
+                        return null;
+                    }
+
+                    return (
+                        <mesh
+                            key={`right-${index}`}
+                            position={[
+                                voxelHeight / 2 - inset,
+                                (voxel.z * scale) - half + (scale / 2),
+                                (voxel.x * scale) - half + (scale / 2)
+                            ]}
+                        >
+                            <boxGeometry args={[voxelHeight, scale, scale]}/>
+                            <meshStandardMaterial color={color}/>
+                        </mesh>
+                    );
+                })}
+            </group>
+
+            {/* Front face projection */}
+            <group position={[0, 0, 0.5]}>
+                {previewVoxels.map((voxel, index) => {
+                    const color = voxel.block === Block.Stone ? '#9ca3af' : '#fbbf24';
+                    const voxelHeight = getHeight(voxel.y);
+
+                    if (voxelHeight <= 0) {
+                        return null;
+                    }
+
+                    return (
+                        <mesh
+                            key={`front-${index}`}
+                            position={[
+                                (voxel.x * scale) - half + (scale / 2),
+                                (voxel.z * scale) - half + (scale / 2),
+                                voxelHeight / 2 - inset
+                            ]}
+                        >
+                            <boxGeometry args={[scale, scale, voxelHeight]}/>
                             <meshStandardMaterial color={color}/>
                         </mesh>
                     );
