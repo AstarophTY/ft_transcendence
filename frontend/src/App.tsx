@@ -1,6 +1,12 @@
+import HUDFrame from './ui/hud/HUDFrame'
+import SceneFrame from './ui/three/SceneFrame'
+
 function App() {
   return (
-      <h1 className="text-red-500">ft_transcendence</h1>
+    <div className="relative h-screen w-screen overflow-hidden">
+      <SceneFrame />
+      <HUDFrame />
+    </div>
   )
 }
 
