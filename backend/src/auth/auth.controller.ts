@@ -66,6 +66,6 @@ export class AuthController {
       access_token: tokens.accessToken,
       refresh_token: tokens.refreshToken,
     });
-    res.redirect(`${frontend}/auth/callback?${params.toString()}`);
+    res.redirect(`${frontend}/?${params.toString()}`);
   }
 }
