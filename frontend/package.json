@@ -20,6 +20,7 @@
     "react-router-dom": "^6.26.2",
     "socket.io-client": "^4.8.0",
     "three": "^0.169.0",
+    "vite-tsconfig-paths": "^6.1.1",
     "zustand": "^5.0.14"
   },
   "devDependencies": {

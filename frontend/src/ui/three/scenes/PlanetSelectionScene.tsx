@@ -2,7 +2,7 @@
 
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { useEffect, useMemo, useRef, type MutableRefObject } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 
 import { Block } from '../../../models/Block.ts'
 import { Chunk } from '../../../models/maps/Chunk.ts'
@@ -10,6 +10,7 @@ import { LocalMap } from '../../../models/maps/LocalMap.ts'
 import { PlanetMap } from '../../../models/maps/PlanetMap.ts'
 import { IslandMap } from '../../../../../backend/perlin/src/terrain/IslandMap.ts'
 import SelectablePlanet from '../objects/SelectablePlanet.tsx'
+import { usePlanetStore } from '../../../store/planetStore.ts'
 
 type DemoPlanetProfile = {
   seed: string
@@ -78,10 +79,8 @@ const createDemoPlanetMap = (profile: DemoPlanetProfile) => {
 
 const PlanetRail = ({
   planetMaps,
-  wheelOffset,
 }: {
   planetMaps: PlanetMap[]
-  wheelOffset: MutableRefObject<number>
 }) => {
   const railRef = useRef<THREE.Group>(null)
   const totalSpan = (planetMaps.length - 1) * PLANET_SPACING
@@ -91,7 +90,8 @@ const PlanetRail = ({
       return
     }
 
-    const targetX = (0.5 - wheelOffset.current) * totalSpan
+    const { targetOffset } = usePlanetStore.getState()
+    const targetX = (0.5 - targetOffset) * totalSpan
     railRef.current.position.x = THREE.MathUtils.lerp(railRef.current.position.x, targetX, delta * 6)
   })
 
@@ -114,17 +114,27 @@ const PlanetSelectionScene = () => {
     () => DEMO_PLANET_PROFILES.map((profile) => createDemoPlanetMap(profile)),
     [],
   )
-  const wheelOffset = useRef(0.5)
+
+  useEffect(() => {
+    usePlanetStore.setState({ planetCount: planetMaps.length })
+  }, [planetMaps.length])
 
   useEffect(() => {
     const handleWheel = (event: WheelEvent) => {
       event.preventDefault()
       const delta = event.deltaY !== 0 ? event.deltaY : event.deltaX
-      wheelOffset.current = THREE.MathUtils.clamp(
-        wheelOffset.current + delta * WHEEL_SENSITIVITY,
+      const currentOffset = usePlanetStore.getState().targetOffset
+      const newOffset = THREE.MathUtils.clamp(
+        currentOffset + delta * WHEEL_SENSITIVITY,
         0,
         1,
       )
+      
+      const newIndex = Math.round(newOffset * (planetMaps.length - 1))
+      usePlanetStore.setState({ 
+        targetOffset: newOffset,
+        activeIndex: newIndex
+      })
     }
 
     window.addEventListener('wheel', handleWheel, { passive: false })
@@ -132,10 +142,10 @@ const PlanetSelectionScene = () => {
     return () => {
       window.removeEventListener('wheel', handleWheel)
     }
-  }, [])
+  }, [planetMaps.length])
 
   return (
-    <PlanetRail planetMaps={planetMaps} wheelOffset={wheelOffset} />
+    <PlanetRail planetMaps={planetMaps} />
   )
 }
 
