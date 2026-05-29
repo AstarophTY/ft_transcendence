@@ -1,4 +1,4 @@
-import { Toaster } from '@/components/ui/sonner'
+import { Toaster } from '@/components/shadcn/sonner'
 import HUDFrame from './ui/hud/HUDFrame'
 import SceneFrame from './ui/three/SceneFrame'
 
