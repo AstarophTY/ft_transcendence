@@ -1,5 +1,5 @@
-import HUDFrame from './hud/HUDFrame'
-import SceneFrame from './three/SceneFrame'
+import HUDFrame from './ui/hud/HUDFrame'
+import SceneFrame from './ui/three/SceneFrame'
 
 function App() {
   return (
