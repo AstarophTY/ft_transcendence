@@ -4,7 +4,7 @@ import { Block } from '../../../models/Block.ts'
 import { Chunk } from '../../../models/maps/Chunk.ts'
 import { LocalMap } from '../../../models/maps/LocalMap.ts'
 import { PlanetMap } from '../../../models/maps/PlanetMap.ts'
-import { IslandMap } from '../../../../../backend/perlin/src/terrain/IslandMap.ts'
+import { IslandMap } from '@/perlin/terrain/IslandMap'
 import SelectablePlanet from '../objects/SelectablePlanet.tsx'
 
 const createDemoPlanetMap = () => {
