@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { PUBLIC_USER_SELECT, PublicUser } from './users.select';
 
 @Injectable()
 export class UsersService {
@@ -8,6 +9,14 @@ export class UsersService {
 
   findById(id: string): Promise<User | null> {
     return this.prisma.user.findUnique({ where: { id } });
+  }
+
+  /** Public-facing profile (no email / no password hash). */
+  findPublicProfile(id: string): Promise<PublicUser | null> {
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: PUBLIC_USER_SELECT,
+    });
   }
 
   findByEmail(email: string): Promise<User | null> {
