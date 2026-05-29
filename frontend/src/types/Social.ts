@@ -1,0 +1,1 @@
+export type Tab = 'friends' | 'add' | 'chat' | 'settings';
