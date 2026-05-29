@@ -1,14 +1,16 @@
-/* eslint-disable react/no-unknown-property */
-
 import { PlanetMap } from "../../../models/maps/PlanetMap.ts";
-import React, { useMemo } from "react";
+import React, { useMemo, useRef } from "react";
 import { Block } from "../../../models/Block.ts";
+import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
 
 interface SelectablePlanetProps {
     map: PlanetMap
 }
 
 const SelectablePlanet: React.FC<SelectablePlanetProps> = ({ map }) => {
+    const planetRef = useRef<THREE.Group>(null);
+
     const factor = 16;
     const previewVoxels = useMemo(() => map.getPreview(factor), [map]);
     const scale = 1 / factor;
@@ -24,15 +26,34 @@ const SelectablePlanet: React.FC<SelectablePlanetProps> = ({ map }) => {
 
     const getHeight = (voxelHeight: number) => Math.max(0, voxelHeight - minHeight) * scale;
 
+    useFrame((state, delta) => {
+        if (!planetRef.current) return;
+
+        const distance = Math.sqrt(state.pointer.x ** 2 + state.pointer.y ** 2);
+        const magneticRadius = 0.5;
+
+        let targetRotationX = 0;
+        let targetRotationY = 0;
+
+        if (distance < magneticRadius) {
+            const pullStrength = 1 - (distance / magneticRadius);
+            const maxTilt = 0.6;
+
+            targetRotationX = -state.pointer.y * pullStrength * maxTilt;
+            targetRotationY = state.pointer.x * pullStrength * maxTilt;
+        }
+
+        planetRef.current.rotation.x = THREE.MathUtils.lerp(planetRef.current.rotation.x, targetRotationX, delta * 8);
+        planetRef.current.rotation.y = THREE.MathUtils.lerp(planetRef.current.rotation.y, targetRotationY, delta * 8);
+    });
+
     return (
-        <group>
-            {/* The Base Planet Cube */}
+        <group ref={planetRef}>
             <mesh>
                 <boxGeometry args={[1, 1, 1]} />
                 <meshStandardMaterial color="#9ca3af" />
             </mesh>
 
-            {/* Top face projection */}
             <group position={[0, 0.5, 0]}>
                 {previewVoxels.map((voxel, index) => {
                     const color = voxel.block === Block.Stone ? '#9ca3af' : '#fbbf24';
@@ -58,7 +79,6 @@ const SelectablePlanet: React.FC<SelectablePlanetProps> = ({ map }) => {
                 })}
             </group>
 
-            {/* Right face projection */}
             <group position={[0.5, 0, 0]}>
                 {previewVoxels.map((voxel, index) => {
                     const color = voxel.block === Block.Stone ? '#9ca3af' : '#fbbf24';
@@ -84,7 +104,6 @@ const SelectablePlanet: React.FC<SelectablePlanetProps> = ({ map }) => {
                 })}
             </group>
 
-            {/* Front face projection */}
             <group position={[0, 0, 0.5]}>
                 {previewVoxels.map((voxel, index) => {
                     const color = voxel.block === Block.Stone ? '#9ca3af' : '#fbbf24';

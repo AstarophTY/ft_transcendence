@@ -47,7 +47,11 @@ const createDemoPlanetMap = () => {
 const PlanetSelectionScene = () => {
   const planetMap = useMemo(() => createDemoPlanetMap(), [])
 
-  return <SelectablePlanet map={planetMap} />
+  return (
+    <group rotation={[-2.4 * Math.PI / 8, -Math.PI / 4, 0]}>
+      <SelectablePlanet map={planetMap} />
+    </group>
+  )
 }
 
 export default PlanetSelectionScene
