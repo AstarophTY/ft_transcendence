@@ -1,3 +1,4 @@
+import { Toaster } from '@/components/ui/sonner'
 import HUDFrame from './ui/hud/HUDFrame'
 import SceneFrame from './ui/three/SceneFrame'
 
@@ -6,6 +7,7 @@ function App() {
     <div className="relative h-screen w-screen overflow-hidden">
       <SceneFrame />
       <HUDFrame />
+      <Toaster />
     </div>
   )
 }
