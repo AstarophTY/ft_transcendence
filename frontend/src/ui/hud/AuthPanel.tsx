@@ -139,13 +139,16 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
 
   const passwordValid = PASSWORD_RULES.every((rule) => rule.test(password))
   const passwordInvalid = password.length > 0 && !passwordValid
+  const passwordsMatch = password === confirm
+  const confirmInvalid = confirm.length > 0 && !passwordsMatch
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!passwordValid) return
+    if (!passwordValid || !passwordsMatch) return
     if (await register(email, username, password)) onSuccess()
   }
 
@@ -196,9 +199,27 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
         />
         <PasswordChecklist password={password} />
       </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="register-confirm">
+          <Lock className="size-4" /> {t('auth.confirmPassword')}
+        </Label>
+        <Input
+          id="register-confirm"
+          type="password"
+          autoComplete="new-password"
+          placeholder={t('auth.passwordPlaceholder')}
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          aria-invalid={confirmInvalid || undefined}
+          required
+        />
+        {confirmInvalid && (
+          <p className="text-xs text-destructive">{t('auth.passwordMismatch')}</p>
+        )}
+      </div>
       <Button
         type="submit"
-        disabled={loading || !passwordValid}
+        disabled={loading || !passwordValid || !passwordsMatch}
         className="w-full"
       >
         {loading ? (

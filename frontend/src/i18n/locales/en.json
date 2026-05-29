@@ -34,6 +34,8 @@
     "pwLower": "One lowercase letter",
     "pwNumber": "One number",
     "pwSpecial": "One special character",
+    "confirmPassword": "Confirm password",
+    "passwordMismatch": "Passwords do not match",
     "loginSuccess": "Welcome back!",
     "registerSuccess": "Account created!",
     "logoutSuccess": "Logged out",

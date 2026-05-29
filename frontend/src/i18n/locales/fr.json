@@ -34,6 +34,8 @@
     "pwLower": "Une minuscule",
     "pwNumber": "Un chiffre",
     "pwSpecial": "Un caractère spécial",
+    "confirmPassword": "Confirmer le mot de passe",
+    "passwordMismatch": "Les mots de passe ne correspondent pas",
     "loginSuccess": "Content de te revoir !",
     "registerSuccess": "Compte créé !",
     "logoutSuccess": "Déconnecté",
