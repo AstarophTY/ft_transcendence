@@ -38,3 +38,21 @@ export const SELF_USER_SELECT = {
 export type SelfUser = Prisma.UserGetPayload<{
   select: typeof SELF_USER_SELECT;
 }>;
+
+/** Fields an admin sees for each account in the admin panel. */
+export const ADMIN_USER_SELECT = {
+  id: true,
+  username: true,
+  email: true,
+  avatar: true,
+  role: true,
+  campus: true,
+  status: true,
+  fortyTwoLogin: true,
+  isVerified: true,
+  createdAt: true,
+} satisfies Prisma.UserSelect;
+
+export type AdminUser = Prisma.UserGetPayload<{
+  select: typeof ADMIN_USER_SELECT;
+}>;
