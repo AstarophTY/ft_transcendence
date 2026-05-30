@@ -27,4 +27,5 @@ export interface FortyTwoProfile {
   email?: string;
   avatar?: string;
   displayName?: string;
+  campus?: string;
 }
