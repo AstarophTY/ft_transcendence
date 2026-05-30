@@ -24,9 +24,44 @@ export interface AdminUser {
   createdAt: string
 }
 
+export interface SignupPoint {
+  date: string
+  count: number
+}
+
+/** Fields an admin may edit on any account. */
+export interface AdminUserUpdate {
+  email?: string
+  displayName?: string
+  bio?: string
+  campus?: string
+  status?: UserStatus
+  statusMessage?: string
+}
+
 export async function getAdminStats(): Promise<AdminStats> {
   const { data } = await api.get<AdminStats>('/admin/stats')
   return data
+}
+
+export async function getSignups(): Promise<SignupPoint[]> {
+  const { data } = await api.get<SignupPoint[]>('/admin/signups')
+  return data
+}
+
+export async function updateAdminUser(
+  id: string,
+  body: AdminUserUpdate,
+): Promise<AdminUser> {
+  const { data } = await api.patch<AdminUser>(`/admin/users/${id}`, body)
+  return data
+}
+
+export async function resetUserPassword(
+  id: string,
+  newPassword: string,
+): Promise<void> {
+  await api.patch(`/admin/users/${id}/password`, { newPassword })
 }
 
 export async function listAdminUsers(): Promise<AdminUser[]> {

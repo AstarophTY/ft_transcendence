@@ -108,7 +108,9 @@
       "displayName": "Display name",
       "bio": "Bio",
       "status": "Status",
-      "statusMessage": "Status message"
+      "statusMessage": "Status message",
+      "changeAvatar": "Change picture",
+      "avatarHint": "PNG, JPG, GIF or WebP, up to 4 MB."
     },
     "account": {
       "username": "Username",
@@ -117,7 +119,8 @@
       "email": "Email",
       "campus": "Campus",
       "campusHint": "Synced from your 42 account.",
-      "fortyTwo": "42 login"
+      "fortyTwo": "42 login",
+      "email42Hint": "42 accounts cannot change their email."
     },
     "security": {
       "current": "Current password",
@@ -139,6 +142,12 @@
     "promote": "Make admin",
     "demote": "Remove admin",
     "delete": "Delete account",
+    "chart": { "title": "Signups (last 14 days)" },
+    "edit": {
+      "title": "Edit user",
+      "newPassword": "New password",
+      "reset": "Reset"
+    },
     "stats": {
       "total": "Total users",
       "new7d": "New (7d)",

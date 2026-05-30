@@ -5,6 +5,7 @@ import { Input } from '@/components/shadcn/input'
 import { useSettings } from '@/store/settings'
 import type { UserStatus } from '@/lib/account'
 import Field from './Field'
+import AvatarPicker from './AvatarPicker'
 
 const STATUSES: UserStatus[] = ['ONLINE', 'AWAY', 'DND', 'OFFLINE']
 
@@ -21,6 +22,7 @@ export default function ProfileTab() {
 
   return (
     <div className="flex flex-col gap-4">
+      <AvatarPicker />
       <Field label={t('settings.profile.displayName')}>
         <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={40} />
       </Field>

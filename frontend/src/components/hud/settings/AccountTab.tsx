@@ -41,14 +41,20 @@ export default function AccountTab() {
         </div>
       </Field>
 
-      <Field label={t('settings.account.email')}>
-        <div className="flex gap-2">
-          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <Button onClick={() => void saveProfile({ email })} disabled={saving || email === (me?.email ?? '')}>
-            {t('settings.save')}
-          </Button>
-        </div>
-      </Field>
+      {me?.fortyTwoLogin ? (
+        <Field label={t('settings.account.email')} hint={t('settings.account.email42Hint')}>
+          <Input type="email" value={me?.email ?? '—'} disabled />
+        </Field>
+      ) : (
+        <Field label={t('settings.account.email')}>
+          <div className="flex gap-2">
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Button onClick={() => void saveProfile({ email })} disabled={saving || email === (me?.email ?? '')}>
+              {t('settings.save')}
+            </Button>
+          </div>
+        </Field>
+      )}
 
       <Field label={t('settings.account.campus')} hint={t('settings.account.campusHint')}>
         <Input value={me?.campus ?? '—'} disabled />

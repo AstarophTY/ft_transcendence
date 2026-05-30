@@ -10,7 +10,7 @@ export const UPLOADS_DIR = '/app/uploads';
 export const AVATAR_URL_PREFIX = '/api/uploads/avatars';
 
 const ALLOWED = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
-export const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
+export const AVATAR_MAX_BYTES = 4 * 1024 * 1024;
 
 /** Multer options for a single avatar image upload. */
 export const avatarMulterOptions = {

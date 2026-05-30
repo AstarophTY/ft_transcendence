@@ -5,9 +5,11 @@ import {
   changeUsername,
   getMe,
   updateProfile,
+  uploadAvatar,
   type ProfileUpdate,
   type SelfUser,
 } from '@/lib/account'
+import { useAuth } from '@/store/auth'
 import { toMessage } from '@/lib/apiError'
 import i18n from '@/i18n'
 
@@ -22,6 +24,7 @@ interface SettingsState {
   saveProfile: (body: ProfileUpdate) => Promise<boolean>
   renameUser: (username: string) => Promise<boolean>
   updatePassword: (current: string, next: string) => Promise<boolean>
+  changeAvatar: (file: File) => Promise<boolean>
 }
 
 export const useSettings = create<SettingsState>((set, get) => ({
@@ -77,6 +80,23 @@ export const useSettings = create<SettingsState>((set, get) => ({
       await changePassword(current, next)
       set({ saving: false })
       toast.success(i18n.t('settings.passwordChanged'))
+      return true
+    } catch (error) {
+      set({ saving: false })
+      toast.error(toMessage(error))
+      return false
+    }
+  },
+
+  changeAvatar: async (file) => {
+    set({ saving: true })
+    try {
+      const me = await uploadAvatar(file)
+      set({ me, saving: false })
+      useAuth.setState((s) =>
+        s.user ? { user: { ...s.user, avatar: me.avatar } } : s,
+      )
+      toast.success(i18n.t('settings.saved'))
       return true
     } catch (error) {
       set({ saving: false })

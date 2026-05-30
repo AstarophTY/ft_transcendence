@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next'
-import { Shield, ShieldOff, Trash2 } from 'lucide-react'
+import { Pencil, Shield, ShieldOff, Trash2 } from 'lucide-react'
 import { Button } from '@/components/shadcn/button'
 import { useAdmin } from '@/store/admin'
 import type { AdminUser } from '@/lib/admin'
 
 export default function UserRow({ user }: { user: AdminUser }) {
   const { t } = useTranslation()
-  const { changeRole, removeUser } = useAdmin()
+  const { changeRole, removeUser, setEditing } = useAdmin()
   const isAdmin = user.role === 'ADMIN'
 
   return (
@@ -20,6 +20,14 @@ export default function UserRow({ user }: { user: AdminUser }) {
       </td>
       <td className="text-center text-xs">{isAdmin ? 'ADMIN' : 'USER'}</td>
       <td className="text-right">
+        <Button
+          variant="ghost"
+          size="icon"
+          title={t('admin.edit.title')}
+          onClick={() => setEditing(user)}
+        >
+          <Pencil className="size-4" />
+        </Button>
         <Button
           variant="ghost"
           size="icon"

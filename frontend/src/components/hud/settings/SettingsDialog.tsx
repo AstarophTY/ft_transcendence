@@ -13,7 +13,7 @@ import AccountTab from './AccountTab'
 import SecurityTab from './SecurityTab'
 import PreferencesTab from './PreferencesTab'
 
-const TABS = [
+const ALL_TABS = [
   { id: 'profile', Comp: ProfileTab },
   { id: 'account', Comp: AccountTab },
   { id: 'security', Comp: SecurityTab },
@@ -23,6 +23,10 @@ const TABS = [
 export default function SettingsDialog() {
   const { t } = useTranslation()
   const { open, setOpen, me, loading } = useSettings()
+
+  // 42 accounts have no local password — hide the Security tab.
+  const is42 = Boolean(me?.fortyTwoLogin)
+  const tabs = ALL_TABS.filter((tab) => tab.id !== 'security' || !is42)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -37,14 +41,17 @@ export default function SettingsDialog() {
           </div>
         ) : (
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              {TABS.map(({ id }) => (
+            <TabsList
+              className="grid w-full"
+              style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
+            >
+              {tabs.map(({ id }) => (
                 <TabsTrigger key={id} value={id}>
                   {t(`settings.tabs.${id}`)}
                 </TabsTrigger>
               ))}
             </TabsList>
-            {TABS.map(({ id, Comp }) => (
+            {tabs.map(({ id, Comp }) => (
               <TabsContent key={id} value={id} className="mt-4">
                 <Comp />
               </TabsContent>

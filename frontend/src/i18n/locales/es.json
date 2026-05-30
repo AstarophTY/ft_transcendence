@@ -108,7 +108,9 @@
       "displayName": "Nombre visible",
       "bio": "Biografía",
       "status": "Estado",
-      "statusMessage": "Mensaje de estado"
+      "statusMessage": "Mensaje de estado",
+      "changeAvatar": "Cambiar foto",
+      "avatarHint": "PNG, JPG, GIF o WebP, hasta 4 MB."
     },
     "account": {
       "username": "Nombre de usuario",
@@ -117,7 +119,8 @@
       "email": "Correo",
       "campus": "Campus",
       "campusHint": "Sincronizado desde tu cuenta 42.",
-      "fortyTwo": "Usuario 42"
+      "fortyTwo": "Usuario 42",
+      "email42Hint": "Las cuentas 42 no pueden cambiar su correo."
     },
     "security": {
       "current": "Contraseña actual",
@@ -139,6 +142,12 @@
     "promote": "Hacer admin",
     "demote": "Quitar admin",
     "delete": "Eliminar cuenta",
+    "chart": { "title": "Registros (últimos 14 días)" },
+    "edit": {
+      "title": "Editar usuario",
+      "newPassword": "Nueva contraseña",
+      "reset": "Restablecer"
+    },
     "stats": {
       "total": "Usuarios totales",
       "new7d": "Nuevos (7d)",

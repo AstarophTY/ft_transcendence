@@ -8,11 +8,13 @@ import {
 } from '@/components/shadcn/dialog'
 import { useAdmin } from '@/store/admin'
 import StatsGrid from './StatsGrid'
+import SignupsChart from './SignupsChart'
 import UserRow from './UserRow'
+import AdminEditUser from './AdminEditUser'
 
 export default function AdminDialog() {
   const { t } = useTranslation()
-  const { open, setOpen, stats, users, loading } = useAdmin()
+  const { open, setOpen, stats, signups, users, loading } = useAdmin()
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -28,7 +30,8 @@ export default function AdminDialog() {
         ) : (
           <div className="flex flex-col gap-4">
             {stats && <StatsGrid stats={stats} />}
-            <div className="max-h-[50vh] overflow-y-auto">
+            {signups.length > 0 && <SignupsChart data={signups} />}
+            <div className="max-h-[40vh] overflow-y-auto">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-card text-xs text-muted-foreground">
                   <tr className="border-b">
@@ -46,6 +49,7 @@ export default function AdminDialog() {
             </div>
           </div>
         )}
+        <AdminEditUser />
       </DialogContent>
     </Dialog>
   )
