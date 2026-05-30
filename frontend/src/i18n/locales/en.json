@@ -85,5 +85,76 @@
       "title": "Profile",
       "joined": "Joined {{date}}"
     }
+  },
+  "settings": {
+    "title": "Settings",
+    "save": "Save",
+    "saved": "Saved",
+    "passwordChanged": "Password updated",
+    "tabs": {
+      "profile": "Profile",
+      "account": "Account",
+      "security": "Security",
+      "preferences": "Preferences"
+    },
+    "status": {
+      "ONLINE": "Online",
+      "AWAY": "Away",
+      "DND": "Do not disturb",
+      "OFFLINE": "Offline"
+    },
+    "theme": { "light": "Light", "dark": "Dark" },
+    "profile": {
+      "displayName": "Display name",
+      "bio": "Bio",
+      "status": "Status",
+      "statusMessage": "Status message",
+      "changeAvatar": "Change picture",
+      "avatarHint": "PNG, JPG, GIF or WebP, up to 4 MB."
+    },
+    "account": {
+      "username": "Username",
+      "usernameHint": "You can change your username once every 30 days.",
+      "cooldown": "You can change your username again in {{days}} day(s).",
+      "email": "Email",
+      "campus": "Campus",
+      "campusHint": "Synced from your 42 account.",
+      "fortyTwo": "42 login",
+      "email42Hint": "42 accounts cannot change their email."
+    },
+    "security": {
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "mismatch": "Passwords do not match",
+      "update": "Update password"
+    },
+    "prefs": {
+      "language": "Language",
+      "theme": "Theme"
+    }
+  },
+  "admin": {
+    "title": "Admin panel",
+    "user": "User",
+    "role": "Role",
+    "actions": "Actions",
+    "promote": "Make admin",
+    "demote": "Remove admin",
+    "delete": "Delete account",
+    "chart": { "title": "Signups (last 14 days)" },
+    "edit": {
+      "title": "Edit user",
+      "newPassword": "New password",
+      "reset": "Reset"
+    },
+    "stats": {
+      "total": "Total users",
+      "new7d": "New (7d)",
+      "admins": "Admins",
+      "users": "Users",
+      "fortyTwo": "42 accounts",
+      "local": "Local accounts"
+    }
   }
 }

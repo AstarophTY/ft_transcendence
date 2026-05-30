@@ -11,6 +11,7 @@ interface FortyTwoApiProfile {
   email?: string;
   displayname?: string;
   image?: { link?: string };
+  campus?: { name?: string }[];
 }
 
 @Injectable()
@@ -57,6 +58,7 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, 'forty-two') {
       email: profile.email,
       avatar: profile.image?.link,
       displayName: profile.displayname,
+      campus: profile.campus?.[0]?.name,
     });
   }
 }

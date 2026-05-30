@@ -85,5 +85,76 @@
       "title": "Profil",
       "joined": "Inscrit le {{date}}"
     }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "save": "Enregistrer",
+    "saved": "Enregistré",
+    "passwordChanged": "Mot de passe mis à jour",
+    "tabs": {
+      "profile": "Profil",
+      "account": "Compte",
+      "security": "Sécurité",
+      "preferences": "Préférences"
+    },
+    "status": {
+      "ONLINE": "En ligne",
+      "AWAY": "Absent",
+      "DND": "Ne pas déranger",
+      "OFFLINE": "Hors ligne"
+    },
+    "theme": { "light": "Clair", "dark": "Sombre" },
+    "profile": {
+      "displayName": "Nom d'affichage",
+      "bio": "Bio",
+      "status": "Statut",
+      "statusMessage": "Message de statut",
+      "changeAvatar": "Changer la photo",
+      "avatarHint": "PNG, JPG, GIF ou WebP, jusqu'à 4 Mo."
+    },
+    "account": {
+      "username": "Nom d'utilisateur",
+      "usernameHint": "Tu peux changer ton pseudo une fois tous les 30 jours.",
+      "cooldown": "Tu pourras changer ton pseudo dans {{days}} jour(s).",
+      "email": "Email",
+      "campus": "Campus",
+      "campusHint": "Synchronisé depuis ton compte 42.",
+      "fortyTwo": "Identifiant 42",
+      "email42Hint": "Les comptes 42 ne peuvent pas changer d'email."
+    },
+    "security": {
+      "current": "Mot de passe actuel",
+      "new": "Nouveau mot de passe",
+      "confirm": "Confirmer le mot de passe",
+      "mismatch": "Les mots de passe ne correspondent pas",
+      "update": "Mettre à jour"
+    },
+    "prefs": {
+      "language": "Langue",
+      "theme": "Thème"
+    }
+  },
+  "admin": {
+    "title": "Panneau admin",
+    "user": "Utilisateur",
+    "role": "Rôle",
+    "actions": "Actions",
+    "promote": "Rendre admin",
+    "demote": "Retirer admin",
+    "delete": "Supprimer le compte",
+    "chart": { "title": "Inscriptions (14 derniers jours)" },
+    "edit": {
+      "title": "Modifier l'utilisateur",
+      "newPassword": "Nouveau mot de passe",
+      "reset": "Réinitialiser"
+    },
+    "stats": {
+      "total": "Comptes total",
+      "new7d": "Nouveaux (7j)",
+      "admins": "Admins",
+      "users": "Utilisateurs",
+      "fortyTwo": "Comptes 42",
+      "local": "Comptes locaux"
+    }
   }
 }
