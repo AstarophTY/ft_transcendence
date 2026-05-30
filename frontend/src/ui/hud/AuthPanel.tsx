@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, Loader2, Lock, LogIn, LogOut, Mail, User, UserPlus, X } from 'lucide-react'
+import { Check, Loader2, Lock, LogIn, LogOut, Mail, User, UserPlus, Users, X } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/shadcn/button'
 import {
   Dialog,
   DialogContent,
@@ -10,12 +10,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+} from '@/components/shadcn/dialog'
+import { Input } from '@/components/shadcn/input'
+import { Label } from '@/components/shadcn/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shadcn/tabs'
+import UserBadge from '@/components/hud/UserBadge'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/store/auth'
+import { useFriends } from '@/store/friends'
 
 const PASSWORD_RULES = [
   { key: 'pwLength', test: (p: string) => p.length >= 8 },
@@ -272,28 +274,32 @@ function AuthDialog() {
 function UserMenu() {
   const { t } = useTranslation()
   const { user, logout } = useAuth()
+  const { incoming, togglePanel, refresh } = useFriends()
+
+  // Load friends/requests once logged in so the badge is up to date.
+  useEffect(() => {
+    if (user) void refresh()
+  }, [user, refresh])
+
   if (!user) return null
-  const name = user.username || user.email || user.userId.slice(0, 8)
 
   return (
     <div className="pointer-events-auto flex items-center gap-3 rounded-lg border bg-card/80 px-3 py-2 text-card-foreground backdrop-blur">
-      {user.avatar ? (
-        <img
-          src={user.avatar}
-          alt={name}
-          className="size-8 rounded-full object-cover"
-        />
-      ) : (
-        <span className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-          {name.charAt(0).toUpperCase()}
-        </span>
-      )}
-      <div className="flex flex-col leading-tight">
-        <span className="text-sm font-medium">{name}</span>
-        <span className="text-xs text-muted-foreground">
-          {t(`role.${user.role}`)}
-        </span>
-      </div>
+      <UserBadge user={user} />
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={togglePanel}
+        aria-label={t('friends.title')}
+        className="relative"
+      >
+        <Users className="size-4" />
+        {incoming.length > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+            {incoming.length}
+          </span>
+        )}
+      </Button>
       <Button
         variant="ghost"
         size="icon"

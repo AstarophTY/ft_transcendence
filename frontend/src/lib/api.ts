@@ -115,3 +115,96 @@ export async function logoutRequest(): Promise<void> {
 export function getFortyTwoLoginUrl(): string {
   return `${baseURL}/auth/42`
 }
+
+// --- friends ---------------------------------------------------------------
+
+export type UserRole = 'USER' | 'ADMIN'
+
+/** Public-facing profile of another user — never exposes the email. */
+export interface PublicUser {
+  id: string
+  username: string
+  avatar: string | null
+  role: UserRole
+  createdAt: string
+}
+
+export type FriendshipStatus = 'PENDING' | 'ACCEPTED'
+
+export interface Friendship {
+  id: string
+  requesterId: string
+  addresseeId: string
+  status: FriendshipStatus
+  createdAt: string
+  updatedAt: string
+  requester: PublicUser
+  addressee: PublicUser
+}
+
+export interface DirectMessage {
+  id: string
+  content: string
+  senderId: string
+  receiverId: string
+  isRead: boolean
+  createdAt: string
+}
+
+export async function listFriends(): Promise<PublicUser[]> {
+  const { data } = await api.get<PublicUser[]>('/friends')
+  return data
+}
+
+export async function getFriendProfile(friendId: string): Promise<PublicUser> {
+  const { data } = await api.get<PublicUser>(`/friends/${friendId}`)
+  return data
+}
+
+export async function removeFriend(friendId: string): Promise<void> {
+  await api.delete(`/friends/${friendId}`)
+}
+
+export async function listIncomingRequests(): Promise<Friendship[]> {
+  const { data } = await api.get<Friendship[]>('/friends/requests/incoming')
+  return data
+}
+
+export async function listOutgoingRequests(): Promise<Friendship[]> {
+  const { data } = await api.get<Friendship[]>('/friends/requests/outgoing')
+  return data
+}
+
+export async function sendFriendRequest(username: string): Promise<Friendship> {
+  const { data } = await api.post<Friendship>('/friends/requests', { username })
+  return data
+}
+
+export async function acceptFriendRequest(id: string): Promise<Friendship> {
+  const { data } = await api.post<Friendship>(`/friends/requests/${id}/accept`)
+  return data
+}
+
+export async function declineFriendRequest(id: string): Promise<void> {
+  await api.delete(`/friends/requests/${id}`)
+}
+
+export async function getConversation(
+  friendId: string,
+): Promise<DirectMessage[]> {
+  const { data } = await api.get<DirectMessage[]>(
+    `/friends/${friendId}/messages`,
+  )
+  return data
+}
+
+export async function sendMessage(
+  friendId: string,
+  content: string,
+): Promise<DirectMessage> {
+  const { data } = await api.post<DirectMessage>(
+    `/friends/${friendId}/messages`,
+    { content },
+  )
+  return data
+}

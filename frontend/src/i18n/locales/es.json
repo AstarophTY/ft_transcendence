@@ -40,5 +40,50 @@
     "registerSuccess": "¡Cuenta creada!",
     "logoutSuccess": "Sesión cerrada",
     "sessionExpired": "Sesión expirada, inicia sesión de nuevo"
+  },
+  "friends": {
+    "title": "Amigos",
+    "empty": "Aún no tienes amigos. Añade a alguien para empezar.",
+    "removed": "{{name}} eliminado",
+    "requestSent": "Solicitud de amistad enviada",
+    "requestAccepted": "Solicitud de amistad aceptada",
+    "notif": {
+      "online": "{{name}} está en línea",
+      "request": "Nueva solicitud de amistad de {{name}}",
+      "accepted": "{{name}} aceptó tu solicitud de amistad",
+      "message": "Nuevo mensaje de {{name}}"
+    },
+    "tabs": {
+      "friends": "Amigos",
+      "requests": "Solicitudes",
+      "add": "Añadir"
+    },
+    "actions": {
+      "profile": "Ver perfil",
+      "message": "Mensaje",
+      "remove": "Eliminar amigo"
+    },
+    "add": {
+      "label": "Añade un amigo por nombre de usuario",
+      "placeholder": "nombre de usuario",
+      "submit": "Enviar solicitud"
+    },
+    "requests": {
+      "empty": "No hay solicitudes pendientes.",
+      "incoming": "Recibidas",
+      "outgoing": "Enviadas",
+      "accept": "Aceptar",
+      "decline": "Rechazar",
+      "cancel": "Cancelar solicitud"
+    },
+    "chat": {
+      "back": "Volver",
+      "empty": "Aún no hay mensajes. ¡Saluda!",
+      "placeholder": "Escribe un mensaje"
+    },
+    "profile": {
+      "title": "Perfil",
+      "joined": "Se unió el {{date}}"
+    }
   }
 }
