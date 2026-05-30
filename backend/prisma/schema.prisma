@@ -17,6 +17,17 @@ model User {
   avatar        String?
   role          Role     @default(USER)
   isVerified    Boolean  @default(false)
+
+  // Editable profile fields (see users.editable.ts for the allow-list).
+  displayName       String?
+  bio               String?
+  campus            String?
+  language          String?
+  theme             String?
+  status            UserStatus @default(ONLINE)
+  statusMessage     String?
+  usernameChangedAt DateTime?
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -101,6 +112,13 @@ model ApiKey {
 enum Role {
   USER
   ADMIN
+}
+
+enum UserStatus {
+  ONLINE
+  AWAY
+  DND
+  OFFLINE
 }
 
 enum FriendshipStatus {
