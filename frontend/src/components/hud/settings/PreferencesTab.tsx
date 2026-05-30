@@ -8,6 +8,7 @@ const THEMES = ['light', 'dark'] as const
 export default function PreferencesTab() {
   const { t, i18n } = useTranslation()
   const { me, saveProfile } = useSettings()
+  const storedTheme = localStorage.getItem('theme')
 
   const onLanguage = (language: string) => {
     void i18n.changeLanguage(language)
@@ -16,6 +17,7 @@ export default function PreferencesTab() {
 
   const onTheme = (theme: string) => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
+    localStorage.setItem('theme', theme)
     void saveProfile({ theme })
   }
 
@@ -40,7 +42,7 @@ export default function PreferencesTab() {
       <Field label={t('settings.prefs.theme')}>
         <select
           className={select}
-          value={me?.theme ?? 'dark'}
+          value={me?.theme ?? storedTheme ?? 'dark'}
           onChange={(e) => onTheme(e.target.value)}
         >
           {THEMES.map((th) => (
