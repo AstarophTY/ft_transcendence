@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, Loader2, Lock, LogIn, LogOut, Mail, User, UserPlus, Users, X } from 'lucide-react'
+import { Check, Loader2, Lock, LogIn, LogOut, Mail, Settings, User, UserPlus, Users, X } from 'lucide-react'
 
 import { Button } from '@/components/shadcn/button'
 import {
@@ -15,9 +15,11 @@ import { Input } from '@/components/shadcn/input'
 import { Label } from '@/components/shadcn/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shadcn/tabs'
 import UserBadge from '@/components/hud/UserBadge'
+import SettingsDialog from '@/components/hud/settings/SettingsDialog'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/store/auth'
 import { useFriends } from '@/store/friends'
+import { useSettings } from '@/store/settings'
 
 const PASSWORD_RULES = [
   { key: 'pwLength', test: (p: string) => p.length >= 8 },
@@ -275,6 +277,7 @@ function UserMenu() {
   const { t } = useTranslation()
   const { user, logout } = useAuth()
   const { incoming, togglePanel, refresh } = useFriends()
+  const openSettings = useSettings((s) => s.setOpen)
 
   // Load friends/requests once logged in so the badge is up to date.
   useEffect(() => {
@@ -303,11 +306,20 @@ function UserMenu() {
       <Button
         variant="ghost"
         size="icon"
+        onClick={() => openSettings(true)}
+        aria-label={t('settings.title')}
+      >
+        <Settings className="size-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={logout}
         aria-label={t('auth.logout')}
       >
         <LogOut className="size-4" />
       </Button>
+      <SettingsDialog />
     </div>
   )
 }

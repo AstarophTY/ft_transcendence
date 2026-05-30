@@ -85,5 +85,50 @@
       "title": "Perfil",
       "joined": "Se unió el {{date}}"
     }
+  },
+  "settings": {
+    "title": "Ajustes",
+    "save": "Guardar",
+    "saved": "Guardado",
+    "passwordChanged": "Contraseña actualizada",
+    "tabs": {
+      "profile": "Perfil",
+      "account": "Cuenta",
+      "security": "Seguridad",
+      "preferences": "Preferencias"
+    },
+    "status": {
+      "ONLINE": "En línea",
+      "AWAY": "Ausente",
+      "DND": "No molestar",
+      "OFFLINE": "Desconectado"
+    },
+    "theme": { "light": "Claro", "dark": "Oscuro" },
+    "profile": {
+      "displayName": "Nombre visible",
+      "bio": "Biografía",
+      "status": "Estado",
+      "statusMessage": "Mensaje de estado"
+    },
+    "account": {
+      "username": "Nombre de usuario",
+      "usernameHint": "Puedes cambiar tu usuario una vez cada 30 días.",
+      "cooldown": "Podrás cambiar tu usuario en {{days}} día(s).",
+      "email": "Correo",
+      "campus": "Campus",
+      "campusHint": "Sincronizado desde tu cuenta 42.",
+      "fortyTwo": "Usuario 42"
+    },
+    "security": {
+      "current": "Contraseña actual",
+      "new": "Nueva contraseña",
+      "confirm": "Confirmar contraseña",
+      "mismatch": "Las contraseñas no coinciden",
+      "update": "Actualizar contraseña"
+    },
+    "prefs": {
+      "language": "Idioma",
+      "theme": "Tema"
+    }
   }
 }
