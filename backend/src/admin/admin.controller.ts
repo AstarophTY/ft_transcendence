@@ -16,7 +16,9 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { AuthUser } from '../auth/interfaces/auth.interfaces';
 import { AdminUser } from '../users/users.select';
-import { AdminService, AdminStats } from './admin.service';
+import { AdminService, AdminStats, SignupPoint } from './admin.service';
+import { AdminResetPasswordDto } from './dto/admin-reset-password.dto';
+import { AdminUpdateUserDto } from './dto/admin-update-user.dto';
 import { SetRoleDto } from './dto/set-role.dto';
 
 @Controller('admin')
@@ -30,9 +32,31 @@ export class AdminController {
     return this.admin.getStats();
   }
 
+  @Get('signups')
+  signups(): Promise<SignupPoint[]> {
+    return this.admin.getSignupsByDay();
+  }
+
   @Get('users')
   users(): Promise<AdminUser[]> {
     return this.admin.listUsers();
+  }
+
+  @Patch('users/:id')
+  updateUser(
+    @Param('id') id: string,
+    @Body() dto: AdminUpdateUserDto,
+  ): Promise<AdminUser> {
+    return this.admin.updateUser(id, dto);
+  }
+
+  @Patch('users/:id/password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  resetPassword(
+    @Param('id') id: string,
+    @Body() dto: AdminResetPasswordDto,
+  ): Promise<void> {
+    return this.admin.resetPassword(id, dto.newPassword);
   }
 
   @Patch('users/:id/role')
