@@ -130,5 +130,22 @@
       "language": "Langue",
       "theme": "Thème"
     }
+  },
+  "admin": {
+    "title": "Panneau admin",
+    "user": "Utilisateur",
+    "role": "Rôle",
+    "actions": "Actions",
+    "promote": "Rendre admin",
+    "demote": "Retirer admin",
+    "delete": "Supprimer le compte",
+    "stats": {
+      "total": "Comptes total",
+      "new7d": "Nouveaux (7j)",
+      "admins": "Admins",
+      "users": "Utilisateurs",
+      "fortyTwo": "Comptes 42",
+      "local": "Comptes locaux"
+    }
   }
 }

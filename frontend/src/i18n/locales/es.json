@@ -130,5 +130,22 @@
       "language": "Idioma",
       "theme": "Tema"
     }
+  },
+  "admin": {
+    "title": "Panel de administración",
+    "user": "Usuario",
+    "role": "Rol",
+    "actions": "Acciones",
+    "promote": "Hacer admin",
+    "demote": "Quitar admin",
+    "delete": "Eliminar cuenta",
+    "stats": {
+      "total": "Usuarios totales",
+      "new7d": "Nuevos (7d)",
+      "admins": "Admins",
+      "users": "Usuarios",
+      "fortyTwo": "Cuentas 42",
+      "local": "Cuentas locales"
+    }
   }
 }
