@@ -31,7 +31,11 @@ export class ProfileService {
     dto: UpdateProfileDto,
     avatar?: string,
   ): Promise<SelfUser> {
-    if (dto.email) {
+    if (dto.email !== undefined) {
+      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+      if (user?.fortyTwoId) {
+        throw new BadRequestException('42 accounts cannot change their email');
+      }
       const taken = await this.prisma.user.findFirst({
         where: { email: dto.email, NOT: { id: userId } },
       });
@@ -40,6 +44,15 @@ export class ProfileService {
     return this.prisma.user.update({
       where: { id: userId },
       data: { ...dto, ...(avatar !== undefined ? { avatar } : {}) },
+      select: SELF_USER_SELECT,
+    });
+  }
+
+  /** Persist a freshly uploaded avatar URL. */
+  setAvatar(userId: string, avatar: string): Promise<SelfUser> {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { avatar },
       select: SELF_USER_SELECT,
     });
   }

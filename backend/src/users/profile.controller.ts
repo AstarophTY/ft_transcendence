@@ -1,15 +1,24 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
   HttpCode,
   HttpStatus,
   Patch,
+  Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuthUser } from '../auth/interfaces/auth.interfaces';
+import {
+  AVATAR_URL_PREFIX,
+  avatarMulterOptions,
+} from './avatar.upload';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ChangeUsernameDto } from './dto/change-username.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -39,6 +48,20 @@ export class ProfileController {
   }
 
   /** Change username (rate-limited to once / 30 days). */
+  /** Upload / replace the avatar image (multipart field: `file`). */
+  @Post('avatar')
+  @UseInterceptors(FileInterceptor('file', avatarMulterOptions))
+  uploadAvatar(
+    @CurrentUser() user: AuthUser,
+    @UploadedFile() file?: Express.Multer.File,
+  ): Promise<SelfUser> {
+    if (!file) throw new BadRequestException('No file uploaded');
+    return this.profile.setAvatar(
+      user.userId,
+      `${AVATAR_URL_PREFIX}/${file.filename}`,
+    );
+  }
+
   @Patch('username')
   changeUsername(
     @CurrentUser() user: AuthUser,
