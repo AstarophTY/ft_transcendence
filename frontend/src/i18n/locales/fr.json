@@ -40,5 +40,50 @@
     "registerSuccess": "Compte créé !",
     "logoutSuccess": "Déconnecté",
     "sessionExpired": "Session expirée, reconnecte-toi"
+  },
+  "friends": {
+    "title": "Amis",
+    "empty": "Pas encore d'amis. Ajoute quelqu'un pour commencer.",
+    "removed": "{{name}} supprimé",
+    "requestSent": "Demande d'ami envoyée",
+    "requestAccepted": "Demande d'ami acceptée",
+    "notif": {
+      "online": "{{name}} est en ligne",
+      "request": "Nouvelle demande d'ami de {{name}}",
+      "accepted": "{{name}} a accepté ta demande d'ami",
+      "message": "Nouveau message de {{name}}"
+    },
+    "tabs": {
+      "friends": "Amis",
+      "requests": "Demandes",
+      "add": "Ajouter"
+    },
+    "actions": {
+      "profile": "Voir le profil",
+      "message": "Message",
+      "remove": "Supprimer l'ami"
+    },
+    "add": {
+      "label": "Ajouter un ami par nom d'utilisateur",
+      "placeholder": "nom d'utilisateur",
+      "submit": "Envoyer la demande"
+    },
+    "requests": {
+      "empty": "Aucune demande en attente.",
+      "incoming": "Reçues",
+      "outgoing": "Envoyées",
+      "accept": "Accepter",
+      "decline": "Refuser",
+      "cancel": "Annuler la demande"
+    },
+    "chat": {
+      "back": "Retour",
+      "empty": "Pas encore de messages. Dis bonjour !",
+      "placeholder": "Écris un message"
+    },
+    "profile": {
+      "title": "Profil",
+      "joined": "Inscrit le {{date}}"
+    }
   }
 }

@@ -1,1 +1,1 @@
-export type Tab = 'friends' | 'add' | 'chat' | 'settings';
+export type Tab = 'friends' | 'requests' | 'add';

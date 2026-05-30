@@ -40,5 +40,50 @@
     "registerSuccess": "Account created!",
     "logoutSuccess": "Logged out",
     "sessionExpired": "Session expired, please log in again"
+  },
+  "friends": {
+    "title": "Friends",
+    "empty": "No friends yet. Add someone to get started.",
+    "removed": "Removed {{name}}",
+    "requestSent": "Friend request sent",
+    "requestAccepted": "Friend request accepted",
+    "notif": {
+      "online": "{{name}} is online",
+      "request": "New friend request from {{name}}",
+      "accepted": "{{name}} accepted your friend request",
+      "message": "New message from {{name}}"
+    },
+    "tabs": {
+      "friends": "Friends",
+      "requests": "Requests",
+      "add": "Add"
+    },
+    "actions": {
+      "profile": "View profile",
+      "message": "Message",
+      "remove": "Remove friend"
+    },
+    "add": {
+      "label": "Add a friend by username",
+      "placeholder": "username",
+      "submit": "Send request"
+    },
+    "requests": {
+      "empty": "No pending requests.",
+      "incoming": "Incoming",
+      "outgoing": "Sent",
+      "accept": "Accept",
+      "decline": "Decline",
+      "cancel": "Cancel request"
+    },
+    "chat": {
+      "back": "Back",
+      "empty": "No messages yet. Say hi!",
+      "placeholder": "Type a message"
+    },
+    "profile": {
+      "title": "Profile",
+      "joined": "Joined {{date}}"
+    }
   }
 }
