@@ -85,5 +85,50 @@
       "title": "Profile",
       "joined": "Joined {{date}}"
     }
+  },
+  "settings": {
+    "title": "Settings",
+    "save": "Save",
+    "saved": "Saved",
+    "passwordChanged": "Password updated",
+    "tabs": {
+      "profile": "Profile",
+      "account": "Account",
+      "security": "Security",
+      "preferences": "Preferences"
+    },
+    "status": {
+      "ONLINE": "Online",
+      "AWAY": "Away",
+      "DND": "Do not disturb",
+      "OFFLINE": "Offline"
+    },
+    "theme": { "light": "Light", "dark": "Dark" },
+    "profile": {
+      "displayName": "Display name",
+      "bio": "Bio",
+      "status": "Status",
+      "statusMessage": "Status message"
+    },
+    "account": {
+      "username": "Username",
+      "usernameHint": "You can change your username once every 30 days.",
+      "cooldown": "You can change your username again in {{days}} day(s).",
+      "email": "Email",
+      "campus": "Campus",
+      "campusHint": "Synced from your 42 account.",
+      "fortyTwo": "42 login"
+    },
+    "security": {
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "mismatch": "Passwords do not match",
+      "update": "Update password"
+    },
+    "prefs": {
+      "language": "Language",
+      "theme": "Theme"
+    }
   }
 }
