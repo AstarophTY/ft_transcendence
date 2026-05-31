@@ -51,6 +51,18 @@ export class RedisService implements OnModuleDestroy {
     await this.client.del(`login_attempts:${identifier}`);
   }
 
+  async getRaw(key: string): Promise<string | null> {
+    return this.client.get(key);
+  }
+
+  async setRaw(key: string, value: string, ttlSeconds?: number): Promise<void> {
+    if (ttlSeconds) {
+      await this.client.set(key, value, 'EX', ttlSeconds);
+    } else {
+      await this.client.set(key, value);
+    }
+  }
+
   onModuleDestroy(): void {
     void this.client.quit();
   }
