@@ -5,6 +5,11 @@ export const PUBLIC_USER_SELECT = {
   username: true,
   avatar: true,
   role: true,
+  displayName: true,
+  bio: true,
+  status: true,
+  statusMessage: true,
+  campus: true,
   createdAt: true,
 } satisfies Prisma.UserSelect;
 
@@ -46,8 +51,11 @@ export const ADMIN_USER_SELECT = {
   email: true,
   avatar: true,
   role: true,
+  displayName: true,
+  bio: true,
   campus: true,
   status: true,
+  statusMessage: true,
   fortyTwoLogin: true,
   isVerified: true,
   createdAt: true,
