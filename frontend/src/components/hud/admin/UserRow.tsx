@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Pencil, Shield, ShieldOff, Trash2 } from 'lucide-react'
 import { Button } from '@/components/shadcn/button'
+import { Badge } from '@/components/shadcn/badge'
 import { useAdmin } from '@/store/admin'
 import Avatar from '@/components/hud/friends/Avatar'
 import type { AdminUser } from '@/lib/admin'
@@ -26,20 +27,22 @@ export default function UserRow({ user }: { user: AdminUser }) {
   })
 
   return (
-    <tr className="border-b last:border-0 hover:bg-accent/30 transition-colors">
+    <tr className="border-b last:border-0 transition-colors hover:bg-accent/30">
       <td className="px-3 py-2">
         <div className="flex items-center gap-2.5">
           <div className="relative shrink-0">
             <Avatar src={user.avatar} name={user.username} size={32} />
-            <span className={`absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-background ${STATUS_COLOR[user.status]}`} />
+            <span
+              className={`absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-background ${STATUS_COLOR[user.status]}`}
+            />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 font-medium leading-tight">
               {user.username}
               {is42 && (
-                <span className="rounded bg-secondary px-1 py-0.5 text-[10px] font-semibold text-secondary-foreground">
+                <Badge variant="secondary" className="rounded px-1 py-0 text-[10px]">
                   42
-                </span>
+                </Badge>
               )}
             </div>
             {user.displayName && (
@@ -56,18 +59,12 @@ export default function UserRow({ user }: { user: AdminUser }) {
       </td>
 
       <td className="px-3 py-2">
-        <span
-          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-            isAdmin
-              ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-              : 'bg-secondary text-secondary-foreground'
-          }`}
-        >
+        <Badge variant={isAdmin ? 'warning' : 'secondary'}>
           {isAdmin ? t('role.ADMIN') : t('role.USER')}
-        </span>
+        </Badge>
       </td>
 
-      <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">
+      <td className="whitespace-nowrap px-3 py-2 text-xs text-muted-foreground">
         {joined}
       </td>
 
@@ -86,11 +83,7 @@ export default function UserRow({ user }: { user: AdminUser }) {
           title={isAdmin ? t('admin.demote') : t('admin.promote')}
           onClick={() => changeRole(user.id, isAdmin ? 'USER' : 'ADMIN')}
         >
-          {isAdmin ? (
-            <ShieldOff className="size-4" />
-          ) : (
-            <Shield className="size-4" />
-          )}
+          {isAdmin ? <ShieldOff className="size-4" /> : <Shield className="size-4" />}
         </Button>
         <Button
           variant="ghost"

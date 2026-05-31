@@ -8,15 +8,21 @@ import {
 } from '@/components/shadcn/dialog'
 import { Button } from '@/components/shadcn/button'
 import { Input } from '@/components/shadcn/input'
+import { Textarea } from '@/components/shadcn/textarea'
+import { Separator } from '@/components/shadcn/separator'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/shadcn/select'
 import { useAdmin } from '@/store/admin'
 import Avatar from '@/components/hud/friends/Avatar'
 import Field from '@/components/hud/settings/Field'
 import type { UserStatus } from '@/lib/account'
 
 const STATUSES: UserStatus[] = ['ONLINE', 'AWAY', 'DND', 'OFFLINE']
-
-const select =
-  'h-9 w-full rounded-md border bg-transparent px-3 text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50'
 
 export default function AdminEditUser() {
   const { t } = useTranslation()
@@ -83,12 +89,11 @@ export default function AdminEditUser() {
               </Field>
 
               <Field label={t('admin.edit.bio')}>
-                <textarea
+                <Textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   maxLength={280}
                   rows={3}
-                  className="w-full rounded-md border bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 />
               </Field>
 
@@ -113,23 +118,29 @@ export default function AdminEditUser() {
             </div>
           </section>
 
+          <Separator />
+
           <section>
             <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               {t('admin.edit.status')}
             </p>
             <div className="flex flex-col gap-3">
               <Field label={t('admin.edit.status')}>
-                <select
-                  className={select}
+                <Select
                   value={status}
-                  onChange={(e) => setStatus(e.target.value as UserStatus)}
+                  onValueChange={(v) => setStatus(v as UserStatus)}
                 >
-                  {STATUSES.map((s) => (
-                    <option key={s} value={s}>
-                      {t(`settings.status.${s}`)}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUSES.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {t(`settings.status.${s}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
 
               <Field label={t('admin.edit.statusMessage')}>
@@ -147,27 +158,30 @@ export default function AdminEditUser() {
           </Button>
 
           {!is42 && (
-            <section>
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {t('admin.edit.securitySection')}
-              </p>
-              <Field label={t('admin.edit.newPassword')}>
-                <div className="flex gap-2">
-                  <Input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={() => void reset()}
-                    disabled={!password}
-                  >
-                    {t('admin.edit.reset')}
-                  </Button>
-                </div>
-              </Field>
-            </section>
+            <>
+              <Separator />
+              <section>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t('admin.edit.securitySection')}
+                </p>
+                <Field label={t('admin.edit.newPassword')}>
+                  <div className="flex gap-2">
+                    <Input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={() => void reset()}
+                      disabled={!password}
+                    >
+                      {t('admin.edit.reset')}
+                    </Button>
+                  </div>
+                </Field>
+              </section>
+            </>
           )}
         </div>
       </DialogContent>

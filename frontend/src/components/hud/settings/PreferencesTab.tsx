@@ -1,6 +1,13 @@
 import { useTranslation } from 'react-i18next'
 import { useSettings } from '@/store/settings'
 import { SUPPORTED_LANGUAGES } from '@/i18n'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/shadcn/select'
 import Field from './Field'
 
 const THEMES = ['light', 'dark'] as const
@@ -21,36 +28,39 @@ export default function PreferencesTab() {
     void saveProfile({ theme })
   }
 
-  const select =
-    'h-9 w-full rounded-md border bg-transparent px-3 text-sm outline-none'
-
   return (
     <div className="flex flex-col gap-4">
       <Field label={t('settings.prefs.language')}>
-        <select
-          className={select}
-          value={me?.language ?? i18n.language}
-          onChange={(e) => onLanguage(e.target.value)}
-        >
-          {SUPPORTED_LANGUAGES.map((lng) => (
-            <option key={lng} value={lng}>
-              {t(`language.${lng}`)}
-            </option>
-          ))}
-        </select>
+        <Select value={me?.language ?? i18n.language} onValueChange={onLanguage}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SUPPORTED_LANGUAGES.map((lng) => (
+              <SelectItem key={lng} value={lng}>
+                {t(`language.${lng}`)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </Field>
+
       <Field label={t('settings.prefs.theme')}>
-        <select
-          className={select}
+        <Select
           value={me?.theme ?? storedTheme ?? 'dark'}
-          onChange={(e) => onTheme(e.target.value)}
+          onValueChange={onTheme}
         >
-          {THEMES.map((th) => (
-            <option key={th} value={th}>
-              {t(`settings.theme.${th}`)}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {THEMES.map((th) => (
+              <SelectItem key={th} value={th}>
+                {t(`settings.theme.${th}`)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </Field>
     </div>
   )

@@ -1,12 +1,21 @@
 import { cn } from '@/lib/utils'
 
+const STATUS_DOT: Record<string, string> = {
+  ONLINE: 'bg-green-500',
+  AWAY: 'bg-yellow-400',
+  DND: 'bg-red-500',
+  OFFLINE: 'bg-muted-foreground',
+}
+
 interface AvatarProps {
   src?: string | null
   name: string
   size?: number
   className?: string
-  /** When set, shows a green (online) / grey (offline) status dot. */
+  /** Simple boolean online dot (green / grey). */
   online?: boolean
+  /** Full status enum — takes precedence over `online` when provided. */
+  status?: 'ONLINE' | 'AWAY' | 'DND' | 'OFFLINE'
 }
 
 /** Round avatar that falls back to the first letter of the username. */
@@ -16,6 +25,7 @@ export default function Avatar({
   size = 40,
   className,
   online,
+  status,
 }: AvatarProps) {
   const dimensions = { width: size, height: size }
 
@@ -38,7 +48,13 @@ export default function Avatar({
     </div>
   )
 
-  if (online === undefined) return inner
+  if (status === undefined && online === undefined) return inner
+
+  const dotClass = status
+    ? STATUS_DOT[status]
+    : online
+      ? 'bg-green-500'
+      : 'bg-muted-foreground'
 
   return (
     <span className="relative inline-flex shrink-0">
@@ -46,9 +62,8 @@ export default function Avatar({
       <span
         className={cn(
           'absolute bottom-0 right-0 size-3 rounded-full border-2 border-background',
-          online ? 'bg-green-500' : 'bg-muted-foreground',
+          dotClass,
         )}
-        title={online ? 'online' : 'offline'}
       />
     </span>
   )
