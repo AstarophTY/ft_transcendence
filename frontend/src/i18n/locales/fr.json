@@ -83,7 +83,11 @@
     },
     "profile": {
       "title": "Profil",
-      "joined": "Inscrit le {{date}}"
+      "joined": "Inscrit le {{date}}",
+      "bio": "Bio",
+      "noBio": "Pas encore de bio.",
+      "status": "Statut",
+      "campus": "Campus"
     }
   },
   "settings": {
@@ -142,11 +146,31 @@
     "promote": "Rendre admin",
     "demote": "Retirer admin",
     "delete": "Supprimer le compte",
+    "noUsers": "Aucun utilisateur ne correspond à la recherche.",
+    "joined": "Inscrit",
+    "tabs": {
+      "overview": "Vue d'ensemble",
+      "users": "Utilisateurs"
+    },
+    "search": "Rechercher par pseudo, email…",
+    "filter": {
+      "all": "Tous",
+      "admin": "Admins",
+      "user": "Utilisateurs",
+      "42": "42",
+      "local": "Locaux"
+    },
     "chart": { "title": "Inscriptions (14 derniers jours)" },
     "edit": {
       "title": "Modifier l'utilisateur",
       "newPassword": "Nouveau mot de passe",
-      "reset": "Réinitialiser"
+      "reset": "Réinitialiser",
+      "displayName": "Nom d'affichage",
+      "bio": "Bio",
+      "status": "Statut",
+      "statusMessage": "Message de statut",
+      "infoSection": "Informations du profil",
+      "securitySection": "Sécurité"
     },
     "stats": {
       "total": "Comptes total",

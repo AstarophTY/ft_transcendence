@@ -83,7 +83,11 @@
     },
     "profile": {
       "title": "Profile",
-      "joined": "Joined {{date}}"
+      "joined": "Joined {{date}}",
+      "bio": "Bio",
+      "noBio": "No bio yet.",
+      "status": "Status",
+      "campus": "Campus"
     }
   },
   "settings": {
@@ -142,11 +146,31 @@
     "promote": "Make admin",
     "demote": "Remove admin",
     "delete": "Delete account",
+    "noUsers": "No users match your search.",
+    "joined": "Joined",
+    "tabs": {
+      "overview": "Overview",
+      "users": "Users"
+    },
+    "search": "Search by username, email…",
+    "filter": {
+      "all": "All",
+      "admin": "Admins",
+      "user": "Users",
+      "42": "42",
+      "local": "Local"
+    },
     "chart": { "title": "Signups (last 14 days)" },
     "edit": {
       "title": "Edit user",
       "newPassword": "New password",
-      "reset": "Reset"
+      "reset": "Reset",
+      "displayName": "Display name",
+      "bio": "Bio",
+      "status": "Status",
+      "statusMessage": "Status message",
+      "infoSection": "Profile info",
+      "securitySection": "Security"
     },
     "stats": {
       "total": "Total users",

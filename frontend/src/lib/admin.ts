@@ -17,8 +17,11 @@ export interface AdminUser {
   email: string | null
   avatar: string | null
   role: UserRole
+  displayName: string | null
+  bio: string | null
   campus: string | null
   status: UserStatus
+  statusMessage: string | null
   fortyTwoLogin: string | null
   isVerified: boolean
   createdAt: string
