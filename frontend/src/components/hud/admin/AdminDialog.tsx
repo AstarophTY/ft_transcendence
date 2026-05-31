@@ -9,6 +9,10 @@ import {
 } from '@/components/shadcn/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shadcn/tabs'
 import { Input } from '@/components/shadcn/input'
+import { ScrollArea } from '@/components/shadcn/scroll-area'
+import { Separator } from '@/components/shadcn/separator'
+import { Badge } from '@/components/shadcn/badge'
+import { ToggleGroup, ToggleGroupItem } from '@/components/shadcn/toggle-group'
 import { useAdmin } from '@/store/admin'
 import type { AdminUser } from '@/lib/admin'
 import StatsGrid from './StatsGrid'
@@ -44,18 +48,6 @@ function UsersTab({ users }: { users: AdminUser[] }) {
     return matchSearch && matchRole && matchType
   })
 
-  const roleFilters: { key: RoleFilter; label: string }[] = [
-    { key: 'all', label: t('admin.filter.all') },
-    { key: 'admin', label: t('admin.filter.admin') },
-    { key: 'user', label: t('admin.filter.user') },
-  ]
-
-  const typeFilters: { key: TypeFilter; label: string }[] = [
-    { key: 'all', label: t('admin.filter.all') },
-    { key: '42', label: t('admin.filter.42') },
-    { key: 'local', label: t('admin.filter.local') },
-  ]
-
   return (
     <div className="flex flex-col gap-3">
       <div className="relative">
@@ -68,64 +60,57 @@ function UsersTab({ users }: { users: AdminUser[] }) {
         />
       </div>
 
-      <div className="flex items-center gap-4 text-xs">
-        <div className="flex items-center gap-1">
-          {roleFilters.map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => setRoleFilter(key)}
-              className={`rounded-full px-2.5 py-1 font-medium transition-colors ${
-                roleFilter === key
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-accent'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        <div className="h-4 w-px bg-border" />
-        <div className="flex items-center gap-1">
-          {typeFilters.map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => setTypeFilter(key)}
-              className={`rounded-full px-2.5 py-1 font-medium transition-colors ${
-                typeFilter === key
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-accent'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+      <div className="flex items-center gap-3 text-xs">
+        <ToggleGroup
+          type="single"
+          value={roleFilter}
+          onValueChange={(v) => v && setRoleFilter(v as RoleFilter)}
+        >
+          <ToggleGroupItem value="all">{t('admin.filter.all')}</ToggleGroupItem>
+          <ToggleGroupItem value="admin">{t('admin.filter.admin')}</ToggleGroupItem>
+          <ToggleGroupItem value="user">{t('admin.filter.user')}</ToggleGroupItem>
+        </ToggleGroup>
+
+        <Separator orientation="vertical" className="h-5" />
+
+        <ToggleGroup
+          type="single"
+          value={typeFilter}
+          onValueChange={(v) => v && setTypeFilter(v as TypeFilter)}
+        >
+          <ToggleGroupItem value="all">{t('admin.filter.all')}</ToggleGroupItem>
+          <ToggleGroupItem value="42">{t('admin.filter.42')}</ToggleGroupItem>
+          <ToggleGroupItem value="local">{t('admin.filter.local')}</ToggleGroupItem>
+        </ToggleGroup>
+
         <span className="ml-auto text-muted-foreground">
           {filtered.length} / {users.length}
         </span>
       </div>
 
-      <div className="max-h-[50vh] overflow-y-auto rounded-lg border">
+      <div className="rounded-lg border">
         {filtered.length === 0 ? (
           <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">
             {t('admin.noUsers')}
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-card text-xs text-muted-foreground">
-              <tr className="border-b">
-                <th className="px-3 py-2 text-left">{t('admin.user')}</th>
-                <th className="px-3 py-2 text-left">{t('admin.role')}</th>
-                <th className="px-3 py-2 text-left">{t('admin.joined')}</th>
-                <th className="px-3 py-2 text-right">{t('admin.actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((u) => (
-                <UserRow key={u.id} user={u} />
-              ))}
-            </tbody>
-          </table>
+          <ScrollArea className="max-h-[50vh]">
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 bg-card text-xs text-muted-foreground">
+                <tr className="border-b">
+                  <th className="px-3 py-2 text-left">{t('admin.user')}</th>
+                  <th className="px-3 py-2 text-left">{t('admin.role')}</th>
+                  <th className="px-3 py-2 text-left">{t('admin.joined')}</th>
+                  <th className="px-3 py-2 text-right">{t('admin.actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((u) => (
+                  <UserRow key={u.id} user={u} />
+                ))}
+              </tbody>
+            </table>
+          </ScrollArea>
         )}
       </div>
     </div>
@@ -153,9 +138,9 @@ export default function AdminDialog() {
               <TabsTrigger value="overview">{t('admin.tabs.overview')}</TabsTrigger>
               <TabsTrigger value="users">
                 {t('admin.tabs.users')}
-                <span className="ml-1.5 rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-medium text-primary">
+                <Badge variant="secondary" className="ml-1.5 rounded-full px-1.5 py-0.5 text-[10px]">
                   {users.length}
-                </span>
+                </Badge>
               </TabsTrigger>
             </TabsList>
 
