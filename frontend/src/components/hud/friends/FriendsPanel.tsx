@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useTranslation } from 'react-i18next'
-import { Users, UserPlus, Mailbox, X } from 'lucide-react'
+import { Users, UserPlus, Mailbox, MessageSquare, X } from 'lucide-react'
 import { useFriends } from '@/store/friends'
 import { cn } from '@/lib/utils'
 import { Tab } from '@/types/Social'
+import ChatTab from '@/components/hud/chat/ChatTab'
 import FriendsList from './FriendsList'
 import FriendRequests from './FriendRequests'
 import AddFriend from './AddFriend'
@@ -15,9 +16,10 @@ export default function FriendsPanel() {
   const [activeTab, setActiveTab] = useState<Tab>('friends')
 
   const tabs = [
-    { id: 'friends' as Tab, icon: Users, label: t('friends.tabs.friends') },
-    { id: 'requests' as Tab, icon: Mailbox, label: t('friends.tabs.requests'), badge: incoming.length },
-    { id: 'add' as Tab, icon: UserPlus, label: t('friends.tabs.add') },
+    { id: 'friends' as Tab, icon: Users,         label: t('friends.tabs.friends') },
+    { id: 'requests' as Tab, icon: Mailbox,       label: t('friends.tabs.requests'), badge: incoming.length },
+    { id: 'add' as Tab,      icon: UserPlus,      label: t('friends.tabs.add') },
+    { id: 'chat' as Tab,     icon: MessageSquare, label: 'Chat' },
   ]
 
   return (
@@ -67,19 +69,26 @@ export default function FriendsPanel() {
         ))}
       </nav>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.15 }}
-          >
-            {activeTab === 'friends' && <FriendsList />}
-            {activeTab === 'requests' && <FriendRequests />}
-            {activeTab === 'add' && <AddFriend />}
-          </motion.div>
+          {activeTab === 'chat' ? (
+            /* Chat tab manages its own height — no wrapper scroll needed */
+            <div key="chat" className="h-full">
+              <ChatTab />
+            </div>
+          ) : (
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.15 }}
+            >
+              {activeTab === 'friends'  && <FriendsList />}
+              {activeTab === 'requests' && <FriendRequests />}
+              {activeTab === 'add'      && <AddFriend />}
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </motion.div>

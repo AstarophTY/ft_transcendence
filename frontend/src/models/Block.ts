@@ -1,4 +1,4 @@
 export enum Block {
-    Air,
-    Stone,
+  Air = 0,
+  Stone = 1,
 }
