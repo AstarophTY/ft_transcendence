@@ -5,7 +5,10 @@ import './i18n'
 import './index.css'
 
 const storedTheme = localStorage.getItem('theme')
-if (storedTheme === 'dark' || storedTheme === 'light') {
+if (!storedTheme) {
+  document.documentElement.classList.add('dark')
+  localStorage.setItem('theme', 'dark')
+} else {
   document.documentElement.classList.toggle('dark', storedTheme === 'dark')
 }
 
