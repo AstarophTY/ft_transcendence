@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ShieldCheck, CalendarDays } from 'lucide-react'
+import { ShieldCheck, CalendarDays, MapPin } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -16,10 +16,13 @@ interface FriendProfileProps {
   onOpenChange: (open: boolean) => void
 }
 
-/**
- * Shows the public profile of a friend (avatar, username, role, join date).
- * Fetched through `GET /friends/:id`, which never returns the email.
- */
+const STATUS_COLOR: Record<string, string> = {
+  ONLINE: 'bg-green-500',
+  AWAY: 'bg-yellow-400',
+  DND: 'bg-red-500',
+  OFFLINE: 'bg-muted-foreground',
+}
+
 export default function FriendProfile({
   friend,
   onOpenChange,
@@ -42,12 +45,19 @@ export default function FriendProfile({
   }, [friend])
 
   const joined = profile
-    ? new Date(profile.createdAt).toLocaleDateString(i18n.language)
+    ? new Date(profile.createdAt).toLocaleDateString(i18n.language, {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      })
     : ''
+
+  const displayName = profile?.displayName ?? profile?.username ?? ''
+  const statusKey = profile?.status ?? 'OFFLINE'
 
   return (
     <Dialog open={friend !== null} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>{t('friends.profile.title')}</DialogTitle>
         </DialogHeader>
@@ -55,18 +65,65 @@ export default function FriendProfile({
         {error && <p className="text-sm text-destructive">{error}</p>}
 
         {profile && (
-          <div className="flex flex-col items-center gap-4">
-            <Avatar src={profile.avatar} name={profile.username} size={88} />
-            <p className="text-xl font-semibold">{profile.username}</p>
-
-            <div className="w-full space-y-2 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="size-4" />
-                {t(`role.${profile.role}`)}
+          <div className="flex flex-col gap-5">
+            {/* Header: avatar + name + status */}
+            <div className="flex flex-col items-center gap-3 pt-1">
+              <div className="relative">
+                <Avatar src={profile.avatar} name={profile.username} size={80} />
+                <span
+                  className={`absolute bottom-1 right-1 size-3.5 rounded-full border-2 border-background ${STATUS_COLOR[statusKey]}`}
+                  title={t(`settings.status.${statusKey}`)}
+                />
               </div>
+
+              <div className="text-center">
+                <p className="text-xl font-bold leading-tight">{displayName}</p>
+                {profile.displayName && (
+                  <p className="text-sm text-muted-foreground">@{profile.username}</p>
+                )}
+                {profile.statusMessage && (
+                  <p className="mt-1 text-xs italic text-muted-foreground">
+                    "{profile.statusMessage}"
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Bio */}
+            {(profile.bio || true) && (
+              <div className="rounded-lg bg-muted/40 px-4 py-3 text-sm">
+                {profile.bio ? (
+                  <p className="whitespace-pre-wrap">{profile.bio}</p>
+                ) : (
+                  <p className="italic text-muted-foreground">{t('friends.profile.noBio')}</p>
+                )}
+              </div>
+            )}
+
+            {/* Details */}
+            <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <CalendarDays className="size-4" />
-                {t('friends.profile.joined', { date: joined })}
+                <span
+                  className={`size-2 rounded-full ${STATUS_COLOR[statusKey]}`}
+                />
+                <span>{t(`settings.status.${statusKey}`)}</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="size-4 shrink-0" />
+                <span>{t(`role.${profile.role}`)}</span>
+              </div>
+
+              {profile.campus && (
+                <div className="flex items-center gap-2">
+                  <MapPin className="size-4 shrink-0" />
+                  <span>{profile.campus}</span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                <CalendarDays className="size-4 shrink-0" />
+                <span>{t('friends.profile.joined', { date: joined })}</span>
               </div>
             </div>
           </div>

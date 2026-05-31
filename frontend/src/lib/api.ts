@@ -126,6 +126,11 @@ export interface PublicUser {
   username: string
   avatar: string | null
   role: UserRole
+  displayName: string | null
+  bio: string | null
+  status: 'ONLINE' | 'AWAY' | 'DND' | 'OFFLINE'
+  statusMessage: string | null
+  campus: string | null
   createdAt: string
 }
 

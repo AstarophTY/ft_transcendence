@@ -83,7 +83,11 @@
     },
     "profile": {
       "title": "Perfil",
-      "joined": "Se unió el {{date}}"
+      "joined": "Se unió el {{date}}",
+      "bio": "Biografía",
+      "noBio": "Sin biografía todavía.",
+      "status": "Estado",
+      "campus": "Campus"
     }
   },
   "settings": {
@@ -142,11 +146,31 @@
     "promote": "Hacer admin",
     "demote": "Quitar admin",
     "delete": "Eliminar cuenta",
+    "noUsers": "Ningún usuario coincide con la búsqueda.",
+    "joined": "Registrado",
+    "tabs": {
+      "overview": "Resumen",
+      "users": "Usuarios"
+    },
+    "search": "Buscar por usuario, correo…",
+    "filter": {
+      "all": "Todos",
+      "admin": "Admins",
+      "user": "Usuarios",
+      "42": "42",
+      "local": "Locales"
+    },
     "chart": { "title": "Registros (últimos 14 días)" },
     "edit": {
       "title": "Editar usuario",
       "newPassword": "Nueva contraseña",
-      "reset": "Restablecer"
+      "reset": "Restablecer",
+      "displayName": "Nombre visible",
+      "bio": "Biografía",
+      "status": "Estado",
+      "statusMessage": "Mensaje de estado",
+      "infoSection": "Info del perfil",
+      "securitySection": "Seguridad"
     },
     "stats": {
       "total": "Usuarios totales",
