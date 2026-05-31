@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { tokenStore, type DirectMessage, type Friendship } from '@/lib/api'
 import { connectSocket, disconnectSocket } from '@/lib/socket'
 import { useAuth } from '@/store/auth'
+import { useChatChannels } from '@/store/chatChannels'
 import i18n from '@/i18n'
 import type { FriendsState, SocketSlice } from './types'
 
@@ -19,6 +20,8 @@ export const createSocketSlice: StateCreator<
     const nameOf = (id: string) =>
       get().friends.find((f) => f.id === id)?.username ?? ''
     const setOnline = (ids: string[]) => set({ online: ids })
+
+    useChatChannels.getState().setupListeners()
 
     socket
       .off('presence:init')
