@@ -44,7 +44,7 @@ export default function FriendsList() {
             <Avatar
               src={friend.avatar}
               name={friend.username}
-              online={online.includes(friend.id)}
+              status={online.includes(friend.id) ? friend.status : 'OFFLINE'}
             />
             <span className="flex-1 truncate font-medium">
               {friend.username}
