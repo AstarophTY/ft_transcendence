@@ -1,11 +1,7 @@
 import { useTranslation } from 'react-i18next'
-import type { AuthUser } from '@/store/auth'
+import { UserBadgeProps } from "@/types/User"
 import { cn } from '@/lib/utils'
 
-interface UserBadgeProps {
-  user: AuthUser
-  className?: string
-}
 
 /**
  * Avatar + username + role (group) for the current user.

@@ -1,7 +1,8 @@
+import type { AuthUser } from '@/store/auth'
+
 export type ConnectionStatus = 'online' | 'dnd' | 'offline';
 
-export interface UserIconProps {
-  imageUrl?: string;
-  status?: ConnectionStatus;
-  onClick?: () => void;
+export interface UserBadgeProps {
+  user: AuthUser
+  className?: string
 }
