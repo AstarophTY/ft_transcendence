@@ -7,7 +7,7 @@ import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdli
 import { Chunk } from '../../../models/maps/Chunk.ts'
 import { IslandMap } from '@/perlin/terrain/IslandMap'
 import { usePlanetStore } from '../../../store/planetStore.ts'
-import { Player } from '../objects/Player'
+import Player from '../objects/Player'
 
 type DemoPlanetProfile = {
   seed: string
@@ -34,7 +34,7 @@ const DEMO_PLANET_PROFILES: DemoPlanetProfile[] = [
   { seed: 'planet-selection-demo-9', widthInChunks: 6, depthInChunks: 6, scale: 0.036, octaves: 4, persistence: 0.43, relief: 0.6, baseHeight: 15, variationRange: 16 },
 ]
 
-const CHUNKS_PER_SIDE = 8
+const CHUNKS_PER_SIDE = 32
 const MAP_SIZE_BLOCKS = CHUNKS_PER_SIDE * Chunk.WIDTH
 
 const FreeCameraControls = ({ heightMap, mapSize, active }: { heightMap: Uint16Array<any>, mapSize: number, active: boolean }) => {
@@ -105,14 +105,33 @@ const FreeCameraControls = ({ heightMap, mapSize, active }: { heightMap: Uint16A
     nextPosition.x = THREE.MathUtils.clamp(nextPosition.x, -halfSize + wallPadding, halfSize - wallPadding)
     nextPosition.z = THREE.MathUtils.clamp(nextPosition.z, -halfSize + wallPadding, halfSize - wallPadding)
 
-    const mapX = Math.floor(nextPosition.x + halfSize)
-    const mapZ = Math.floor(nextPosition.z + halfSize)
-    const mapIndex = THREE.MathUtils.clamp(mapZ, 0, mapSize - 1) * mapSize + THREE.MathUtils.clamp(mapX, 0, mapSize - 1)
-    const groundHeight = heightMap[mapIndex] ?? 0
-
-    nextPosition.y = Math.max(nextPosition.y, groundHeight + eyeHeight)
-
-    camera.position.copy(nextPosition)
+    // Horizontal collision check for freecam too
+    const nextMapX = Math.floor(nextPosition.x + halfSize)
+    const nextMapZ = Math.floor(nextPosition.z + halfSize)
+    const nextMapIndex = THREE.MathUtils.clamp(nextMapZ, 0, mapSize - 1) * mapSize + THREE.MathUtils.clamp(nextMapX, 0, mapSize - 1)
+    const groundHeight = heightMap[nextMapIndex] ?? 0
+    
+    // In freecam, we don't snap to ground, but we should be blocked by walls 
+    // if we try to move into them at a height lower than the wall.
+    // However, the user says "même en freecam, on doit se prendre le mur".
+    // If we are flying high, we shouldn't be blocked.
+    if (nextPosition.y >= groundHeight + eyeHeight) {
+      camera.position.copy(nextPosition)
+    } else {
+      // If we would be inside/under the ground, we only allow movement if it doesn't make us go deeper
+      // or we just block horizontal movement that goes into a "wall"
+      const currentMapX = Math.floor(camera.position.x + halfSize)
+      const currentMapZ = Math.floor(camera.position.z + halfSize)
+      const currentMapIndex = THREE.MathUtils.clamp(currentMapZ, 0, mapSize - 1) * mapSize + THREE.MathUtils.clamp(currentMapX, 0, mapSize - 1)
+      const currentGroundHeight = heightMap[currentMapIndex] ?? 0
+      
+      if (groundHeight <= currentGroundHeight || nextPosition.y >= groundHeight) {
+          camera.position.copy(nextPosition)
+      } else {
+          // Blocked by wall, but still allow vertical movement
+          camera.position.y = nextPosition.y
+      }
+    }
   })
 
   return active ? <PointerLockControls ref={controlsRef} /> : null
