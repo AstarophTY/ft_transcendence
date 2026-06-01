@@ -1,4 +1,6 @@
 import { usePlanetStore } from '../../store/planetStore'
+import { Card } from '@/components/shadcn/card'
+import { Button } from '@/components/shadcn/button'
 
 export default function PlanetQuickSelect() {
   const planetCount = usePlanetStore((state) => state.planetCount)
@@ -18,7 +20,8 @@ export default function PlanetQuickSelect() {
   if (planetCount <= 0) return null
 
   return (
-    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 p-3 bg-gray-900/50 backdrop-blur rounded-full pointer-events-auto">
+    <div className='absolute bottom-2 left-0 w-full flex justify-center'>
+			<Card className='px-4 py-3 flex-row gap-3'>
       {planets.map((_, index) => {
         const isActive = index === activeIndex
         return (
@@ -34,6 +37,7 @@ export default function PlanetQuickSelect() {
           />
         )
       })}
+      </Card>
     </div>
   )
 }

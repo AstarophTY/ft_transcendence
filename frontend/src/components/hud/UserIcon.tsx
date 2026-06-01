@@ -1,31 +1,23 @@
 import { UserIconProps } from "@/types/User";
+import { Avatar, AvatarImage, AvatarFallback, AvatarBadge } from "@/components/shadcn/avatar"
 
 export default function UserIcon({ 
   imageUrl = "", 
   status = 'online', 
-  onClick 
+  onClick
 }: UserIconProps) {
   
   const statusColors = {
-    online: 'bg-green-500',
-    dnd: 'bg-red-500',
-    offline: 'bg-gray-500'
+    online: 'bg-green-500 dark:bg-green-600',
+    dnd: 'bg-red-500 dark:bg-red-600',
+    offline: 'bg-slate-400 dark:bg-slate-500'
   };
 
   return (
-    <button 
-      onClick={onClick} 
-      className="relative cursor-pointer rounded-full focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 transition-transform hover:scale-105"
-    >
-      <img 
-        src={imageUrl} 
-        alt="User Avatar" 
-        className="w-12 h-12 rounded-full object-cover border-5 border-gray-900/50"
-      />
-      <span 
-        className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-gray-800 ${statusColors[status]}`}
-        title={`Status: ${status}`}
-      />
-    </button>
+    <Avatar className="cursor-pointer" onClick={onClick}>
+      <AvatarImage src={imageUrl} alt={status} />
+      <AvatarFallback>U</AvatarFallback>
+      <AvatarBadge className={statusColors[status]} />
+    </Avatar>
   );
 }
