@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, Loader2, Lock, LogIn, LogOut, Mail, Settings, Shield, User, UserPlus, Users, X } from 'lucide-react'
+import { Check, Loader2, Lock, LogIn, Mail, User, UserPlus, X } from 'lucide-react'
 
 import { Button } from '@/components/shadcn/button'
 import {
@@ -11,6 +11,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/shadcn/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/shadcn/dropdown-menu"
 import { Input } from '@/components/shadcn/input'
 import { Label } from '@/components/shadcn/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shadcn/tabs'
@@ -249,7 +257,7 @@ function AuthDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="pointer-events-auto">
+        <Button className="absolute pointer-events-auto">
           <LogIn className="size-4" /> {t('auth.signIn')}
         </Button>
       </DialogTrigger>
@@ -290,48 +298,28 @@ function UserMenu() {
   if (!user) return null
 
   return (
-    <div className="pointer-events-auto flex items-center gap-3 rounded-lg border bg-card/80 px-3 py-2 text-card-foreground backdrop-blur">
-      <UserBadge user={user} />
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={togglePanel}
-        aria-label={t('friends.title')}
-        className="relative"
-      >
-        <Users className="size-4" />
-        {incoming.length > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
-            {incoming.length}
-          </span>
-        )}
-      </Button>
-      {user.role === 'ADMIN' && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => openAdmin(true)}
-          aria-label={t('admin.title')}
-        >
-          <Shield className="size-4" />
-        </Button>
-      )}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => openSettings(true)}
-        aria-label={t('settings.title')}
-      >
-        <Settings className="size-4" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={logout}
-        aria-label={t('auth.logout')}
-      >
-        <LogOut className="size-4" />
-      </Button>
+    <div className="pointer-events-auto absolute">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost"  className="flex">
+            <UserBadge user={user} />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-32">
+          <DropdownMenuGroup>
+            <DropdownMenuItem onSelect={() => togglePanel()}>{t('friends.title')} {incoming.length > 0 && (incoming.length)}</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => openSettings(true)}>{t('settings.title')}</DropdownMenuItem>
+            {user.role === 'ADMIN' && (
+              <DropdownMenuItem onSelect={() => openAdmin(true)}>{t('admin.title')}</DropdownMenuItem>
+            )}
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <DropdownMenuItem variant="destructive" onSelect={() => logout()}>{t('auth.logout')}</DropdownMenuItem>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      
       <SettingsDialog />
       {user.role === 'ADMIN' && <AdminDialog />}
     </div>
