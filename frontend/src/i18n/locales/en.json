@@ -40,5 +40,145 @@
     "registerSuccess": "Account created!",
     "logoutSuccess": "Logged out",
     "sessionExpired": "Session expired, please log in again"
+  },
+  "friends": {
+    "title": "Friends",
+    "empty": "No friends yet. Add someone to get started.",
+    "removed": "Removed {{name}}",
+    "requestSent": "Friend request sent",
+    "requestAccepted": "Friend request accepted",
+    "notif": {
+      "online": "{{name}} is online",
+      "request": "New friend request from {{name}}",
+      "accepted": "{{name}} accepted your friend request",
+      "message": "New message from {{name}}"
+    },
+    "tabs": {
+      "friends": "Friends",
+      "requests": "Requests",
+      "add": "Add"
+    },
+    "actions": {
+      "profile": "View profile",
+      "message": "Message",
+      "remove": "Remove friend"
+    },
+    "add": {
+      "label": "Add a friend by username",
+      "placeholder": "username",
+      "submit": "Send request"
+    },
+    "requests": {
+      "empty": "No pending requests.",
+      "incoming": "Incoming",
+      "outgoing": "Sent",
+      "accept": "Accept",
+      "decline": "Decline",
+      "cancel": "Cancel request"
+    },
+    "chat": {
+      "back": "Back",
+      "empty": "No messages yet. Say hi!",
+      "placeholder": "Type a message"
+    },
+    "profile": {
+      "title": "Profile",
+      "joined": "Joined {{date}}",
+      "bio": "Bio",
+      "noBio": "No bio yet.",
+      "status": "Status",
+      "campus": "Campus"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "save": "Save",
+    "saved": "Saved",
+    "passwordChanged": "Password updated",
+    "tabs": {
+      "profile": "Profile",
+      "account": "Account",
+      "security": "Security",
+      "preferences": "Preferences"
+    },
+    "status": {
+      "ONLINE": "Online",
+      "AWAY": "Away",
+      "DND": "Do not disturb",
+      "OFFLINE": "Offline"
+    },
+    "theme": { "light": "Light", "dark": "Dark" },
+    "profile": {
+      "displayName": "Display name",
+      "bio": "Bio",
+      "status": "Status",
+      "statusMessage": "Status message",
+      "changeAvatar": "Change picture",
+      "avatarHint": "PNG, JPG, GIF or WebP, up to 4 MB."
+    },
+    "account": {
+      "username": "Username",
+      "usernameHint": "You can change your username once every 30 days.",
+      "cooldown": "You can change your username again in {{days}} day(s).",
+      "email": "Email",
+      "campus": "Campus",
+      "campusHint": "Synced from your 42 account.",
+      "fortyTwo": "42 login",
+      "email42Hint": "42 accounts cannot change their email."
+    },
+    "security": {
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "mismatch": "Passwords do not match",
+      "update": "Update password"
+    },
+    "prefs": {
+      "language": "Language",
+      "theme": "Theme"
+    }
+  },
+  "admin": {
+    "title": "Admin panel",
+    "user": "User",
+    "role": "Role",
+    "actions": "Actions",
+    "promote": "Make admin",
+    "demote": "Remove admin",
+    "delete": "Delete account",
+    "noUsers": "No users match your search.",
+    "joined": "Joined",
+    "tabs": {
+      "overview": "Overview",
+      "users": "Users"
+    },
+    "search": "Search by username, email…",
+    "filter": {
+      "all": "All",
+      "admin": "Admins",
+      "user": "Users",
+      "42": "42",
+      "local": "Local"
+    },
+    "chart": { "title": "Signups (last 14 days)" },
+    "edit": {
+      "title": "Edit user",
+      "newPassword": "New password",
+      "reset": "Reset",
+      "displayName": "Display name",
+      "bio": "Bio",
+      "status": "Status",
+      "statusMessage": "Status message",
+      "infoSection": "Profile info",
+      "securitySection": "Security"
+    },
+    "stats": {
+      "total": "Total users",
+      "new7d": "New (7d)",
+      "admins": "Admins",
+      "users": "Users",
+      "fortyTwo": "42 accounts",
+      "local": "Local accounts"
+    }
   }
 }

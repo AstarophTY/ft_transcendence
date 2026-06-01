@@ -90,6 +90,8 @@ export class AuthService {
     if (linked) {
       const updated = await this.users.update(linked.id, {
         avatar: profile.avatar,
+        // Keep campus in sync with 42 on every login.
+        ...(profile.campus ? { campus: profile.campus } : {}),
       });
       return this.generateTokens(updated);
     }
@@ -101,6 +103,7 @@ export class AuthService {
           fortyTwoId: profile.fortyTwoId,
           fortyTwoLogin: profile.fortyTwoLogin,
           avatar: profile.avatar,
+          campus: profile.campus ?? null,
           isVerified: true,
         });
         return this.generateTokens(merged);
@@ -116,6 +119,8 @@ export class AuthService {
       email: profile.email,
       username,
       avatar: profile.avatar,
+      campus: profile.campus ?? null,
+      displayName: profile.displayName ?? null,
       isVerified: true,
     });
 
