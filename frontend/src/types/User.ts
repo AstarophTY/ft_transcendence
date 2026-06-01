@@ -6,3 +6,13 @@ export interface UserBadgeProps {
   user: AuthUser
   className?: string
 }
+
+
+export interface AvatarProps {
+  src?: string | null
+  name: string
+  size?: number
+  className?: string
+  online?: boolean
+  status?: 'ONLINE' | 'AWAY' | 'DND' | 'OFFLINE'
+}
