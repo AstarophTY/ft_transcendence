@@ -1,12 +1,13 @@
 import { PointerLockControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
 
 import { Chunk } from '../../../models/maps/Chunk.ts'
 import { IslandMap } from '@/perlin/terrain/IslandMap'
 import { usePlanetStore } from '../../../store/planetStore.ts'
+import { Player } from '../objects/Player'
 
 type DemoPlanetProfile = {
   seed: string
@@ -33,20 +34,23 @@ const DEMO_PLANET_PROFILES: DemoPlanetProfile[] = [
   { seed: 'planet-selection-demo-9', widthInChunks: 6, depthInChunks: 6, scale: 0.036, octaves: 4, persistence: 0.43, relief: 0.6, baseHeight: 15, variationRange: 16 },
 ]
 
-const CHUNKS_PER_SIDE = 32
+const CHUNKS_PER_SIDE = 8
 const MAP_SIZE_BLOCKS = CHUNKS_PER_SIDE * Chunk.WIDTH
 
-const FreeCameraControls = ({ heightMap, mapSize }: { heightMap: Uint16Array, mapSize: number }) => {
+const FreeCameraControls = ({ heightMap, mapSize, active }: { heightMap: Uint16Array<any>, mapSize: number, active: boolean }) => {
   const { camera, gl } = useThree()
   const controlsRef = useRef<PointerLockControlsImpl | null>(null)
   const keysRef = useRef<Record<string, boolean>>({})
 
   useEffect(() => {
-    camera.position.set(0, 18, 24)
-    camera.lookAt(0, 0, 0)
-  }, [camera])
+    if (active) {
+      camera.position.set(0, 18, 24)
+      camera.lookAt(0, 0, 0)
+    }
+  }, [camera, active])
 
   useEffect(() => {
+    if (!active) return
     const handleKeyDown = (event: KeyboardEvent) => {
       keysRef.current[event.code] = true
     }
@@ -69,6 +73,7 @@ const FreeCameraControls = ({ heightMap, mapSize }: { heightMap: Uint16Array, ma
   }, [gl.domElement])
 
   useFrame((_, delta) => {
+    if (!active) return
     const moveSpeed = 12
     const verticalSpeed = 8
     const eyeHeight = 1.6
@@ -110,11 +115,23 @@ const FreeCameraControls = ({ heightMap, mapSize }: { heightMap: Uint16Array, ma
     camera.position.copy(nextPosition)
   })
 
-  return <PointerLockControls ref={controlsRef} />
+  return active ? <PointerLockControls ref={controlsRef} /> : null
 }
 
 const WorldScene = () => {
   const activeIndex = usePlanetStore((state) => state.activeIndex)
+  // Use state for mode to trigger re-renders
+  const [currentMode, setCurrentMode] = useState<'freecam' | 'player'>('player')
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'KeyC') {
+        setCurrentMode(prev => prev === 'freecam' ? 'player' : 'freecam')
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   const profile = useMemo(() => {
     const safeIndex = Math.min(Math.max(activeIndex, 0), DEMO_PLANET_PROFILES.length - 1)
@@ -166,7 +183,9 @@ const WorldScene = () => {
           height + 0.5,
           z - halfSize + 0.5,
         )
-        voxelMeshRef.current.setMatrixAt(index, tempMatrix)
+        if (voxelMeshRef.current) {
+          voxelMeshRef.current.setMatrixAt(index, tempMatrix)
+        }
         index += 1
       }
     }
@@ -176,7 +195,16 @@ const WorldScene = () => {
 
   return (
     <group>
-      <FreeCameraControls heightMap={heightMap} mapSize={MAP_SIZE_BLOCKS} />
+      <FreeCameraControls 
+        heightMap={heightMap} 
+        mapSize={MAP_SIZE_BLOCKS} 
+        active={currentMode === 'freecam'} 
+      />
+      <Player 
+        heightMap={heightMap} 
+        mapSize={MAP_SIZE_BLOCKS} 
+        active={currentMode === 'player'} 
+      />
       <instancedMesh
         ref={voxelMeshRef}
         args={[undefined, undefined, MAP_SIZE_BLOCKS * MAP_SIZE_BLOCKS]}
