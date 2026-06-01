@@ -36,7 +36,7 @@ const DEMO_PLANET_PROFILES: DemoPlanetProfile[] = [
 const CHUNKS_PER_SIDE = 32
 const MAP_SIZE_BLOCKS = CHUNKS_PER_SIDE * Chunk.WIDTH
 
-const FreeCameraControls = () => {
+const FreeCameraControls = ({ heightMap, mapSize }: { heightMap: Uint16Array, mapSize: number }) => {
   const { camera, gl } = useThree()
   const controlsRef = useRef<PointerLockControlsImpl | null>(null)
   const keysRef = useRef<Record<string, boolean>>({})
@@ -71,6 +71,9 @@ const FreeCameraControls = () => {
   useFrame((_, delta) => {
     const moveSpeed = 12
     const verticalSpeed = 8
+    const eyeHeight = 1.6
+    const wallPadding = 0.4
+    const halfSize = mapSize / 2
     const moveForward = keysRef.current.KeyW ? 1 : 0
     const moveBackward = keysRef.current.KeyS ? 1 : 0
     const moveLeft = keysRef.current.KeyA ? 1 : 0
@@ -89,9 +92,22 @@ const FreeCameraControls = () => {
     const rightAmount = (moveRight - moveLeft) * moveSpeed * delta
     const upAmount = (moveUp - moveDown) * verticalSpeed * delta
 
-    camera.position.addScaledVector(forward, forwardAmount)
-    camera.position.addScaledVector(right, rightAmount)
-    camera.position.y += upAmount
+    const nextPosition = camera.position.clone()
+    nextPosition.addScaledVector(forward, forwardAmount)
+    nextPosition.addScaledVector(right, rightAmount)
+    nextPosition.y += upAmount
+
+    nextPosition.x = THREE.MathUtils.clamp(nextPosition.x, -halfSize + wallPadding, halfSize - wallPadding)
+    nextPosition.z = THREE.MathUtils.clamp(nextPosition.z, -halfSize + wallPadding, halfSize - wallPadding)
+
+    const mapX = Math.floor(nextPosition.x + halfSize)
+    const mapZ = Math.floor(nextPosition.z + halfSize)
+    const mapIndex = THREE.MathUtils.clamp(mapZ, 0, mapSize - 1) * mapSize + THREE.MathUtils.clamp(mapX, 0, mapSize - 1)
+    const groundHeight = heightMap[mapIndex] ?? 0
+
+    nextPosition.y = Math.max(nextPosition.y, groundHeight + eyeHeight)
+
+    camera.position.copy(nextPosition)
   })
 
   return <PointerLockControls ref={controlsRef} />
@@ -160,7 +176,7 @@ const WorldScene = () => {
 
   return (
     <group>
-      <FreeCameraControls />
+      <FreeCameraControls heightMap={heightMap} mapSize={MAP_SIZE_BLOCKS} />
       <instancedMesh
         ref={voxelMeshRef}
         args={[undefined, undefined, MAP_SIZE_BLOCKS * MAP_SIZE_BLOCKS]}

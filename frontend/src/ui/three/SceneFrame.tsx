@@ -1,5 +1,3 @@
-/* eslint-disable react/no-unknown-property */
-
 import { Canvas } from '@react-three/fiber'
 
 import WorldScene from './scenes/WorldScene.tsx'
