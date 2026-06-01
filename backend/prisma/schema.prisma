@@ -18,7 +18,6 @@ model User {
   role          Role     @default(USER)
   isVerified    Boolean  @default(false)
 
-  // Editable profile fields (see users.editable.ts for the allow-list).
   displayName       String?
   bio               String?
   campus            String?
