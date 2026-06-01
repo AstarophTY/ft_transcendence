@@ -257,8 +257,14 @@ function AuthDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="absolute pointer-events-auto">
-          <LogIn className="size-4" /> {t('auth.signIn')}
+        <Button variant="ghost" className="absolute pointer-events-auto flex">
+          <UserBadge user={{
+            username: t('auth.signIn'),
+              userId: "test",
+              avatar: "",
+              email: null,
+              role: 'USER'
+              }} /> 
         </Button>
       </DialogTrigger>
       <DialogContent className="pointer-events-auto">
