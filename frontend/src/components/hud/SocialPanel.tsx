@@ -1,20 +1,20 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Users, UserPlus, MessageSquare, Settings } from 'lucide-react';
+// import { Users, UserPlus, MessageSquare, Settings } from 'lucide-react';
 import UserIcon from '@/components/hud/UserIcon';
-import { Tab } from "@/types/Social"
+// import { Tab } from "@/types/Social"
 
 
 export default function SocialPanel() {
-  const [activeTab, setActiveTab] = useState<Tab>('friends');
+  // const [activeTab, setActiveTab] = useState<Tab>('friends');
   const [isOpen, setIsOpen] = useState(false);
 
-  const tabs = [
-    { id: 'friends' as Tab, icon: Users, label: 'Social' },
-    { id: 'add' as Tab, icon: UserPlus, label: 'Add Friend' },
-    { id: 'chat' as Tab, icon: MessageSquare, label: 'Chat' },
-    { id: 'settings' as Tab, icon: Settings, label: 'Settings' }
-  ];
+  // const tabs = [
+  //   { id: 'friends' as Tab, icon: Users, label: 'Social' },
+  //   { id: 'add' as Tab, icon: UserPlus, label: 'Add Friend' },
+  //   { id: 'chat' as Tab, icon: MessageSquare, label: 'Chat' },
+  //   { id: 'settings' as Tab, icon: Settings, label: 'Settings' }
+  // ];
 
   return (
     <>

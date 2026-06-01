@@ -1,7 +1,7 @@
 import PlanetQuickSelect from "@/components/hud/PlanetQuickSelect";
 import SocialPanel from "@/components/hud/SocialPanel";
 import EditorMode from "@/components/hud/EditorMode";
-import AuthPanel from "@/ui/hud/AuthPanel"
+// import AuthPanel from "@/ui/hud/AuthPanel"
 
 export default function HUDFrame() {
   return (

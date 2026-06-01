@@ -1,6 +1,6 @@
 import { usePlanetStore } from '../../store/planetStore'
 import { Card } from '@/components/shadcn/card'
-import { Button } from '@/components/shadcn/button'
+// import { Button } from '@/components/shadcn/button'
 
 export default function PlanetQuickSelect() {
   const planetCount = usePlanetStore((state) => state.planetCount)
