@@ -4,9 +4,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
 
-import { Chunk } from '../../../models/maps/Chunk.ts'
+import { Chunk } from '@/models/maps/Chunk.ts'
 import { IslandMap } from '@/perlin/terrain/IslandMap'
-import { usePlanetStore } from '../../../store/planetStore.ts'
+import { usePlanetStore } from '@/store/planetStore.ts'
 import Player from '../objects/Player'
 
 type DemoPlanetProfile = {
@@ -37,17 +37,22 @@ const DEMO_PLANET_PROFILES: DemoPlanetProfile[] = [
 const CHUNKS_PER_SIDE = 32
 const MAP_SIZE_BLOCKS = CHUNKS_PER_SIDE * Chunk.WIDTH
 
-const FreeCameraControls = ({ heightMap, mapSize, active }: { heightMap: Uint16Array<any>, mapSize: number, active: boolean }) => {
+const FreeCameraControls = ({ heightMap, mapSize, active, playerRef }: { heightMap: Uint16Array<any>, mapSize: number, active: boolean, playerRef: React.RefObject<THREE.Group> }) => {
   const { camera, gl } = useThree()
   const controlsRef = useRef<PointerLockControlsImpl | null>(null)
   const keysRef = useRef<Record<string, boolean>>({})
 
   useEffect(() => {
     if (active) {
-      camera.position.set(0, 18, 24)
+      if (playerRef.current) {
+        camera.position.copy(playerRef.current.position)
+        camera.position.y += 2
+      } else {
+        camera.position.set(0, 18, 24)
+      }
       camera.lookAt(0, 0, 0)
     }
-  }, [camera, active])
+  }, [camera, active, playerRef])
 
   useEffect(() => {
     if (!active) return
@@ -58,7 +63,9 @@ const FreeCameraControls = ({ heightMap, mapSize, active }: { heightMap: Uint16A
       keysRef.current[event.code] = false
     }
     const handleClick = () => {
-      controlsRef.current?.lock()
+      if (active) {
+        controlsRef.current?.lock()
+      }
     }
 
     window.addEventListener('keydown', handleKeyDown)
@@ -70,13 +77,12 @@ const FreeCameraControls = ({ heightMap, mapSize, active }: { heightMap: Uint16A
       window.removeEventListener('keyup', handleKeyUp)
       gl.domElement.removeEventListener('click', handleClick)
     }
-  }, [gl.domElement])
+  }, [gl.domElement, active])
 
   useFrame((_, delta) => {
     if (!active) return
     const moveSpeed = 12
     const verticalSpeed = 8
-    const eyeHeight = 1.6
     const wallPadding = 0.4
     const halfSize = mapSize / 2
     const moveForward = keysRef.current.KeyW ? 1 : 0
@@ -102,43 +108,67 @@ const FreeCameraControls = ({ heightMap, mapSize, active }: { heightMap: Uint16A
     nextPosition.addScaledVector(right, rightAmount)
     nextPosition.y += upAmount
 
+    // Boundary constraints
     nextPosition.x = THREE.MathUtils.clamp(nextPosition.x, -halfSize + wallPadding, halfSize - wallPadding)
     nextPosition.z = THREE.MathUtils.clamp(nextPosition.z, -halfSize + wallPadding, halfSize - wallPadding)
 
-    // Horizontal collision check for freecam too
-    const nextMapX = Math.floor(nextPosition.x + halfSize)
-    const nextMapZ = Math.floor(nextPosition.z + halfSize)
-    const nextMapIndex = THREE.MathUtils.clamp(nextMapZ, 0, mapSize - 1) * mapSize + THREE.MathUtils.clamp(nextMapX, 0, mapSize - 1)
-    const groundHeight = heightMap[nextMapIndex] ?? 0
+    // Function to check if a position is valid (not inside a block)
+    const isValidPosition = (pos: THREE.Vector3) => {
+      const mapX = Math.floor(pos.x + halfSize)
+      const mapZ = Math.floor(pos.z + halfSize)
+      const mapIndex = THREE.MathUtils.clamp(mapZ, 0, mapSize - 1) * mapSize + THREE.MathUtils.clamp(mapX, 0, mapSize - 1)
+      const groundHeight = heightMap[mapIndex] ?? 0
+      // The block occupies space from groundHeight to groundHeight + 1
+      // We are inside a block if our y is between groundHeight and groundHeight + 1
+      const isInsideBlockVolume = pos.y >= groundHeight && pos.y <= groundHeight + 1
+      return !isInsideBlockVolume
+    }
+
+    // Collision handling: check each axis separately for sliding
+    const finalPosition = camera.position.clone()
     
-    // In freecam, we don't snap to ground, but we should be blocked by walls 
-    // if we try to move into them at a height lower than the wall.
-    // However, the user says "même en freecam, on doit se prendre le mur".
-    // If we are flying high, we shouldn't be blocked.
-    if (nextPosition.y >= groundHeight + eyeHeight) {
-      camera.position.copy(nextPosition)
+    // Try vertical movement first
+    const verticalPos = finalPosition.clone()
+    verticalPos.y = nextPosition.y
+    if (isValidPosition(verticalPos)) {
+      finalPosition.y = nextPosition.y
     } else {
-      // If we would be inside/under the ground, we only allow movement if it doesn't make us go deeper
-      // or we just block horizontal movement that goes into a "wall"
-      const currentMapX = Math.floor(camera.position.x + halfSize)
-      const currentMapZ = Math.floor(camera.position.z + halfSize)
-      const currentMapIndex = THREE.MathUtils.clamp(currentMapZ, 0, mapSize - 1) * mapSize + THREE.MathUtils.clamp(currentMapX, 0, mapSize - 1)
-      const currentGroundHeight = heightMap[currentMapIndex] ?? 0
+      // If moving into a block volume from above, snap to top
+      const mapX = Math.floor(finalPosition.x + halfSize)
+      const mapZ = Math.floor(finalPosition.z + halfSize)
+      const mapIndex = THREE.MathUtils.clamp(mapZ, 0, mapSize - 1) * mapSize + THREE.MathUtils.clamp(mapX, 0, mapSize - 1)
+      const groundHeight = heightMap[mapIndex] ?? 0
       
-      if (groundHeight <= currentGroundHeight || nextPosition.y >= groundHeight) {
-          camera.position.copy(nextPosition)
-      } else {
-          // Blocked by wall, but still allow vertical movement
-          camera.position.y = nextPosition.y
+      if (finalPosition.y > groundHeight + 1) {
+        finalPosition.y = groundHeight + 1.1 // Stay slightly above
+      } else if (finalPosition.y < groundHeight) {
+        finalPosition.y = groundHeight - 0.1 // Stay slightly below if we were already under
       }
     }
+
+    // Try horizontal X movement
+    const xPos = finalPosition.clone()
+    xPos.x = nextPosition.x
+    if (isValidPosition(xPos)) {
+      finalPosition.x = nextPosition.x
+    }
+
+    // Try horizontal Z movement
+    const zPos = finalPosition.clone()
+    zPos.z = nextPosition.z
+    if (isValidPosition(zPos)) {
+      finalPosition.z = nextPosition.z
+    }
+
+    camera.position.copy(finalPosition)
   })
 
-  return active ? <PointerLockControls ref={controlsRef} /> : null
+  return active ? <PointerLockControls ref={(node) => { controlsRef.current = node }} /> : null
 }
 
 const WorldScene = () => {
   const activeIndex = usePlanetStore((state) => state.activeIndex)
+  const playerRef = useRef<THREE.Group>(null)
   // Use state for mode to trigger re-renders
   const [currentMode, setCurrentMode] = useState<'freecam' | 'player'>('player')
 
@@ -218,11 +248,13 @@ const WorldScene = () => {
         heightMap={heightMap} 
         mapSize={MAP_SIZE_BLOCKS} 
         active={currentMode === 'freecam'} 
+        playerRef={playerRef}
       />
       <Player 
         heightMap={heightMap} 
         mapSize={MAP_SIZE_BLOCKS} 
-        active={currentMode === 'player'} 
+        active={currentMode === 'player'}
+        playerRef={playerRef}
       />
       <instancedMesh
         ref={voxelMeshRef}

@@ -8,13 +8,13 @@ interface PlayerProps {
   heightMap: Uint16Array
   mapSize: number
   active: boolean
+  playerRef: React.RefObject<THREE.Group>
 }
 
-const Player = ({ heightMap, mapSize, active }: PlayerProps) => {
+const Player = ({ heightMap, mapSize, active, playerRef }: PlayerProps) => {
   const { camera, gl } = useThree()
   const { scene } = useGLTF('/three/assets/capsule/full_bodie/Body_AA_01.glb')
   
-  const playerRef = useRef<THREE.Group>(null)
   const controlsRef = useRef<PointerLockControlsImpl>(null)
   const velocity = useRef(new THREE.Vector3())
   const isGrounded = useRef(false)
