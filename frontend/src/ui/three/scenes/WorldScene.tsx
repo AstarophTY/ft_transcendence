@@ -1,6 +1,6 @@
 import { PointerLockControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
 
@@ -205,6 +205,52 @@ const WorldScene = () => {
   }, [profile])
 
   const voxelMeshRef = useRef<THREE.InstancedMesh | null>(null)
+  const { camera } = useThree()
+
+  // Curvature effect
+  const curvature = 0.0005
+  useFrame(() => {
+    if (voxelMeshRef.current) {
+      const material = voxelMeshRef.current.material
+      if (Array.isArray(material)) return
+      
+      const meshMaterial = material as THREE.MeshStandardMaterial
+      if (meshMaterial.userData.shader) {
+        meshMaterial.userData.shader.uniforms.uCameraPosition.value.copy(camera.position)
+        meshMaterial.userData.shader.uniforms.uCurvature.value = curvature
+      }
+    }
+  })
+
+  const onBeforeCompile = (shader: THREE.WebGLProgramParametersWithUniforms) => {
+    shader.uniforms.uCameraPosition = { value: new THREE.Vector3() }
+    shader.uniforms.uCurvature = { value: curvature }
+    
+    shader.vertexShader = `
+      uniform vec3 uCameraPosition;
+      uniform float uCurvature;
+    ` + shader.vertexShader
+
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <begin_vertex>',
+      `
+      #include <begin_vertex>
+      
+      // Calcul de la position monde pour l'instance
+      vec4 worldPos = instanceMatrix * vec4(position, 1.0);
+      worldPos = modelMatrix * worldPos;
+      
+      float dist = distance(worldPos.xz, uCameraPosition.xz);
+      transformed.y -= pow(dist, 2.0) * uCurvature;
+      `
+    )
+    if (voxelMeshRef.current) {
+      const material = voxelMeshRef.current.material
+      if (!Array.isArray(material)) {
+        material.userData.shader = shader
+      }
+    }
+  }
 
   useEffect(() => {
     if (!voxelMeshRef.current) {
@@ -254,7 +300,7 @@ const WorldScene = () => {
         receiveShadow
       >
         <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="#FFFFFF" />
+        <meshStandardMaterial color="#FFFFFF" onBeforeCompile={onBeforeCompile} />
       </instancedMesh>
     </group>
   )
