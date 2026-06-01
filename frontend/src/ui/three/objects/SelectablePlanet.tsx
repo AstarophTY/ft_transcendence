@@ -1,17 +1,17 @@
 import { PlanetMap } from "../../../models/maps/PlanetMap.ts";
-import React, { useMemo, useRef, useState, type MutableRefObject } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { Block } from "../../../models/Block.ts";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { usePlanetStore } from "../../../store/planetStore.ts";
 
 interface SelectablePlanetProps {
     map: PlanetMap;
-    wheelOffset: MutableRefObject<number>;
     index: number;
     totalCount: number;
 }
 
-const SelectablePlanet: React.FC<SelectablePlanetProps> = ({ map, wheelOffset, index, totalCount }) => {
+const SelectablePlanet: React.FC<SelectablePlanetProps> = ({ map, index, totalCount }) => {
     const planetRef = useRef<THREE.Group>(null);
     const blendRef = useRef(0);
     const [hovered, setHovered] = useState(false);
@@ -39,7 +39,7 @@ const SelectablePlanet: React.FC<SelectablePlanetProps> = ({ map, wheelOffset, i
     useFrame((state) => {
         if (!planetRef.current) return;
 
-        const focusedIndex = wheelOffset.current * (totalCount - 1);
+        const focusedIndex = usePlanetStore.getState().targetOffset * (totalCount - 1);
         const dist = Math.abs(index - focusedIndex);
         const snappedDist = dist < 0.5 ? 0 : dist - 0.5;
         const focusFactor = Math.max(0, 1 - snappedDist * 0.5);
