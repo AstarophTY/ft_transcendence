@@ -1,4 +1,4 @@
-export type Tab = 'friends' | 'chat' | 'requests' | 'settings';
+export type Tab = 'friends' | 'chat' | 'requests' | 'settings' | 'add';
 
 export type ConnectionStatus = 'online' | 'dnd' | 'offline';
 
