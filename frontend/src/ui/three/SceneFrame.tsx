@@ -2,7 +2,7 @@
 
 import { Canvas } from '@react-three/fiber'
 
-import PlanetSelectionScene from './scenes/PlanetSelectionScene.tsx'
+import WorldScene from './scenes/WorldScene.tsx'
 
 const SceneFrame = () => {
   return (
@@ -11,7 +11,7 @@ const SceneFrame = () => {
         <color attach="background" args={['#050816']} />
         <ambientLight intensity={0.7} />
         <directionalLight position={[5, 10, 5]} intensity={1.4} />
-        <PlanetSelectionScene />
+        <WorldScene />
       </Canvas>
     </div>
   )
