@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, Loader2, Lock, LogIn, LogOut, Mail, Settings, Shield, User, UserPlus, Users, X } from 'lucide-react'
 

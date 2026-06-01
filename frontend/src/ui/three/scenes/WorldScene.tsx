@@ -28,7 +28,7 @@ const DEMO_PLANET_PROFILES: DemoPlanetProfile[] = [
 const CHUNKS_PER_SIDE = 32
 const MAP_SIZE_BLOCKS = CHUNKS_PER_SIDE * Chunk.WIDTH
 
-const FreeCameraControls = ({ heightMap, mapSize, active, playerRef }: { heightMap: Uint16Array<any>, mapSize: number, active: boolean, playerRef: React.RefObject<THREE.Group> }) => {
+const FreeCameraControls = ({ heightMap, mapSize, active, playerRef }: { heightMap: Uint16Array, mapSize: number, active: boolean, playerRef: React.RefObject<THREE.Group> }) => {
   const { camera, gl } = useThree()
   const controlsRef = useRef<PointerLockControlsImpl | null>(null)
   const keysRef = useRef<Record<string, boolean>>({})

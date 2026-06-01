@@ -1,6 +1,6 @@
 import { useGLTF, PointerLockControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
 
@@ -46,7 +46,7 @@ const Player = ({ heightMap, mapSize, active, playerRef }: PlayerProps) => {
     if (playerRef.current) {
         playerRef.current.position.set(0, 20, 0)
     }
-  }, [])
+  }, [playerRef])
 
   useFrame((_state, delta) => {
     if (!playerRef.current) return
