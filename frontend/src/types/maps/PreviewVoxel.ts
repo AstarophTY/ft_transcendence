@@ -1,4 +1,4 @@
-import {Block} from "./Block.ts";
+import { Block } from "@/types/Block";
 
 export interface PreviewVoxel {
     x: number;
