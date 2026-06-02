@@ -9,7 +9,11 @@ export const PUBLIC_USER_SELECT = {
   bio: true,
   status: true,
   statusMessage: true,
-  campus: true,
+  campus: {
+    select: {
+      label: true,
+    },
+  },
   createdAt: true,
 } satisfies Prisma.UserSelect;
 
@@ -30,7 +34,11 @@ export const SELF_USER_SELECT = {
   role: true,
   displayName: true,
   bio: true,
-  campus: true,
+  campus: {
+    select: {
+      label: true,
+    },
+  },
   language: true,
   theme: true,
   status: true,
@@ -53,7 +61,11 @@ export const ADMIN_USER_SELECT = {
   role: true,
   displayName: true,
   bio: true,
-  campus: true,
+  campus: {
+    select: {
+      label: true,
+    },
+  },
   status: true,
   statusMessage: true,
   fortyTwoLogin: true,
