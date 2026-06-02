@@ -7,13 +7,15 @@ import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdli
 import { getCurvatureOffset } from '../../utils/curvature'
 import { useEditorStore } from '@/store/editorStore'
 import { Tab } from '@/types/Editor'
+import { Block } from '@/types/Block'
 
 interface FreeCameraControlsProps {
   heightMap: Uint16Array
   mapSize: number
   active: boolean
   playerRef: React.RefObject<THREE.Group>
-  onUpdateHeightMap: (x: number, z: number, newHeight: number) => void
+  placedBlocks: Record<string, Block>
+  onUpdatePlacedBlock: (x: number, y: number, z: number, block: Block | null) => void
 }
 
 export const FreeCameraControls = ({
@@ -21,7 +23,8 @@ export const FreeCameraControls = ({
   mapSize,
   active,
   playerRef,
-  onUpdateHeightMap,
+  placedBlocks,
+  onUpdatePlacedBlock,
 }: FreeCameraControlsProps) => {
   const { camera, gl, scene } = useThree()
   const controlsRef = useRef<PointerLockControlsImpl | null>(null)
@@ -46,8 +49,8 @@ export const FreeCameraControls = ({
     const intersects = raycaster.intersectObjects(scene.children, true)
     const hit = intersects.find(
       (item) =>
-        (item.object as THREE.InstancedMesh).isInstancedMesh &&
-        item.object !== previewRef.current
+        item.object !== previewRef.current &&
+        ((item.object as THREE.InstancedMesh).isInstancedMesh || item.object.name === 'placed-block')
     )
 
     if (hit && hit.distance <= 30) {
@@ -59,58 +62,56 @@ export const FreeCameraControls = ({
         let targetX = 0
         let targetY = 0
         let targetZ = 0
+        let showPreview = false
 
         if (tool === Tab.Add) {
           const placePos = point.clone().addScaledVector(normal, 0.5)
           const x = Math.floor(placePos.x + halfSize)
+          const y = Math.floor(placePos.y)
           const z = Math.floor(placePos.z + halfSize)
 
-          if (x >= 0 && x < mapSize && z >= 0 && z < mapSize) {
-            const mapIndex = z * mapSize + x
-            const currentHeight = heightMap[mapIndex] ?? 0
-            if (currentHeight < 63) {
-              targetX = x - halfSize + 0.5
-              targetY = Math.floor(placePos.y) + 0.5
-              targetZ = z - halfSize + 0.5
-            } else {
-              previewRef.current.visible = false
-              return
-            }
-          } else {
-            previewRef.current.visible = false
-            return
-          }
-        } else { // Tab.Remove
-          const blockPos = point.clone().addScaledVector(normal, -0.5)
-          const x = Math.floor(blockPos.x + halfSize)
-          const z = Math.floor(blockPos.z + halfSize)
+          if (x >= 0 && x < mapSize && y >= 0 && y < 64 && z >= 0 && z < mapSize) {
+            const terrainHeight = heightMap[z * mapSize + x] ?? 0
+            const isOccupiedByTerrain = y <= terrainHeight
+            const isOccupiedByPlaced = placedBlocks[`${x},${y},${z}`] !== undefined
 
-          if (x >= 0 && x < mapSize && z >= 0 && z < mapSize) {
-            const mapIndex = z * mapSize + x
-            const currentHeight = heightMap[mapIndex] ?? 0
-            if (currentHeight > 0) {
+            if (!isOccupiedByTerrain && !isOccupiedByPlaced) {
               targetX = x - halfSize + 0.5
-              targetY = currentHeight + 0.5 // Centering in the existing block at height + 0.5
+              targetY = y + 0.5
               targetZ = z - halfSize + 0.5
-            } else {
-              previewRef.current.visible = false
-              return
+              showPreview = true
             }
-          } else {
-            previewRef.current.visible = false
-            return
+          }
+        } else if (tool === Tab.Remove) {
+          // Only show remove preview if hovering over a block placed by the player
+          if (hit.object.name === 'placed-block') {
+            const blockPos = point.clone().addScaledVector(normal, -0.5)
+            const x = Math.floor(blockPos.x + halfSize)
+            const y = Math.floor(blockPos.y)
+            const z = Math.floor(blockPos.z + halfSize)
+
+            if (x >= 0 && x < mapSize && y >= 0 && y < 64 && z >= 0 && z < mapSize) {
+              if (placedBlocks[`${x},${y},${z}`] !== undefined) {
+                targetX = x - halfSize + 0.5
+                targetY = y + 0.5
+                targetZ = z - halfSize + 0.5
+                showPreview = true
+              }
+            }
           }
         }
 
-        previewRef.current.position.set(targetX, targetY, targetZ)
-        
-        if (previewRef.current.material) {
-          const color = tool === Tab.Add ? '#fbbf24' : '#ef4444'
-          ;(previewRef.current.material as THREE.MeshBasicMaterial).color.set(color)
+        if (showPreview) {
+          previewRef.current.position.set(targetX, targetY, targetZ)
+          
+          if (previewRef.current.material) {
+            const color = tool === Tab.Add ? '#fbbf24' : '#ef4444'
+            ;(previewRef.current.material as THREE.MeshBasicMaterial).color.set(color)
+          }
+          
+          previewRef.current.visible = true
+          return
         }
-        
-        previewRef.current.visible = true
-        return
       }
     }
 
@@ -132,7 +133,7 @@ export const FreeCameraControls = ({
   const handleEditorAction = (e: MouseEvent) => {
     if (e.button !== 0) return // Left click only
 
-    const { tool } = useEditorStore.getState()
+    const { tool, selectedBlock } = useEditorStore.getState()
     if (tool !== Tab.Add && tool !== Tab.Remove) return
 
     const raycaster = new THREE.Raycaster()
@@ -142,18 +143,15 @@ export const FreeCameraControls = ({
     scene.updateMatrixWorld(true)
 
     const intersects = raycaster.intersectObjects(scene.children, true)
-    console.log("Raycast clicked. Active tool:", tool, "Intersections count:", intersects.length)
-    if (intersects.length > 0) {
-      const instancedHits = intersects.filter(item => (item.object as THREE.InstancedMesh).isInstancedMesh)
-      console.log("InstancedMesh hits:", instancedHits.length, "Closest hit distance:", intersects[0].distance)
-    }
-
     if (intersects.length === 0) return
 
-    // Find the first intersected InstancedMesh (our terrain blocks)
-    const hit = intersects.find((item) => (item.object as THREE.InstancedMesh).isInstancedMesh)
-    if (!hit) return
+    const hit = intersects.find((item) => {
+      const obj = item.object
+      if (obj === previewRef.current) return false
+      return (obj as THREE.InstancedMesh).isInstancedMesh || obj.name === 'placed-block'
+    })
 
+    if (!hit) return
     if (hit.distance > 30) return
 
     const point = hit.point
@@ -163,29 +161,32 @@ export const FreeCameraControls = ({
     const halfSize = mapSize / 2
 
     if (tool === Tab.Remove) {
-      // Break block: move slightly into the hit block
-      const blockPos = point.clone().addScaledVector(normal, -0.5)
-      const x = Math.floor(blockPos.x + halfSize)
-      const z = Math.floor(blockPos.z + halfSize)
+      // Only allow breaking blocks that were placed by the player
+      if (hit.object.name === 'placed-block') {
+        const blockPos = point.clone().addScaledVector(normal, -0.5)
+        const x = Math.floor(blockPos.x + halfSize)
+        const y = Math.floor(blockPos.y)
+        const z = Math.floor(blockPos.z + halfSize)
 
-      if (x >= 0 && x < mapSize && z >= 0 && z < mapSize) {
-        const mapIndex = z * mapSize + x
-        const currentHeight = heightMap[mapIndex] ?? 0
-        if (currentHeight > 0) {
-          onUpdateHeightMap(x, z, currentHeight - 1)
+        if (x >= 0 && x < mapSize && y >= 0 && y < 64 && z >= 0 && z < mapSize) {
+          if (placedBlocks[`${x},${y},${z}`] !== undefined) {
+            onUpdatePlacedBlock(x, y, z, null)
+          }
         }
       }
     } else if (tool === Tab.Add) {
-      // Place block: move slightly away from the hit block
       const placePos = point.clone().addScaledVector(normal, 0.5)
       const x = Math.floor(placePos.x + halfSize)
+      const y = Math.floor(placePos.y)
       const z = Math.floor(placePos.z + halfSize)
 
-      if (x >= 0 && x < mapSize && z >= 0 && z < mapSize) {
-        const mapIndex = z * mapSize + x
-        const currentHeight = heightMap[mapIndex] ?? 0
-        if (currentHeight < 63) { // Max height is Chunk.HEIGHT - 1 (63)
-          onUpdateHeightMap(x, z, currentHeight + 1)
+      if (x >= 0 && x < mapSize && y >= 0 && y < 64 && z >= 0 && z < mapSize) {
+        const terrainHeight = heightMap[z * mapSize + x] ?? 0
+        const isOccupiedByTerrain = y <= terrainHeight
+        const isOccupiedByPlaced = placedBlocks[`${x},${y},${z}`] !== undefined
+
+        if (!isOccupiedByTerrain && !isOccupiedByPlaced) {
+          onUpdatePlacedBlock(x, y, z, selectedBlock)
         }
       }
     }
@@ -222,7 +223,7 @@ export const FreeCameraControls = ({
       window.removeEventListener('keyup', handleKeyUp)
       window.removeEventListener('mousedown', handleMouseDown)
     }
-  }, [gl.domElement, active, heightMap, onUpdateHeightMap])
+  }, [gl.domElement, active, heightMap, placedBlocks, onUpdatePlacedBlock])
 
   useFrame((_, delta) => {
     if (!active) return

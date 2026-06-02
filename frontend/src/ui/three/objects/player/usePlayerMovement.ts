@@ -2,6 +2,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
 
+import { Block } from '@/types/Block'
 import { PLAYER_SPEED, PLAYER_HEIGHT_OFFSET } from './config'
 import { checkCollisionAt } from './playerCollision'
 import React from "react";
@@ -14,9 +15,10 @@ type Params = {
   keysRef: React.MutableRefObject<Record<string, boolean>>
   heightMap: Uint16Array
   mapSize: number
+  placedBlocks?: Record<string, Block>
 }
 
-export const usePlayerMovement = ({ active, camera, playerRef, controlsRef, keysRef, heightMap, mapSize }: Params) => {
+export const usePlayerMovement = ({ active, camera, playerRef, controlsRef, keysRef, heightMap, mapSize, placedBlocks }: Params) => {
   useFrame((_, delta) => {
     if (!active || !playerRef.current) return
 
@@ -61,6 +63,7 @@ export const usePlayerMovement = ({ active, camera, playerRef, controlsRef, keys
         mapSize,
         cameraPos: camera.position,
         heightOffset: PLAYER_HEIGHT_OFFSET,
+        placedBlocks,
       })
 
     if (!hit(nextX, nextZ)) {

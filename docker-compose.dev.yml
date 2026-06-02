@@ -1,4 +1,12 @@
 services:
+  postgres:
+    ports:
+      - "5433:5432"
+
+  redis:
+    ports:
+      - "6380:6379"
+
   nginx-dev:
     image: nginx:1.25-alpine
     container_name: transcendence_nginx_dev

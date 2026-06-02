@@ -13,7 +13,7 @@ import { useThirdPersonCamera } from './player/useThirdPersonCamera'
 
 import type { PlayerProps } from '@/types/Three'
 
-const Player = ({ heightMap, mapSize, active, playerRef }: PlayerProps) => {
+const Player = ({ heightMap, mapSize, active, playerRef, placedBlocks }: PlayerProps) => {
   const { camera, gl } = useThree()
   const { scene } = useGLTF('/three/assets/capsule/full_bodie/Body_AA_01.glb')
 
@@ -25,7 +25,7 @@ const Player = ({ heightMap, mapSize, active, playerRef }: PlayerProps) => {
   useCurvedSceneMaterials(scene)
   usePlayerInput({ active, domElement: gl.domElement, controlsRef, keysRef })
   usePlayerRotation({ active, camera, playerRef, controlsRef, keysRef })
-  usePlayerMovement({ active, camera, playerRef, controlsRef, keysRef, heightMap, mapSize })
+  usePlayerMovement({ active, camera, playerRef, controlsRef, keysRef, heightMap, mapSize, placedBlocks })
   usePlayerVertical({
     active,
     keysRef,
@@ -35,6 +35,7 @@ const Player = ({ heightMap, mapSize, active, playerRef }: PlayerProps) => {
     heightMap,
     mapSize,
     cameraPos: camera.position,
+    placedBlocks,
   })
   useThirdPersonCamera({ active, camera, playerRef, controlsRef, scene, mapSize })
 
