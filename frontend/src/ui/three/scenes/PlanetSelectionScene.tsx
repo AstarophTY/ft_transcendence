@@ -1,16 +1,14 @@
-/* eslint-disable react/no-unknown-property */
-
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useEffect, useMemo, useRef } from 'react'
 
-import { Block } from '@/types/Block'
-import { Chunk } from '../../../models/maps/Chunk.ts'
-import { LocalMap } from '../../../models/maps/LocalMap.ts'
-import { PlanetMap } from '../../../models/maps/PlanetMap.ts'
+import { Block } from '@/models/Block.ts'
+import { Chunk } from '@/models/maps/Chunk.ts'
+import { LocalMap } from '@/models/maps/LocalMap.ts'
+import { PlanetMap } from '@/models/maps/PlanetMap.ts'
 import { IslandMap } from '@/perlin/terrain/IslandMap'
 import SelectablePlanet from '../objects/SelectablePlanet.tsx'
-import { usePlanetStore } from '../../../store/planetStore.ts'
+import { usePlanetStore } from '@/store/planetStore.ts'
 
 type DemoPlanetProfile = {
   seed: string

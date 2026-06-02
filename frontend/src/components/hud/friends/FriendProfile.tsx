@@ -101,7 +101,7 @@ export default function FriendProfile({
 
                 {profile.statusMessage && (
                   <p className="mt-2 text-xs italic text-muted-foreground">
-                    "{profile.statusMessage}"
+                    &quot;{profile.statusMessage}&quot;
                   </p>
                 )}
               </div>

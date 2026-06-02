@@ -4,7 +4,8 @@ export { IslandMap };
 export type { MapConfig } from "./terrain/MapConfig";
 export { Perlin2D } from "./noise/Perlin2D";
 
-if (require.main === module) {
+/* eslint-disable no-undef */
+if (typeof require !== 'undefined' && require.main === module) {
     const testMap = new IslandMap({
         seed: "test-dev",
         mapSize: 100,
