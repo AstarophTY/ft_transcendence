@@ -1,5 +1,5 @@
 import { LocalMap } from "./LocalMap.ts";
-import { Block } from "../Block.ts";
+import { Block } from "@/types/Block";
 import {PreviewVoxel} from "../PreviewVoxel.ts";
 
 

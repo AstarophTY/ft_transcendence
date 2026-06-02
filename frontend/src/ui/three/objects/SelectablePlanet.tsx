@@ -1,6 +1,6 @@
 import { PlanetMap } from "../../../models/maps/PlanetMap.ts";
 import React, { useMemo, useRef, useState } from "react";
-import { Block } from "../../../models/Block.ts";
+import { Block } from "@/types/Block";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { usePlanetStore } from "../../../store/planetStore.ts";
