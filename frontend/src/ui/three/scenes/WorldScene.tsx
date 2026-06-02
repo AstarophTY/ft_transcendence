@@ -49,17 +49,19 @@ const PlacedBlock = ({ blockType, position, onBeforeCompile, blockKey }: PlacedB
 
   const material = useMemo(() => {
     if (!meshNode) return null
-    if (Array.isArray(meshNode.material)) {
-      return meshNode.material.map((m) => {
-        const cloneMat = m.clone()
-        cloneMat.onBeforeCompile = onBeforeCompile
-        return cloneMat
+    const mat = meshNode.material
+    if (Array.isArray(mat)) {
+      mat.forEach((m) => {
+        if (!m.onBeforeCompile) {
+          m.onBeforeCompile = onBeforeCompile
+        }
       })
     } else {
-      const cloneMat = meshNode.material.clone()
-      cloneMat.onBeforeCompile = onBeforeCompile
-      return cloneMat
+      if (!mat.onBeforeCompile) {
+        mat.onBeforeCompile = onBeforeCompile
+      }
     }
+    return mat
   }, [meshNode, onBeforeCompile])
 
   if (!meshNode || !material) return null

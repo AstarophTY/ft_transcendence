@@ -35,17 +35,19 @@ export const ChunkRenderer = ({
 
   const material = useMemo(() => {
     if (!grassMesh) return null
-    if (Array.isArray(grassMesh.material)) {
-      return grassMesh.material.map((m) => {
-        const cloneMat = m.clone()
-        cloneMat.onBeforeCompile = onBeforeCompile
-        return cloneMat
+    const mat = grassMesh.material
+    if (Array.isArray(mat)) {
+      mat.forEach((m) => {
+        if (!m.onBeforeCompile) {
+          m.onBeforeCompile = onBeforeCompile
+        }
       })
     } else {
-      const cloneMat = grassMesh.material.clone()
-      cloneMat.onBeforeCompile = onBeforeCompile
-      return cloneMat
+      if (!mat.onBeforeCompile) {
+        mat.onBeforeCompile = onBeforeCompile
+      }
     }
+    return mat
   }, [grassMesh, onBeforeCompile])
 
   useEffect(() => {
@@ -93,7 +95,6 @@ export const ChunkRenderer = ({
       args={[grassMesh.geometry, material, Chunk.WIDTH * Chunk.WIDTH]}
       castShadow
       receiveShadow
-      frustumCulled={false}
     />
   )
 }
