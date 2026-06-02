@@ -49,6 +49,8 @@ export const ChunkRenderer = ({
       }
     }
     meshRef.current.instanceMatrix.needsUpdate = true
+    meshRef.current.computeBoundingSphere()
+    meshRef.current.computeBoundingBox()
   }, [chunkX, chunkZ, heightMap, mapSize])
 
   useFrame(() => {

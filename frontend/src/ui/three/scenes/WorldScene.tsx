@@ -1,5 +1,5 @@
 import { useFrame, useThree } from '@react-three/fiber'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -37,7 +37,19 @@ const WorldScene = () => {
     return DEMO_PLANET_PROFILES[safeIndex]!
   }, [activeIndex])
 
-  const heightMap = useHeightMap(profile, MAP_SIZE_BLOCKS)
+  const initialHeightMap = useHeightMap(profile, MAP_SIZE_BLOCKS)
+  const [heightMap, setHeightMap] = useState<Uint16Array>(initialHeightMap)
+
+  useEffect(() => {
+    setHeightMap(initialHeightMap)
+  }, [initialHeightMap])
+
+  const handleUpdateHeightMap = (x: number, z: number, newHeight: number) => {
+    const newMap = new Uint16Array(heightMap)
+    const mapIndex = z * MAP_SIZE_BLOCKS + x
+    newMap[mapIndex] = newHeight
+    setHeightMap(newMap)
+  }
 
   const { camera } = useThree()
 
@@ -84,6 +96,7 @@ const WorldScene = () => {
         mapSize={MAP_SIZE_BLOCKS}
         active={currentMode === 'freecam'}
         playerRef={playerRef}
+        onUpdateHeightMap={handleUpdateHeightMap}
       />
       <Player
         heightMap={heightMap}
