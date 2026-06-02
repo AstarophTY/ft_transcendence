@@ -35,7 +35,7 @@ export default [
       'react/prop-types': 'off',
       'react/no-unknown-property': ['error', { ignore: [
         'intensity', 'args', 'position', 'castShadow', 'receiveShadow', 
-        'shadow-mapSize', 'object', 'onBeforeCompile'
+        'shadow-mapSize', 'object', 'onBeforeCompile', 'frustumCulled'
       ] }],
     },
     settings: {

@@ -1,8 +1,10 @@
 import { useGLTF, PointerLockControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useMemo } from 'react'
 import * as THREE from 'three'
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
+
+import { applyCurvature, updateCurvatureUniforms, getCurvatureOffset } from '../utils/curvature'
 
 interface PlayerProps {
   heightMap: Uint16Array
@@ -14,6 +16,25 @@ interface PlayerProps {
 const Player = ({ heightMap, mapSize, active, playerRef }: PlayerProps) => {
   const { camera, gl } = useThree()
   const { scene } = useGLTF('/three/assets/capsule/full_bodie/Body_AA_01.glb')
+
+  const onBeforeCompile = useMemo(() => (shader: THREE.WebGLProgramParametersWithUniforms) => {
+    applyCurvature(shader)
+  }, [])
+
+  useEffect(() => {
+    scene.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh
+        if (Array.isArray(mesh.material)) {
+          mesh.material.forEach(m => {
+            m.onBeforeCompile = onBeforeCompile
+          })
+        } else {
+          mesh.material.onBeforeCompile = onBeforeCompile
+        }
+      }
+    })
+  }, [scene, onBeforeCompile])
   
   const controlsRef = useRef<PointerLockControlsImpl>(null)
   const velocity = useRef(new THREE.Vector3())
@@ -125,7 +146,10 @@ const Player = ({ heightMap, mapSize, active, playerRef }: PlayerProps) => {
           const pMapX = Math.floor(p.x + halfSize)
           const pMapZ = Math.floor(p.z + halfSize)
           const pMapIndex = THREE.MathUtils.clamp(pMapZ, 0, mapSize - 1) * mapSize + THREE.MathUtils.clamp(pMapX, 0, mapSize - 1)
-          const pGroundHeight = (heightMap[pMapIndex] ?? 0) + playerHeightOffset
+          
+          const pRawGroundHeight = heightMap[pMapIndex] ?? 0
+          const pCurvatureOffset = getCurvatureOffset(new THREE.Vector3(p.x, 0, p.z), camera.position)
+          const pGroundHeight = pRawGroundHeight + playerHeightOffset - pCurvatureOffset
           
           if (playerRef.current && pGroundHeight > playerRef.current.position.y + 0.5) {
             return true
@@ -163,7 +187,11 @@ const Player = ({ heightMap, mapSize, active, playerRef }: PlayerProps) => {
     const mapX = Math.floor(playerRef.current.position.x + halfSize)
     const mapZ = Math.floor(playerRef.current.position.z + halfSize)
     const mapIndex = THREE.MathUtils.clamp(mapZ, 0, mapSize - 1) * mapSize + THREE.MathUtils.clamp(mapX, 0, mapSize - 1)
-    const groundHeight = (heightMap[mapIndex] ?? 0) + playerHeightOffset
+    
+    // Apply curvature offset to the physical ground height
+    const rawGroundHeight = heightMap[mapIndex] ?? 0
+    const curvatureOffset = getCurvatureOffset(playerRef.current.position, camera.position)
+    const groundHeight = rawGroundHeight + playerHeightOffset - curvatureOffset
 
     if (playerRef.current.position.y <= groundHeight) {
       playerRef.current.position.y = groundHeight
@@ -179,6 +207,13 @@ const Player = ({ heightMap, mapSize, active, playerRef }: PlayerProps) => {
 
     // TPS Camera
     if (active) {
+      // Update curvature uniforms for player model
+      scene.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          updateCurvatureUniforms((child as THREE.Mesh).material, camera)
+        }
+      })
+
       if (controlsRef.current?.isLocked) {
         // Pointer lock mode: camera follows the player at a certain distance
         const distance = 10

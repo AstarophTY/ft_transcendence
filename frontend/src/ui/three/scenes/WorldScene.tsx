@@ -1,4 +1,4 @@
-import { PointerLockControls } from '@react-three/drei'
+import { PointerLockControls, Stats } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
@@ -8,6 +8,8 @@ import { Chunk } from '@/models/maps/Chunk.ts'
 import { IslandMap } from '@/perlin/terrain/IslandMap'
 import { usePlanetStore } from '@/store/planetStore.ts'
 import Player from '../objects/Player'
+
+import { applyCurvature, updateCurvatureUniforms, CURVATURE_INTENSITY, getCurvatureOffset } from '../utils/curvature'
 
 type DemoPlanetProfile = {
   seed: string
@@ -27,6 +29,70 @@ const DEMO_PLANET_PROFILES: DemoPlanetProfile[] = [
 
 const CHUNKS_PER_SIDE = 32
 const MAP_SIZE_BLOCKS = CHUNKS_PER_SIDE * Chunk.WIDTH
+
+const ChunkRenderer = ({ 
+  chunkX, 
+  chunkZ, 
+  heightMap, 
+  mapSize, 
+  onBeforeCompile,
+  camera
+}: { 
+  chunkX: number, 
+  chunkZ: number, 
+  heightMap: Uint16Array, 
+  mapSize: number,
+  onBeforeCompile: (shader: THREE.WebGLProgramParametersWithUniforms) => void,
+  curvature: number,
+  camera: THREE.Camera
+}) => {
+  const meshRef = useRef<THREE.InstancedMesh>(null)
+  const halfSize = mapSize / 2
+
+  useEffect(() => {
+    if (!meshRef.current) return
+
+    const tempMatrix = new THREE.Matrix4()
+    let instanceIndex = 0
+
+    for (let lz = 0; lz < Chunk.WIDTH; lz++) {
+      for (let lx = 0; lx < Chunk.WIDTH; lx++) {
+        const x = chunkX * Chunk.WIDTH + lx
+        const z = chunkZ * Chunk.WIDTH + lz
+        const mapIndex = z * mapSize + x
+        const height = heightMap[mapIndex] ?? 0
+
+        tempMatrix.makeTranslation(
+          x - halfSize + 0.5,
+          height + 0.5,
+          z - halfSize + 0.5
+        )
+        meshRef.current.setMatrixAt(instanceIndex, tempMatrix)
+        instanceIndex++
+      }
+    }
+    meshRef.current.instanceMatrix.needsUpdate = true
+  }, [chunkX, chunkZ, heightMap, mapSize])
+
+  useFrame(() => {
+    if (meshRef.current) {
+      updateCurvatureUniforms(meshRef.current.material, camera)
+    }
+  })
+
+  return (
+    <instancedMesh
+      ref={meshRef}
+      args={[undefined, undefined, Chunk.WIDTH * Chunk.WIDTH]}
+      castShadow
+      receiveShadow
+      frustumCulled={false}
+    >
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial color="#FFFFFF" onBeforeCompile={onBeforeCompile} />
+    </instancedMesh>
+  )
+}
 
 const FreeCameraControls = ({ heightMap, mapSize, active, playerRef }: { heightMap: Uint16Array, mapSize: number, active: boolean, playerRef: React.RefObject<THREE.Group> }) => {
   const { camera, gl } = useThree()
@@ -108,7 +174,9 @@ const FreeCameraControls = ({ heightMap, mapSize, active, playerRef }: { heightM
       const mapX = Math.floor(pos.x + halfSize)
       const mapZ = Math.floor(pos.z + halfSize)
       const mapIndex = THREE.MathUtils.clamp(mapZ, 0, mapSize - 1) * mapSize + THREE.MathUtils.clamp(mapX, 0, mapSize - 1)
-      const groundHeight = heightMap[mapIndex] ?? 0
+      const rawGroundHeight = heightMap[mapIndex] ?? 0
+      const curvatureOffset = getCurvatureOffset(pos, camera.position)
+      const groundHeight = rawGroundHeight - curvatureOffset
       // The block occupies space from groundHeight to groundHeight + 1
       // We are inside a block if our y is between groundHeight and groundHeight + 1
       const isInsideBlockVolume = pos.y >= groundHeight && pos.y <= groundHeight + 1
@@ -118,6 +186,15 @@ const FreeCameraControls = ({ heightMap, mapSize, active, playerRef }: { heightM
     // Collision handling: check each axis separately for sliding
     const finalPosition = camera.position.clone()
     
+    const getPhysicGroundHeight = (pos: THREE.Vector3) => {
+      const mapX = Math.floor(pos.x + halfSize)
+      const mapZ = Math.floor(pos.z + halfSize)
+      const mapIndex = THREE.MathUtils.clamp(mapZ, 0, mapSize - 1) * mapSize + THREE.MathUtils.clamp(mapX, 0, mapSize - 1)
+      const rawGroundHeight = heightMap[mapIndex] ?? 0
+      const curvatureOffset = getCurvatureOffset(pos, camera.position)
+      return rawGroundHeight - curvatureOffset
+    }
+
     // Try vertical movement first
     const verticalPos = finalPosition.clone()
     verticalPos.y = nextPosition.y
@@ -125,10 +202,7 @@ const FreeCameraControls = ({ heightMap, mapSize, active, playerRef }: { heightM
       finalPosition.y = nextPosition.y
     } else {
       // If moving into a block volume from above, snap to top
-      const mapX = Math.floor(finalPosition.x + halfSize)
-      const mapZ = Math.floor(finalPosition.z + halfSize)
-      const mapIndex = THREE.MathUtils.clamp(mapZ, 0, mapSize - 1) * mapSize + THREE.MathUtils.clamp(mapX, 0, mapSize - 1)
-      const groundHeight = heightMap[mapIndex] ?? 0
+      const groundHeight = getPhysicGroundHeight(finalPosition)
       
       if (finalPosition.y > groundHeight + 1) {
         finalPosition.y = groundHeight + 1.1 // Stay slightly above
@@ -160,6 +234,7 @@ const FreeCameraControls = ({ heightMap, mapSize, active, playerRef }: { heightM
 const WorldScene = () => {
   const activeIndex = usePlanetStore((state) => state.activeIndex)
   const playerRef = useRef<THREE.Group>(null)
+
   // Use state for mode to trigger re-renders
   const [currentMode, setCurrentMode] = useState<'freecam' | 'player'>('player')
 
@@ -204,83 +279,46 @@ const WorldScene = () => {
     return data
   }, [profile])
 
-  const voxelMeshRef = useRef<THREE.InstancedMesh | null>(null)
   const { camera } = useThree()
 
   // Curvature effect
-  const curvature = 0.0005
+  const onBeforeCompile = useMemo(() => (shader: THREE.WebGLProgramParametersWithUniforms) => {
+    applyCurvature(shader)
+    // We can still store the shader in userData for manual updates if needed, 
+    // but the updateCurvatureUniforms helper handles it.
+  }, [])
+
+  const [visibleChunks, setVisibleChunks] = useState<{cx: number, cz: number}[]>([])
+  const RENDER_DISTANCE_CHUNKS = 12
+
   useFrame(() => {
-    if (voxelMeshRef.current) {
-      const material = voxelMeshRef.current.material
-      if (Array.isArray(material)) return
-      
-      const meshMaterial = material as THREE.MeshStandardMaterial
-      if (meshMaterial.userData.shader) {
-        meshMaterial.userData.shader.uniforms.uCameraPosition.value.copy(camera.position)
-        meshMaterial.userData.shader.uniforms.uCurvature.value = curvature
+    const cameraChunkX = Math.floor((camera.position.x + MAP_SIZE_BLOCKS / 2) / Chunk.WIDTH)
+    const cameraChunkZ = Math.floor((camera.position.z + MAP_SIZE_BLOCKS / 2) / Chunk.WIDTH)
+
+    const newVisibleChunks = []
+    for (let cz = 0; cz < CHUNKS_PER_SIDE; cz++) {
+      for (let cx = 0; cx < CHUNKS_PER_SIDE; cx++) {
+        const dx = cx - cameraChunkX
+        const dz = cz - cameraChunkZ
+        const distSq = dx * dx + dz * dz
+        if (distSq <= RENDER_DISTANCE_CHUNKS * RENDER_DISTANCE_CHUNKS) {
+          newVisibleChunks.push({ cx, cz })
+        }
       }
+    }
+
+    // Only update state if the set of visible chunks changed to avoid unnecessary re-renders
+    const visibleKeys = newVisibleChunks.map(c => `${c.cx}-${c.cz}`).join(',')
+    const currentKeys = visibleChunks.map(c => `${c.cx}-${c.cz}`).join(',')
+    
+    if (visibleKeys !== currentKeys) {
+      setVisibleChunks(newVisibleChunks)
     }
   })
 
-  const onBeforeCompile = (shader: THREE.WebGLProgramParametersWithUniforms) => {
-    shader.uniforms.uCameraPosition = { value: new THREE.Vector3() }
-    shader.uniforms.uCurvature = { value: curvature }
-    
-    shader.vertexShader = `
-      uniform vec3 uCameraPosition;
-      uniform float uCurvature;
-    ` + shader.vertexShader
-
-    shader.vertexShader = shader.vertexShader.replace(
-      '#include <begin_vertex>',
-      `
-      #include <begin_vertex>
-      
-      // Calcul de la position monde pour l'instance
-      vec4 worldPos = instanceMatrix * vec4(position, 1.0);
-      worldPos = modelMatrix * worldPos;
-      
-      float dist = distance(worldPos.xz, uCameraPosition.xz);
-      transformed.y -= pow(dist, 2.0) * uCurvature;
-      `
-    )
-    if (voxelMeshRef.current) {
-      const material = voxelMeshRef.current.material
-      if (!Array.isArray(material)) {
-        material.userData.shader = shader
-      }
-    }
-  }
-
-  useEffect(() => {
-    if (!voxelMeshRef.current) {
-      return
-    }
-
-    const tempMatrix = new THREE.Matrix4()
-    const halfSize = MAP_SIZE_BLOCKS / 2
-
-    let index = 0
-    for (let z = 0; z < MAP_SIZE_BLOCKS; z += 1) {
-      for (let x = 0; x < MAP_SIZE_BLOCKS; x += 1) {
-        const height = heightMap[index] ?? 0
-        tempMatrix.makeTranslation(
-          x - halfSize + 0.5,
-          height + 0.5,
-          z - halfSize + 0.5,
-        )
-        if (voxelMeshRef.current) {
-          voxelMeshRef.current.setMatrixAt(index, tempMatrix)
-        }
-        index += 1
-      }
-    }
-
-    voxelMeshRef.current.instanceMatrix.needsUpdate = true
-  }, [heightMap])
-
   return (
     <group>
+      <Stats />
       <FreeCameraControls 
         heightMap={heightMap} 
         mapSize={MAP_SIZE_BLOCKS} 
@@ -293,15 +331,18 @@ const WorldScene = () => {
         active={currentMode === 'player'}
         playerRef={playerRef}
       />
-      <instancedMesh
-        ref={voxelMeshRef}
-        args={[undefined, undefined, MAP_SIZE_BLOCKS * MAP_SIZE_BLOCKS]}
-        castShadow
-        receiveShadow
-      >
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="#FFFFFF" onBeforeCompile={onBeforeCompile} />
-      </instancedMesh>
+      {visibleChunks.map(({ cx, cz }) => (
+        <ChunkRenderer
+          key={`${cx}-${cz}`}
+          chunkX={cx}
+          chunkZ={cz}
+          heightMap={heightMap}
+          mapSize={MAP_SIZE_BLOCKS}
+          onBeforeCompile={onBeforeCompile}
+          curvature={CURVATURE_INTENSITY}
+          camera={camera}
+        />
+      ))}
     </group>
   )
 }
