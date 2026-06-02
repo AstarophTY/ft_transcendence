@@ -67,6 +67,16 @@ const SelectablePlanet: React.FC<SelectablePlanetProps> = ({ map, index, totalCo
             <mesh
                 onPointerOver={() => { document.body.style.cursor = 'pointer'; setHovered(true); }}
                 onPointerOut={() => { document.body.style.cursor = 'auto'; setHovered(false); }}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    const storeState = usePlanetStore.getState();
+                    if (storeState.activeIndex === index) {
+                        storeState.setSceneMode('zooming');
+                    } else {
+                        storeState.setTargetOffset(index / (totalCount - 1));
+                        storeState.setActiveIndex(index);
+                    }
+                }}
             >
                 <boxGeometry args={[1, 1, 1]} />
                 <meshStandardMaterial color="#9ca3af" />

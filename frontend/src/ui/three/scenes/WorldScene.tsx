@@ -1,12 +1,14 @@
-import { PointerLockControls, Stats } from '@react-three/drei'
+ import { PointerLockControls, Stats } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
+import { useHotkeys } from 'react-hotkeys-hook'
 
 import { Chunk } from '@/models/maps/Chunk.ts'
 import { IslandMap } from '@/perlin/terrain/IslandMap'
-import { usePlanetStore } from '@/store/planetStore.ts'
+import { usePlanetStore } from '@/store/planetStore'
+import { useEditorStore } from '@/store/editorStore'
 import Player from '../objects/Player'
 
 import { applyCurvature, updateCurvatureUniforms, CURVATURE_INTENSITY, getCurvatureOffset } from '../utils/curvature'
@@ -237,16 +239,12 @@ const WorldScene = () => {
 
   // Use state for mode to trigger re-renders
   const [currentMode, setCurrentMode] = useState<'freecam' | 'player'>('player')
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'KeyC') {
+  const activeEditor = useEditorStore(state => state.activeEditor)
+  useHotkeys('c', () => {
         setCurrentMode(prev => prev === 'freecam' ? 'player' : 'freecam')
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+        activeEditor(currentMode != 'freecam')
+  })
+
 
   const profile = useMemo(() => {
     const safeIndex = Math.min(Math.max(activeIndex, 0), DEMO_PLANET_PROFILES.length - 1)

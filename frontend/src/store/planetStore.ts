@@ -7,13 +7,20 @@ interface PlanetStore {
   setTargetOffset: (offset: number) => void
   activeIndex: number
   setActiveIndex: (index: number) => void
+  sceneMode: 'selection' | 'zooming' | 'world'
+  setSceneMode: (mode: 'selection' | 'zooming' | 'world') => void
 }
 
+const initialPlanetCount = 10
+const initialActiveIndex = 5
+
 export const usePlanetStore = create<PlanetStore>((set) => ({
-  planetCount: 10,
+  planetCount: initialPlanetCount,
   setPlanetCount: (count) => set({ planetCount: count }),
-  targetOffset: 0.5,
-  setTargetOffset: (offset) => set({ targetOffset: offset }),
-  activeIndex: 5,
+  activeIndex: initialActiveIndex,
   setActiveIndex: (index) => set({ activeIndex: index }),
+  targetOffset: initialActiveIndex / (initialPlanetCount - 1),
+  setTargetOffset: (offset) => set({ targetOffset: offset }),
+  sceneMode: 'selection',
+  setSceneMode: (mode) => set({ sceneMode: mode }),
 }))
