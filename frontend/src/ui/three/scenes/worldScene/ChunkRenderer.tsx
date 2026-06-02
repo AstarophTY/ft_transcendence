@@ -1,6 +1,7 @@
 import { useFrame } from '@react-three/fiber'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useMemo } from 'react'
 import * as THREE from 'three'
+import { useGLTF } from '@react-three/drei'
 
 import { Chunk } from '@/types/maps/Chunk.ts'
 import { updateCurvatureUniforms } from '../../utils/curvature'
@@ -25,12 +26,35 @@ export const ChunkRenderer = ({
 }: ChunkRendererProps) => {
   const meshRef = useRef<THREE.InstancedMesh>(null)
 
+  // Load the grass block model
+  const { nodes } = useGLTF('/three/assets/blocks/dirt_with_grass.gltf')
+  
+  const grassMesh = useMemo(() => {
+    return Object.values(nodes).find((node) => (node as THREE.Mesh).isMesh) as THREE.Mesh | undefined
+  }, [nodes])
+
+  const material = useMemo(() => {
+    if (!grassMesh) return null
+    if (Array.isArray(grassMesh.material)) {
+      return grassMesh.material.map((m) => {
+        const cloneMat = m.clone()
+        cloneMat.onBeforeCompile = onBeforeCompile
+        return cloneMat
+      })
+    } else {
+      const cloneMat = grassMesh.material.clone()
+      cloneMat.onBeforeCompile = onBeforeCompile
+      return cloneMat
+    }
+  }, [grassMesh, onBeforeCompile])
+
   useEffect(() => {
-    if (!meshRef.current) return
+    if (!meshRef.current || !grassMesh) return
 
     const tempMatrix = new THREE.Matrix4()
     const halfSize = mapSize / 2
     let instanceIndex = 0
+    const scaleVector = new THREE.Vector3(0.5, 0.5, 0.5)
 
     for (let lz = 0; lz < Chunk.WIDTH; lz++) {
       for (let lx = 0; lx < Chunk.WIDTH; lx++) {
@@ -44,6 +68,8 @@ export const ChunkRenderer = ({
           height + 0.5,
           z - halfSize + 0.5
         )
+        tempMatrix.scale(scaleVector)
+
         meshRef.current.setMatrixAt(instanceIndex, tempMatrix)
         instanceIndex++
       }
@@ -51,24 +77,25 @@ export const ChunkRenderer = ({
     meshRef.current.instanceMatrix.needsUpdate = true
     meshRef.current.computeBoundingSphere()
     meshRef.current.computeBoundingBox()
-  }, [chunkX, chunkZ, heightMap, mapSize])
+  }, [chunkX, chunkZ, heightMap, mapSize, grassMesh])
 
   useFrame(() => {
-    if (meshRef.current) {
-      updateCurvatureUniforms(meshRef.current.material, camera)
+    if (meshRef.current && material) {
+      updateCurvatureUniforms(material, camera)
     }
   })
+
+  if (!grassMesh || !material) return null
 
   return (
     <instancedMesh
       ref={meshRef}
-      args={[undefined, undefined, Chunk.WIDTH * Chunk.WIDTH]}
+      args={[grassMesh.geometry, material, Chunk.WIDTH * Chunk.WIDTH]}
       castShadow
       receiveShadow
       frustumCulled={false}
-    >
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color="#FFFFFF" onBeforeCompile={onBeforeCompile} />
-    </instancedMesh>
+    />
   )
 }
+
+useGLTF.preload('/three/assets/blocks/dirt_with_grass.gltf')

@@ -15,7 +15,68 @@ import { CHUNKS_PER_SIDE, MAP_SIZE_BLOCKS, RENDER_DISTANCE_CHUNKS } from './worl
 import { FreeCameraControls } from './worldScene/FreeCameraControls'
 import { useHeightMap } from './worldScene/useHeightMap'
 import { Block } from '@/types/Block'
-import { BlockMetadata } from '@/config/Block'
+import { useGLTF } from '@react-three/drei'
+
+const BLOCK_MODEL_PATHS: Record<Exclude<Block, Block.Air>, string> = {
+  [Block.Stone]: '/three/assets/blocks/stone.gltf',
+  [Block.Dirt]: '/three/assets/blocks/dirt.gltf',
+  [Block.Grass]: '/three/assets/blocks/dirt_with_grass.gltf',
+  [Block.Wood]: '/three/assets/blocks/wood.gltf',
+  [Block.Leaves]: '/three/assets/blocks/decorative_block_green.gltf',
+  [Block.Water]: '/three/assets/blocks/water.gltf',
+  [Block.Sand]: '/three/assets/blocks/sand_A.gltf',
+  [Block.Glass]: '/three/assets/blocks/glass.gltf',
+}
+
+Object.values(BLOCK_MODEL_PATHS).forEach((path) => {
+  useGLTF.preload(path)
+})
+
+interface PlacedBlockProps {
+  blockType: Exclude<Block, Block.Air>
+  position: [number, number, number]
+  onBeforeCompile: (shader: THREE.WebGLProgramParametersWithUniforms) => void
+  blockKey: string
+}
+
+const PlacedBlock = ({ blockType, position, onBeforeCompile, blockKey }: PlacedBlockProps) => {
+  const path = BLOCK_MODEL_PATHS[blockType]
+  const { nodes } = useGLTF(path)
+
+  const meshNode = useMemo(() => {
+    return Object.values(nodes).find((node) => (node as THREE.Mesh).isMesh) as THREE.Mesh | undefined
+  }, [nodes])
+
+  const material = useMemo(() => {
+    if (!meshNode) return null
+    if (Array.isArray(meshNode.material)) {
+      return meshNode.material.map((m) => {
+        const cloneMat = m.clone()
+        cloneMat.onBeforeCompile = onBeforeCompile
+        return cloneMat
+      })
+    } else {
+      const cloneMat = meshNode.material.clone()
+      cloneMat.onBeforeCompile = onBeforeCompile
+      return cloneMat
+    }
+  }, [meshNode, onBeforeCompile])
+
+  if (!meshNode || !material) return null
+
+  return (
+    <mesh
+      name="placed-block"
+      position={position}
+      scale={[0.5, 0.5, 0.5]}
+      geometry={meshNode.geometry}
+      material={material}
+      userData={{ key: blockKey, blockType }}
+      castShadow
+      receiveShadow
+    />
+  )
+}
 
 const WorldScene = () => {
   const activeIndex = usePlanetStore((state) => state.activeIndex)
@@ -145,21 +206,15 @@ const WorldScene = () => {
           const worldX = x - halfSize + 0.5
           const worldY = y + 0.5
           const worldZ = z - halfSize + 0.5
-          const meta = BlockMetadata[blockType as Exclude<Block, Block.Air>]
-          const color = meta ? meta.color : '#FFFFFF'
 
           return (
-            <mesh
+            <PlacedBlock
               key={key}
-              name="placed-block"
+              blockKey={key}
+              blockType={blockType as Exclude<Block, Block.Air>}
               position={[worldX, worldY, worldZ]}
-              userData={{ key, blockType }}
-              castShadow
-              receiveShadow
-            >
-              <boxGeometry args={[1, 1, 1]} />
-              <meshStandardMaterial color={color} onBeforeCompile={onBeforeCompile} />
-            </mesh>
+              onBeforeCompile={onBeforeCompile}
+            />
           )
         })}
       </group>
