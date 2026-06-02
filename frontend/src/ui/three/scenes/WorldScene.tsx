@@ -6,6 +6,7 @@ import { useHotkeys } from 'react-hotkeys-hook'
 
 import { Chunk } from '@/types/maps/Chunk.ts'
 import { usePlanetStore } from '@/store/planetStore.ts'
+import { useEditorStore } from '@/store/editorStore'
 import Player from '../objects/Player'
 import { applyCurvature, CURVATURE_INTENSITY } from '../utils/curvature'
 import { DEMO_PLANET_PROFILES } from './planetSelection/demoPlanetProfiles'
@@ -20,9 +21,14 @@ const WorldScene = () => {
 
   // Use state for mode to trigger re-renders
   const [currentMode, setCurrentMode] = useState<'freecam' | 'player'>('player')
+  const activeEditor = useEditorStore((state) => state.activeEditor)
 
   useHotkeys('c', () => {
-    setCurrentMode((prev) => (prev === 'freecam' ? 'player' : 'freecam'))
+    setCurrentMode((prev) => {
+      const nextMode = prev === 'freecam' ? 'player' : 'freecam'
+      activeEditor(nextMode === 'freecam')
+      return nextMode
+    })
   })
 
 
