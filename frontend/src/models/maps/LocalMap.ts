@@ -1,5 +1,5 @@
 import { Chunk } from "./Chunk.ts";
-import { Block } from "../Block.ts";
+import { Block } from "@/types/Block";
 
 /**
  * Represents a dynamically sized map of chunks.
