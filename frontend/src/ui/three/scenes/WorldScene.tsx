@@ -11,7 +11,7 @@ import Player from '../objects/Player'
 import { applyCurvature, updateCurvatureUniforms } from '../utils/curvature'
 import { DEMO_PLANET_PROFILES } from './planetSelection/demoPlanetProfiles'
 import { ChunkRenderer } from './worldScene/ChunkRenderer'
-import { CHUNKS_PER_SIDE, MAP_SIZE_BLOCKS, RENDER_DISTANCE_CHUNKS } from './worldScene/constants'
+import { CHUNKS_PER_SIDE, MAP_SIZE_BLOCKS } from './worldScene/constants'
 import { FreeCameraControls } from './worldScene/FreeCameraControls'
 import { Block } from '@/types/Block'
 import { LocalMap } from '@/types/maps/LocalMap'
@@ -104,6 +104,7 @@ const generateLocalMap = (profile: any, mapSize: number) => {
 
 const WorldScene = () => {
   const activeIndex = usePlanetStore((state) => state.activeIndex)
+  const renderDistance = usePlanetStore((state) => state.renderDistance)
   const playerRef = useRef<THREE.Group>(null)
 
   const [currentMode, setCurrentMode] = useState<'freecam' | 'player'>('player')
@@ -246,7 +247,7 @@ const WorldScene = () => {
         const dx = cx - cameraChunkX
         const dz = cz - cameraChunkZ
         const distSq = dx * dx + dz * dz
-        if (distSq <= RENDER_DISTANCE_CHUNKS * RENDER_DISTANCE_CHUNKS) {
+        if (distSq <= renderDistance * renderDistance) {
           newVisibleChunks.push({ cx, cz })
         }
       }

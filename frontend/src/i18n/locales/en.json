@@ -135,7 +135,9 @@
     },
     "prefs": {
       "language": "Language",
-      "theme": "Theme"
+      "theme": "Theme",
+      "renderDistance": "Render distance",
+      "chunks": "chunks"
     }
   },
   "admin": {
