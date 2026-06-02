@@ -1,4 +1,4 @@
-import { Block } from '@/models/Block.ts'
+import { Block } from '@/types/Block'
 import { Chunk } from '@/models/maps/Chunk.ts'
 import { LocalMap } from '@/models/maps/LocalMap.ts'
 import { PlanetMap } from '@/models/maps/PlanetMap.ts'

@@ -1,3 +1,4 @@
+import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useEffect, useMemo } from 'react'
 
@@ -53,7 +54,12 @@ const PlanetSelectionScene = () => {
     return () => window.removeEventListener('wheel', handleWheel)
   }, [planetMaps.length])
 
-  return <PlanetRail planetMaps={planetMaps} />
+  return (
+    <>
+      <CameraController />
+      <PlanetRail planetMaps={planetMaps} />
+    </>
+  )
 }
 
 export default PlanetSelectionScene

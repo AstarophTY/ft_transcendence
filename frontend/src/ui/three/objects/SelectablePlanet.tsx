@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 
 import type { PlanetMap } from '@/models/maps/PlanetMap.ts'
+import { usePlanetStore } from '@/store/planetStore.ts'
 
 import PlanetPreviewFaces from './selectablePlanet/PlanetPreviewFaces'
 import { useSelectablePlanetAnimation } from './selectablePlanet/useSelectablePlanetAnimation'
@@ -42,6 +43,16 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
         onPointerOut={() => {
           document.body.style.cursor = 'auto'
           setHovered(false)
+        }}
+        onClick={(e) => {
+          e.stopPropagation()
+          const storeState = usePlanetStore.getState()
+          if (storeState.activeIndex === index) {
+            storeState.setSceneMode('zooming')
+          } else {
+            storeState.setTargetOffset(index / (totalCount - 1))
+            storeState.setActiveIndex(index)
+          }
         }}
       >
         <boxGeometry args={[1, 1, 1]} />
