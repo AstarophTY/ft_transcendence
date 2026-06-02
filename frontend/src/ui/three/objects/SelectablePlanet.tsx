@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 
-import type { PlanetMap } from '@/models/maps/PlanetMap.ts'
+import type { PlanetMap } from '@/types/maps/PlanetMap.ts'
 import { usePlanetStore } from '@/store/planetStore.ts'
 
 import PlanetPreviewFaces from './selectablePlanet/PlanetPreviewFaces'

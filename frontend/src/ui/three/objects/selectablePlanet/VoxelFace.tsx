@@ -1,6 +1,6 @@
 
 import { Block } from '@/types/Block'
-import type { PreviewVoxel } from '@/models/PreviewVoxel.ts'
+import type { PreviewVoxel } from '@/types/maps/PreviewVoxel.ts'
 
 type Orientation = 'top' | 'right' | 'front'
 

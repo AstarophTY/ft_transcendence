@@ -1,10 +1,10 @@
 import { Block } from '@/types/Block'
-import { Chunk } from '@/models/maps/Chunk.ts'
-import { LocalMap } from '@/models/maps/LocalMap.ts'
-import { PlanetMap } from '@/models/maps/PlanetMap.ts'
+import { Chunk } from '@/types/maps/Chunk.ts'
+import { LocalMap } from '@/types/maps/LocalMap.ts'
+import { PlanetMap } from '@/types/maps/PlanetMap.ts'
 import { IslandMap } from '@/perlin/terrain/IslandMap'
 
-import type { DemoPlanetProfile } from './demoPlanetProfiles'
+import type { DemoPlanetProfile } from '@/types/Three'
 
 export const createDemoPlanetMap = (profile: DemoPlanetProfile) => {
   const continent = new LocalMap(profile.widthInChunks, profile.depthInChunks)

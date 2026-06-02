@@ -11,7 +11,7 @@ import { usePlayerRotation } from './player/usePlayerRotation'
 import { usePlayerVertical } from './player/usePlayerVertical'
 import { useThirdPersonCamera } from './player/useThirdPersonCamera'
 
-import type { PlayerProps } from './player/types'
+import type { PlayerProps } from '@/types/Three'
 
 const Player = ({ heightMap, mapSize, active, playerRef }: PlayerProps) => {
   const { camera, gl } = useThree()

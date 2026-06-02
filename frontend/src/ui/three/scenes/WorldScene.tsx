@@ -4,7 +4,7 @@ import * as THREE from 'three'
 
 import { useHotkeys } from 'react-hotkeys-hook'
 
-import { Chunk } from '@/models/maps/Chunk.ts'
+import { Chunk } from '@/types/maps/Chunk.ts'
 import { usePlanetStore } from '@/store/planetStore.ts'
 import Player from '../objects/Player'
 import { applyCurvature, CURVATURE_INTENSITY } from '../utils/curvature'

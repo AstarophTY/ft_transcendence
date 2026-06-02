@@ -1,5 +1,5 @@
 import { useFrame } from '@react-three/fiber'
-import type { PlanetMap } from '@/models/maps/PlanetMap.ts'
+import type { PlanetMap } from '@/types/maps/PlanetMap.ts'
 import { useRef } from 'react'
 import * as THREE from 'three'
 

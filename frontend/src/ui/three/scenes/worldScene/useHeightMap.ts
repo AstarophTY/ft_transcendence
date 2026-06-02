@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 
-import { Chunk } from '@/models/maps/Chunk.ts'
+import { Chunk } from '@/types/maps/Chunk.ts'
 import { IslandMap } from '@/perlin/terrain/IslandMap'
 
-import type { DemoPlanetProfile } from '../planetSelection/demoPlanetProfiles'
+import type { DemoPlanetProfile } from '@/types/Three'
 
 export const useHeightMap = (profile: DemoPlanetProfile, mapSize: number) => {
   return useMemo(() => {

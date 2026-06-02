@@ -2,7 +2,7 @@ import { useFrame } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 
-import { Chunk } from '@/models/maps/Chunk.ts'
+import { Chunk } from '@/types/maps/Chunk.ts'
 import { updateCurvatureUniforms } from '../../utils/curvature'
 
 interface ChunkRendererProps {

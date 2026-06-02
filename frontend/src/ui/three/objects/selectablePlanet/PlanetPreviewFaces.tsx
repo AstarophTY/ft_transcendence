@@ -1,5 +1,5 @@
 
-import type { PreviewVoxel } from '@/models/PreviewVoxel.ts'
+import type { PreviewVoxel } from '@/types/maps/PreviewVoxel.ts'
 
 import VoxelFace from './VoxelFace'
 

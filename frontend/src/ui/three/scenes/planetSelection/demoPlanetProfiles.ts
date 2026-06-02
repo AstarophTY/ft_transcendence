@@ -1,14 +1,4 @@
-export type DemoPlanetProfile = {
-  seed: string
-  widthInChunks: number
-  depthInChunks: number
-  scale: number
-  octaves: number
-  persistence: number
-  relief: number
-  baseHeight: number
-  variationRange: number
-}
+import type { DemoPlanetProfile } from '@/types/Three'
 
 export const DEMO_PLANET_PROFILES: DemoPlanetProfile[] = [
   { seed: 'planet-selection-demo-0', widthInChunks: 4, depthInChunks: 4, scale: 0.045, octaves: 4, persistence: 0.45, relief: 0.65, baseHeight: 17, variationRange: 16 },
