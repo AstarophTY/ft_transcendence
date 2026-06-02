@@ -1,13 +1,11 @@
 import type { Group } from 'three'
 
-import type { Block } from '@/types/Block'
+import type { LocalMap } from './maps/LocalMap'
 
 export interface PlayerProps {
-  heightMap: Uint16Array
-  mapSize: number
+  localMap: LocalMap
   active: boolean
   playerRef: React.RefObject<Group>
-  placedBlocks?: Record<string, Block>
 }
 
 export type DemoPlanetProfile = {

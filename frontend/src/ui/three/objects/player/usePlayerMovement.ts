@@ -2,8 +2,8 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
 
-import { Block } from '@/types/Block'
-import { PLAYER_SPEED, PLAYER_HEIGHT_OFFSET } from './config'
+import { LocalMap } from '@/types/maps/LocalMap'
+import { PLAYER_SPEED } from './config'
 import { checkCollisionAt } from './playerCollision'
 import React from "react";
 
@@ -13,12 +13,10 @@ type Params = {
   playerRef: React.RefObject<THREE.Group>
   controlsRef: React.RefObject<PointerLockControlsImpl>
   keysRef: React.MutableRefObject<Record<string, boolean>>
-  heightMap: Uint16Array
-  mapSize: number
-  placedBlocks?: Record<string, Block>
+  localMap: LocalMap
 }
 
-export const usePlayerMovement = ({ active, camera, playerRef, controlsRef, keysRef, heightMap, mapSize, placedBlocks }: Params) => {
+export const usePlayerMovement = ({ active, camera, playerRef, controlsRef, keysRef, localMap }: Params) => {
   useFrame((_, delta) => {
     if (!active || !playerRef.current) return
 
@@ -59,11 +57,7 @@ export const usePlayerMovement = ({ active, camera, playerRef, controlsRef, keys
         x,
         z,
         playerY: playerRef.current!.position.y,
-        heightMap,
-        mapSize,
-        cameraPos: camera.position,
-        heightOffset: PLAYER_HEIGHT_OFFSET,
-        placedBlocks,
+        localMap,
       })
 
     if (!hit(nextX, nextZ)) {

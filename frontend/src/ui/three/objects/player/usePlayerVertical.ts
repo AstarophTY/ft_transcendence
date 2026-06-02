@@ -1,7 +1,7 @@
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-import { Block } from '@/types/Block'
+import { LocalMap } from '@/types/maps/LocalMap'
 import { PLAYER_GRAVITY, PLAYER_HEIGHT_OFFSET, PLAYER_JUMP_FORCE } from './config'
 import { getGroundHeightAt } from './playerTerrain'
 import React from "react";
@@ -12,10 +12,8 @@ type Params = {
   velocityRef: React.MutableRefObject<THREE.Vector3>
   isGroundedRef: React.MutableRefObject<boolean>
   playerRef: React.RefObject<THREE.Group>
-  heightMap: Uint16Array
-  mapSize: number
+  localMap: LocalMap
   cameraPos: THREE.Vector3
-  placedBlocks?: Record<string, Block>
 }
 
 export const usePlayerVertical = ({
@@ -24,10 +22,8 @@ export const usePlayerVertical = ({
   velocityRef,
   isGroundedRef,
   playerRef,
-  heightMap,
-  mapSize,
+  localMap,
   cameraPos,
-  placedBlocks,
 }: Params) => {
   useFrame((_, delta) => {
     if (!playerRef.current) return
@@ -41,12 +37,10 @@ export const usePlayerVertical = ({
     playerRef.current.position.y += velocityRef.current.y * delta
 
     const groundHeight = getGroundHeightAt({
-      heightMap,
-      mapSize,
+      localMap,
       worldPos: playerRef.current.position,
       cameraPos,
       heightOffset: PLAYER_HEIGHT_OFFSET,
-      placedBlocks,
     })
 
     if (playerRef.current.position.y <= groundHeight) {

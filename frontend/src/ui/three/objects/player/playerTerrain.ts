@@ -2,41 +2,29 @@ import * as THREE from 'three'
 
 import { Block } from '@/types/Block'
 import { getCurvatureOffset } from '@/ui/three/utils/curvature'
-
-export const getMapIndexFromWorld = (x: number, z: number, mapSize: number, halfSize: number) => {
-  const mapX = Math.floor(x + halfSize)
-  const mapZ = Math.floor(z + halfSize)
-  const clampedX = THREE.MathUtils.clamp(mapX, 0, mapSize - 1)
-  const clampedZ = THREE.MathUtils.clamp(mapZ, 0, mapSize - 1)
-  return clampedZ * mapSize + clampedX
-}
+import { LocalMap } from '@/types/maps/LocalMap'
+import { Chunk } from '@/types/maps/Chunk'
 
 export const getGroundHeightAt = (params: {
-  heightMap: Uint16Array
-  mapSize: number
+  localMap: LocalMap
   worldPos: THREE.Vector3
   cameraPos: THREE.Vector3
   heightOffset: number
-  placedBlocks?: Record<string, Block>
 }) => {
-  const halfSize = params.mapSize / 2
-  const mapIndex = getMapIndexFromWorld(params.worldPos.x, params.worldPos.z, params.mapSize, halfSize)
-  const rawGroundHeight = params.heightMap[mapIndex] ?? 0
-  let highestGround = rawGroundHeight
+  const mapSizeBlocks = params.localMap.widthInChunks * Chunk.WIDTH
+  const halfSize = mapSizeBlocks / 2
+  const globalX = Math.floor(params.worldPos.x + halfSize)
+  const globalZ = Math.floor(params.worldPos.z + halfSize)
 
-  if (params.placedBlocks) {
-    const mapX = Math.floor(params.worldPos.x + halfSize)
-    const mapZ = Math.floor(params.worldPos.z + halfSize)
-    
-    // Find the highest placed block below the player's current Y position
-    for (let blockY = 0; blockY < 64; blockY++) {
-      const key = `${mapX},${blockY},${mapZ}`
-      if (params.placedBlocks[key] !== undefined && params.placedBlocks[key] !== Block.Air) {
-        // Compare with the top of the block (blockY + 1)
-        if (blockY + 1 <= params.worldPos.y + 0.1) {
-          highestGround = Math.max(highestGround, blockY)
-        }
-      }
+  // Starting from the player's current Y floor coordinate down to 0, find the highest solid block
+  let highestGround = 0
+  const startY = Math.min(Chunk.HEIGHT - 1, Math.max(0, Math.floor(params.worldPos.y + 0.1)))
+
+  for (let y = startY; y >= 0; y--) {
+    const block = params.localMap.getGlobalBlock(globalX, y, globalZ)
+    if (block !== Block.Air && block !== Block.Water) {
+      highestGround = y
+      break
     }
   }
 
