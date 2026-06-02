@@ -9,9 +9,14 @@ export const getCurvatureOffset = (worldPos: THREE.Vector3, cameraPos: THREE.Vec
   return distSq * curvature
 }
 
-export const applyCurvature = (shader: THREE.WebGLProgramParametersWithUniforms, curvature: number = CURVATURE_INTENSITY) => {
+export const applyCurvature = (
+  shader: THREE.WebGLProgramParametersWithUniforms,
+  material: THREE.Material,
+  curvature: number = CURVATURE_INTENSITY
+) => {
   shader.uniforms.uCameraPosition = { value: new THREE.Vector3() }
   shader.uniforms.uCurvature = { value: curvature }
+  material.userData.shader = shader
   
   shader.vertexShader = `
     uniform vec3 uCameraPosition;

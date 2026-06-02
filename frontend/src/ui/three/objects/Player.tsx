@@ -17,9 +17,13 @@ const Player = ({ heightMap, mapSize, active, playerRef }: PlayerProps) => {
   const { camera, gl } = useThree()
   const { scene } = useGLTF('/three/assets/capsule/full_bodie/Body_AA_01.glb')
 
-  const onBeforeCompile = useMemo(() => (shader: THREE.WebGLProgramParametersWithUniforms) => {
-    applyCurvature(shader)
-  }, [])
+  const onBeforeCompile = useMemo(
+    () =>
+      function (this: THREE.Material, shader: THREE.WebGLProgramParametersWithUniforms) {
+        applyCurvature(shader, this)
+      },
+    []
+  )
 
   useEffect(() => {
     scene.traverse((child) => {

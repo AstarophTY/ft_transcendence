@@ -47,12 +47,12 @@ const ChunkRenderer = ({
   camera: THREE.Camera
 }) => {
   const meshRef = useRef<THREE.InstancedMesh>(null)
-  const halfSize = mapSize / 2
 
   useEffect(() => {
     if (!meshRef.current) return
 
     const tempMatrix = new THREE.Matrix4()
+    const halfSize = mapSize / 2
     let instanceIndex = 0
 
     for (let lz = 0; lz < Chunk.WIDTH; lz++) {
@@ -282,11 +282,13 @@ const WorldScene = () => {
   const { camera } = useThree()
 
   // Curvature effect
-  const onBeforeCompile = useMemo(() => (shader: THREE.WebGLProgramParametersWithUniforms) => {
-    applyCurvature(shader)
-    // We can still store the shader in userData for manual updates if needed, 
-    // but the updateCurvatureUniforms helper handles it.
-  }, [])
+  const onBeforeCompile = useMemo(
+    () =>
+      function (this: THREE.Material, shader: THREE.WebGLProgramParametersWithUniforms) {
+        applyCurvature(shader, this)
+      },
+    []
+  )
 
   const [visibleChunks, setVisibleChunks] = useState<{cx: number, cz: number}[]>([])
   const RENDER_DISTANCE_CHUNKS = 12
