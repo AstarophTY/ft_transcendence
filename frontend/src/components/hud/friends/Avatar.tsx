@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { AvatarProps } from "@/types/User"
 
 const STATUS_DOT: Record<string, string> = {
   ONLINE: 'bg-green-500',
@@ -7,16 +8,6 @@ const STATUS_DOT: Record<string, string> = {
   OFFLINE: 'bg-muted-foreground',
 }
 
-interface AvatarProps {
-  src?: string | null
-  name: string
-  size?: number
-  className?: string
-  /** Simple boolean online dot (green / grey). */
-  online?: boolean
-  /** Full status enum — takes precedence over `online` when provided. */
-  status?: 'ONLINE' | 'AWAY' | 'DND' | 'OFFLINE'
-}
 
 /** Round avatar that falls back to the first letter of the username. */
 export default function Avatar({

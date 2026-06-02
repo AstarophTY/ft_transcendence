@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useTranslation } from 'react-i18next'
-import { Users, UserPlus, Mailbox, MessageSquare, X } from 'lucide-react'
+import { Users, UserPlus, Mailbox, MessageSquare, X, GripHorizontal } from 'lucide-react'
+import type { DragControls } from 'motion/react'
 import { useFriends } from '@/store/friends'
 import { cn } from '@/lib/utils'
 import { Tab } from '@/types/Social'
@@ -10,7 +11,11 @@ import FriendsList from './FriendsList'
 import FriendRequests from './FriendRequests'
 import AddFriend from './AddFriend'
 
-export default function FriendsPanel() {
+interface FriendsPanelProps {
+  dragControls?: DragControls
+}
+
+export default function FriendsPanel({ dragControls }: FriendsPanelProps) {
   const { t } = useTranslation()
   const { incoming, setPanelOpen } = useFriends()
   const [activeTab, setActiveTab] = useState<Tab>('friends')
@@ -30,10 +35,19 @@ export default function FriendsPanel() {
       exit={{ opacity: 0 }}
       className="flex h-full flex-col"
     >
-      <header className="flex items-center justify-between border-b p-4">
-        <h2 className="font-semibold">{t('friends.title')}</h2>
+      <header 
+        className="flex items-center justify-between border-b p-4 cursor-grab active:cursor-grabbing"
+        onPointerDown={(e) => dragControls?.start(e)}
+      >
+        <div className="flex items-center gap-2">
+          <GripHorizontal className="h-5 w-5 text-muted-foreground" />
+          <h2 className="font-semibold select-none">{t('friends.title')}</h2>
+        </div>
         <button
-          onClick={() => setPanelOpen(false)}
+          onClick={(e) => {
+            e.stopPropagation()
+            setPanelOpen(false)
+          }}
           className="text-muted-foreground transition-colors hover:text-foreground"
         >
           <X className="size-5" />

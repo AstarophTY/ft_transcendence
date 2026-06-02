@@ -1,5 +1,5 @@
 import {SubChunk} from "./SubChunk.ts";
-import {Block} from "../Block.ts";
+import {Block} from "@/types/Block";
 
 /**
  * Represents a vertical column of blocks (16x64x16).

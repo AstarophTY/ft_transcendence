@@ -8,6 +8,27 @@ import { DEMO_PLANET_PROFILES } from './planetSelection/demoPlanetProfiles'
 import { createDemoPlanetMap } from './planetSelection/createDemoPlanetMap'
 import PlanetRail from './planetSelection/PlanetRail'
 
+const CameraController = () => {
+  const { camera } = useThree()
+
+  useFrame((_, delta) => {
+    const sceneMode = usePlanetStore.getState().sceneMode
+    if (sceneMode === 'zooming') {
+      const targetPos = new THREE.Vector3(0, 0.5, 0.5)
+      camera.position.lerp(targetPos, delta * 5)
+
+      if (camera.position.distanceTo(targetPos) < 0.1) {
+        usePlanetStore.getState().setSceneMode('world')
+      }
+    } else if (sceneMode === 'selection') {
+      const defaultPos = new THREE.Vector3(0, 1.5, 4)
+      camera.position.lerp(defaultPos, delta * 5)
+    }
+  })
+
+  return null
+}
+
 const PlanetSelectionScene = () => {
   const planetMaps = useMemo(() => DEMO_PLANET_PROFILES.map(createDemoPlanetMap), [])
 
@@ -17,6 +38,7 @@ const PlanetSelectionScene = () => {
 
   useEffect(() => {
     const handleWheel = (event: WheelEvent) => {
+      if (usePlanetStore.getState().sceneMode !== 'selection') return;
       event.preventDefault()
 
       const delta = event.deltaY !== 0 ? event.deltaY : event.deltaX

@@ -26,6 +26,7 @@ const WorldScene = () => {
     setCurrentMode((prev) => (prev === 'freecam' ? 'player' : 'freecam'))
   })
 
+
   const profile = useMemo(() => {
     const safeIndex = Math.min(Math.max(activeIndex, 0), DEMO_PLANET_PROFILES.length - 1)
     return DEMO_PLANET_PROFILES[safeIndex]!

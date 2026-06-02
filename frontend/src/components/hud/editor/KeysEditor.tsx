@@ -6,16 +6,23 @@ export default function KeysEditor() {
         <p className="text-sm text-muted-foreground">
             Use{" "}
             <KbdGroup>
-            <Kbd>Mouse click left</Kbd>
+            <Kbd>1</Kbd>
             </KbdGroup>{" "}
-            to destroy a block
+            to search block
         </p>
         <p className="text-sm text-muted-foreground">
             Use{" "}
             <KbdGroup>
-            <Kbd>Mouse click right</Kbd>
+            <Kbd>2</Kbd>
             </KbdGroup>{" "}
-            to build a block
+            to use build tool
+        </p>
+        <p className="text-sm text-muted-foreground">
+            Use{" "}
+            <KbdGroup>
+            <Kbd>3</Kbd>
+            </KbdGroup>{" "}
+            to use destroy tool
         </p>
     </div>
   )
