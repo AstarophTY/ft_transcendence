@@ -45,7 +45,7 @@ const Player = ({ heightMap, mapSize, active, playerRef }: PlayerProps) => {
   return (
     <group ref={playerRef}>
       <primitive object={scene} scale={0.5} />
-      {active && <PointerLockControls ref={controlsRef} />}
+      {active && <PointerLockControls ref={controlsRef} selector="#canvas-container" />}
     </group>
   )
 }

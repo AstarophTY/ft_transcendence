@@ -19,8 +19,10 @@ export const usePlayerInput = ({ active, domElement, controlsRef, keysRef }: Par
     const handleKeyUp = (e: KeyboardEvent) => {
       keysRef.current[e.code] = false
     }
-    const handleClick = () => {
-      if (active) controlsRef.current?.lock()
+    const handleClick = (e: MouseEvent) => {
+      if (active && e.target === domElement) {
+        controlsRef.current?.lock()
+      }
     }
 
     window.addEventListener('keydown', handleKeyDown)

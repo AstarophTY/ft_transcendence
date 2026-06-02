@@ -46,8 +46,8 @@ export const FreeCameraControls = ({
     const handleKeyUp = (event: KeyboardEvent) => {
       keysRef.current[event.code] = false
     }
-    const handleClick = () => {
-      if (active) {
+    const handleClick = (e: MouseEvent) => {
+      if (active && e.target === gl.domElement) {
         controlsRef.current?.lock()
       }
     }
@@ -155,5 +155,5 @@ export const FreeCameraControls = ({
     camera.position.copy(finalPosition)
   })
 
-  return active ? <PointerLockControls ref={(node) => { controlsRef.current = node }} /> : null
+  return active ? <PointerLockControls ref={(node) => { controlsRef.current = node }} selector="#canvas-container" /> : null
 }

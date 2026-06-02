@@ -1,10 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { extname, resolve } from 'path';
 import { randomUUID } from 'crypto';
 
 /** Where uploaded avatars live (mounted as the `uploads` docker volume). */
-export const UPLOADS_DIR = '/app/uploads';
+export const UPLOADS_DIR = process.env.UPLOADS_DIR || resolve(process.cwd(), 'uploads');
 
 /** Public URL prefix — served by the backend, proxied through nginx `/api/`. */
 export const AVATAR_URL_PREFIX = '/api/uploads/avatars';
