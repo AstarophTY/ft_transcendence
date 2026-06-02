@@ -89,7 +89,7 @@ export function SearchBlock() {
                 className="h-20 w-full flex items-center justify-center border-b"
                 style={{ backgroundColor: block.color }}
               >
-                {/* Visualizer for the block can be added here, for now using color */}
+                {/* add three js visualize*/}
               </div>
               <div className="p-2 text-center text-sm font-medium">
                 {block.name}
