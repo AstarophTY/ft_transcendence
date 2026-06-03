@@ -140,6 +140,13 @@
       "chunks": "chunks"
     }
   },
+  "profile": {
+    "coins": "{{count}} monedas",
+    "coinsLabel": "Monedas",
+    "logtime": "{{hours}} h registradas",
+    "monthLogtime": "{{hours}} h este mes",
+    "nextCoin": "{{minutes}} min para la próxima moneda"
+  },
   "admin": {
     "title": "Panel de administración",
     "user": "Usuario",
@@ -152,7 +159,8 @@
     "joined": "Registrado",
     "tabs": {
       "overview": "Resumen",
-      "users": "Usuarios"
+      "users": "Usuarios",
+      "campus": "Campus"
     },
     "search": "Buscar por usuario, correo…",
     "filter": {
@@ -181,6 +189,25 @@
       "users": "Usuarios",
       "fortyTwo": "Cuentas 42",
       "local": "Cuentas locales"
+    },
+    "campus": {
+      "empty": "No hay solicitudes de campus pendientes.",
+      "requestedBy": "Solicitado por {{user}}",
+      "approve": "Aprobar",
+      "decline": "Rechazar",
+      "approved": "Campus «{{label}}» aprobado",
+      "declined": "Solicitud de «{{label}}» rechazada",
+      "requestsSection": "Solicitudes pendientes",
+      "manageSection": "Todos los campus",
+      "delete": "Eliminar campus",
+      "deleted": "Campus «{{label}}» eliminado",
+      "removeMember": "Quitar del campus",
+      "noMembers": "Aún no hay miembros.",
+      "noCampuses": "Aún no hay campus.",
+      "coinsDecrease": "Quitar una moneda",
+      "coinsIncrease": "Añadir una moneda",
+      "totalHint": "Total de monedas (miembros + bono)",
+      "bonus": "Bono admin"
     }
   }
 }

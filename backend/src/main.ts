@@ -1,4 +1,6 @@
 import { mkdirSync } from 'fs';
+import * as path from 'path';
+import * as dotenv from 'dotenv';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
@@ -8,6 +10,9 @@ import { AppModule } from './app.module';
 import { UPLOADS_DIR } from './users/avatar.upload';
 
 async function bootstrap(): Promise<void> {
+  dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+  dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const config = app.get(ConfigService);
 

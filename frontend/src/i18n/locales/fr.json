@@ -140,6 +140,13 @@
       "chunks": "tronçons"
     }
   },
+  "profile": {
+    "coins": "{{count}} coins",
+    "coinsLabel": "Coins",
+    "logtime": "{{hours}} h de logtime",
+    "monthLogtime": "{{hours}} h ce mois",
+    "nextCoin": "Plus que {{minutes}} min pour le prochain coin"
+  },
   "admin": {
     "title": "Panneau admin",
     "user": "Utilisateur",
@@ -152,7 +159,8 @@
     "joined": "Inscrit",
     "tabs": {
       "overview": "Vue d'ensemble",
-      "users": "Utilisateurs"
+      "users": "Utilisateurs",
+      "campus": "Campus"
     },
     "search": "Rechercher par pseudo, email…",
     "filter": {
@@ -181,6 +189,25 @@
       "users": "Utilisateurs",
       "fortyTwo": "Comptes 42",
       "local": "Comptes locaux"
+    },
+    "campus": {
+      "empty": "Aucune demande de campus en attente.",
+      "requestedBy": "Demandé par {{user}}",
+      "approve": "Accepter",
+      "decline": "Refuser",
+      "approved": "Campus « {{label}} » accepté",
+      "declined": "Demande pour « {{label}} » refusée",
+      "requestsSection": "Demandes en attente",
+      "manageSection": "Tous les campus",
+      "delete": "Supprimer le campus",
+      "deleted": "Campus « {{label}} » supprimé",
+      "removeMember": "Retirer du campus",
+      "noMembers": "Aucun membre pour l'instant.",
+      "noCampuses": "Aucun campus pour l'instant.",
+      "coinsDecrease": "Retirer un coin",
+      "coinsIncrease": "Ajouter un coin",
+      "totalHint": "Total des coins (membres + bonus)",
+      "bonus": "Bonus admin"
     }
   }
 }

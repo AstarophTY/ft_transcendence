@@ -5,9 +5,11 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
+import { FortyTwoService } from '../auth/forty-two.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { SELF_USER_SELECT, SelfUser } from './users.select';
+import { SELF_USER_SELECT, SelfProfile, SelfUser } from './users.select';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 
 /** Username may only be changed once every 30 days. */
@@ -16,13 +18,29 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 @Injectable()
 export class ProfileService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
+    private readonly fortyTwo: FortyTwoService,
+  ) {}
 
-  getMe(userId: string): Promise<SelfUser | null> {
-    return this.prisma.user.findUnique({
+  /** Self profile plus the coin rate, so the UI can show progress to the next coin. */
+  async getMe(userId: string): Promise<SelfProfile | null> {
+    // Pull fresh 42 logtime (throttled) so the balance moves without re-login.
+    await this.fortyTwo.resyncCoins(userId);
+    const me = await this.prisma.user.findUnique({
       where: { id: userId },
       select: SELF_USER_SELECT,
     });
+    if (!me) return null;
+    const coinsPerHour =
+      Number(this.config.get<string>('COINS_PER_HOUR', '1')) || 1;
+    return { ...me, coinsPerHour };
+  }
+
+  /** Live 42 logtime diagnostics for the signed-in user. */
+  debugLogtime(userId: string): Promise<Record<string, unknown>> {
+    return this.fortyTwo.debugLogtime(userId);
   }
 
   /** Update freely-editable fields + optional avatar URL. */

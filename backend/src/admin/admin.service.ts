@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { Role } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ADMIN_USER_SELECT, AdminUser } from '../users/users.select';
 import { AdminUpdateUserDto } from './dto/admin-update-user.dto';
@@ -92,9 +92,13 @@ export class AdminService {
 
   /** Admin override: edit any user's profile fields (incl. email). */
   async updateUser(userId: string, dto: AdminUpdateUserDto): Promise<AdminUser> {
+    const { campus, ...rest } = dto;
     return this.prisma.user.update({
       where: { id: userId },
-      data: dto,
+      data: {
+        ...rest,
+        ...(campus ? { campus: this.campusRelation(campus) } : {}),
+      },
       select: ADMIN_USER_SELECT,
     });
   }
@@ -117,5 +121,16 @@ export class AdminService {
       throw new BadRequestException('You cannot delete your own account');
     }
     await this.prisma.user.delete({ where: { id: userId } });
+  }
+
+  private campusRelation(
+    label: string,
+  ): Prisma.CampusCreateNestedOneWithoutUsersInput {
+    return {
+      connectOrCreate: {
+        where: { label },
+        create: { label },
+      },
+    };
   }
 }

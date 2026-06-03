@@ -8,36 +8,44 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(uuid())
-  email         String?  @unique
-  username      String   @unique
+  id            String  @id @default(uuid())
+  email         String? @unique
+  username      String  @unique
   passwordHash  String?
-  fortyTwoId    Int?     @unique
+  fortyTwoId    Int?    @unique
   fortyTwoLogin String?
   avatar        String?
-  role          Role     @default(USER)
-  isVerified    Boolean  @default(false)
+  role          Role    @default(USER)
+  isVerified    Boolean @default(false)
 
   displayName       String?
   bio               String?
-  campus            String?
+  campusId          String?
+  campus            Campus?    @relation("CampusUsers", fields: [campusId], references: [id])
+  coins             Int        @default(0)
+  logtimeHours      Float      @default(0)
+  monthLogtimeHours Float      @default(0)
+  fortyTwoAccessToken  String?
+  fortyTwoRefreshToken String?
   language          String?
   theme             String?
   status            UserStatus @default(ONLINE)
   statusMessage     String?
   usernameChangedAt DateTime?
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   refreshTokens    RefreshToken[]
-  sentMessages     Message[]  @relation("SentMessages")
-  receivedMessages Message[]  @relation("ReceivedMessages")
+  sentMessages     Message[]      @relation("SentMessages")
+  receivedMessages Message[]      @relation("ReceivedMessages")
   buildings        Building[]
   apiKeys          ApiKey[]
 
   sentFriendRequests     Friendship[] @relation("FriendRequester")
   receivedFriendRequests Friendship[] @relation("FriendAddressee")
+
+  campusRequests CampusRequest[] @relation("CampusRequester")
 }
 
 model RefreshToken {
@@ -60,7 +68,7 @@ model Message {
   isRead     Boolean  @default(false)
   createdAt  DateTime @default(now())
 
-  sender   User @relation("SentMessages",     fields: [senderId],   references: [id], onDelete: Cascade)
+  sender   User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
   receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
 
   @@index([senderId, receiverId])
@@ -108,6 +116,29 @@ model ApiKey {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Campus {
+  id    String @id @default(uuid())
+  label String @unique
+  /// Admin bonus added on top of the members' earned coins for the campus total.
+  coins Int    @default(0)
+  users User[] @relation("CampusUsers")
+}
+
+/// A request to open a campus that does not exist yet. Created automatically on
+/// 42 login when the user's campus is unknown, then reviewed by staff (ADMIN).
+model CampusRequest {
+  id            String              @id @default(uuid())
+  label         String
+  status        CampusRequestStatus @default(PENDING)
+  requestedById String
+  requestedBy   User                @relation("CampusRequester", fields: [requestedById], references: [id], onDelete: Cascade)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([status])
+  @@index([requestedById])
+}
+
 enum Role {
   USER
   ADMIN
@@ -123,4 +154,10 @@ enum UserStatus {
 enum FriendshipStatus {
   PENDING
   ACCEPTED
+}
+
+enum CampusRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

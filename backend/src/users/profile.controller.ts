@@ -23,7 +23,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { ChangeUsernameDto } from './dto/change-username.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ProfileService } from './profile.service';
-import { SelfUser } from './users.select';
+import { SelfProfile, SelfUser } from './users.select';
 
 @Controller('users/me')
 @UseGuards(JwtAuthGuard)
@@ -32,10 +32,18 @@ export class ProfileController {
 
   /** Full self profile (email + campus included, no password hash). */
   @Get()
-  async me(@CurrentUser() user: AuthUser): Promise<SelfUser> {
+  async me(@CurrentUser() user: AuthUser): Promise<SelfProfile> {
     const me = await this.profile.getMe(user.userId);
     if (!me) throw new Error('User not found');
     return me;
+  }
+
+  /** Live 42 logtime diagnostics (why coins may stay at 0). */
+  @Get('logtime')
+  logtime(
+    @CurrentUser() user: AuthUser,
+  ): Promise<Record<string, unknown>> {
+    return this.profile.debugLogtime(user.userId);
   }
 
   /** Update freely-editable fields (display name, bio, email, prefs, status). */

@@ -9,6 +9,8 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { CampusService } from '../campus/campus.service';
+import { FortyTwoService } from './forty-two.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
 import { UsersService } from '../users/users.service';
@@ -25,6 +27,8 @@ export class AuthService {
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
     private readonly redis: RedisService,
+    private readonly campus: CampusService,
+    private readonly fortyTwo: FortyTwoService,
   ) {}
 
   async register(
@@ -87,12 +91,12 @@ export class AuthService {
 
   async validateFortyTwoUser(profile: FortyTwoProfile): Promise<AuthTokens> {
     const linked = await this.users.findByFortyTwoId(profile.fortyTwoId);
+
     if (linked) {
       const updated = await this.users.update(linked.id, {
         avatar: profile.avatar,
-        // Keep campus in sync with 42 on every login.
-        ...(profile.campus ? { campus: profile.campus } : {}),
       });
+      await this.syncFortyTwo(updated, profile);
       return this.generateTokens(updated);
     }
 
@@ -103,9 +107,9 @@ export class AuthService {
           fortyTwoId: profile.fortyTwoId,
           fortyTwoLogin: profile.fortyTwoLogin,
           avatar: profile.avatar,
-          campus: profile.campus ?? null,
           isVerified: true,
         });
+        await this.syncFortyTwo(merged, profile);
         return this.generateTokens(merged);
       }
     }
@@ -119,12 +123,24 @@ export class AuthService {
       email: profile.email,
       username,
       avatar: profile.avatar,
-      campus: profile.campus ?? null,
       displayName: profile.displayName ?? null,
       isVerified: true,
     });
 
+    await this.syncFortyTwo(created, profile);
     return this.generateTokens(created);
+  }
+
+  /** Keep campus and logtime-coins in sync with 42 on every login. */
+  private async syncFortyTwo(
+    user: User,
+    profile: FortyTwoProfile,
+  ): Promise<void> {
+    if (profile.campus) {
+      // Unknown campuses are not created here: a request is opened for staff.
+      await this.campus.syncFortyTwoCampus(user.id, profile.campus);
+    }
+    await this.fortyTwo.resyncCoins(user.id);
   }
 
   private async generateTokens(user: User): Promise<AuthTokens> {
