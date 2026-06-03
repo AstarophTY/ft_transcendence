@@ -3,9 +3,9 @@ import * as THREE from 'three'
 import { useEffect, useMemo } from 'react'
 
 import { usePlanetStore } from '@/store/planetStore.ts'
+import { listWorlds } from '@/lib/world'
 
 import { WHEEL_SENSITIVITY } from './planetSelection/constants'
-import { DEMO_PLANET_PROFILES } from './planetSelection/demoPlanetProfiles'
 import { createDemoPlanetMap } from './planetSelection/createDemoPlanetMap'
 import PlanetRail from './planetSelection/PlanetRail'
 
@@ -31,15 +31,33 @@ const CameraController = () => {
 }
 
 const PlanetSelectionScene = () => {
-  const planetMaps = useMemo(() => DEMO_PLANET_PROFILES.map(createDemoPlanetMap), [])
+  const worlds = usePlanetStore((state) => state.worlds)
+  const setWorlds = usePlanetStore((state) => state.setWorlds)
 
+  // One island per campus, loaded from the backend.
   useEffect(() => {
-    usePlanetStore.setState({ planetCount: planetMaps.length })
-  }, [planetMaps.length])
+    let cancelled = false
+    listWorlds()
+      .then((data) => {
+        if (!cancelled) setWorlds(data)
+      })
+      .catch(() => {
+        /* keep the menu empty if the worlds cannot be loaded */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [setWorlds])
+
+  const planetMaps = useMemo(
+    () => worlds.map((world) => createDemoPlanetMap(world)),
+    [worlds],
+  )
 
   useEffect(() => {
     const handleWheel = (event: WheelEvent) => {
-      if (usePlanetStore.getState().sceneMode !== 'selection') return;
+      if (usePlanetStore.getState().sceneMode !== 'selection') return
+      if (planetMaps.length === 0) return
       event.preventDefault()
 
       const delta = event.deltaY !== 0 ? event.deltaY : event.deltaX
@@ -47,7 +65,8 @@ const PlanetSelectionScene = () => {
       const newOffset = THREE.MathUtils.clamp(currentOffset + delta * WHEEL_SENSITIVITY, 0, 1)
       const newIndex = Math.round(newOffset * (planetMaps.length - 1))
 
-      usePlanetStore.setState({ targetOffset: newOffset, activeIndex: newIndex })
+      usePlanetStore.setState({ targetOffset: newOffset })
+      usePlanetStore.getState().setActiveIndex(newIndex)
     }
 
     window.addEventListener('wheel', handleWheel, { passive: false })
