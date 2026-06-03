@@ -165,12 +165,12 @@ const WorldScene = () => {
           
           const w = 1 / 6
           const faceUVs = [
-            { offset: [2 * w, 0], repeat: [w, 1], rotation: -(Math.PI / 2) },
-            { offset: [4 * w, 0], repeat: [w, 1], rotation: -(Math.PI / 2) },
+            { offset: [2 * w, 0], repeat: [w, 1], rotation: 0 },
+            { offset: [4 * w, 0], repeat: [w, 1], rotation: 0 },
             { offset: [0 * w, 0], repeat: [w, 1], rotation: 0 },
             { offset: [5 * w, 0], repeat: [w, 1], rotation: 0 },
-            { offset: [3 * w, 0], repeat: [w, 1], rotation: -(Math.PI / 2) },
-            { offset: [1 * w, 0], repeat: [w, 1], rotation: -(Math.PI / 2) }
+            { offset: [3 * w, 0], repeat: [w, 1], rotation: 0 },
+            { offset: [1 * w, 0], repeat: [w, 1], rotation: 0 }
           ]
           
           materials.forEach((mat, index) => {
