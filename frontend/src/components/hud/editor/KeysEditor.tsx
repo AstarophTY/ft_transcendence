@@ -8,19 +8,12 @@ export default function KeysEditor() {
             <KbdGroup>
             <Kbd>1</Kbd>
             </KbdGroup>{" "}
-            to search block
-        </p>
-        <p className="text-sm text-muted-foreground">
-            Use{" "}
-            <KbdGroup>
-            <Kbd>2</Kbd>
-            </KbdGroup>{" "}
             to use build tool
         </p>
         <p className="text-sm text-muted-foreground">
             Use{" "}
             <KbdGroup>
-            <Kbd>3</Kbd>
+            <Kbd>2</Kbd>
             </KbdGroup>{" "}
             to use destroy tool
         </p>

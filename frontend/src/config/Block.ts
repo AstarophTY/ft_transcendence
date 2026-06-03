@@ -1,4 +1,4 @@
-import { BlockMeta, Block } from "@/types/Block";
+import { Block } from "@/types/Block";
 import blockColors from "./block_colors.json";
 
 const colors = blockColors as Record<string, string>;

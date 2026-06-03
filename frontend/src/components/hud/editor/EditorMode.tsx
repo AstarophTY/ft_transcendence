@@ -13,9 +13,8 @@ export default function EditorMode() {
   const changeTool = (tool: Tab) => {
     setCurrentTool(tool === currentTool ? Tab.None : tool)
   }
-  useHotkeys('1', () => changeTool(Tab.Search))
-  useHotkeys('2', () => changeTool(Tab.Add))
-  useHotkeys('3', () => changeTool(Tab.Remove))
+  useHotkeys('1', () => changeTool(Tab.Add))
+  useHotkeys('2', () => changeTool(Tab.Remove))
   useHotkeys('escape', () => changeTool(Tab.None))
 
   return (
@@ -23,7 +22,7 @@ export default function EditorMode() {
         <KeysEditor />
         <ToolBar updateCurrenTool={changeTool} currentTool={currentTool} />
         <Cross />
-        {currentTool === Tab.Search && (<SearchBlock />)}
+        {currentTool === Tab.Add && (<SearchBlock />)}
     </>
   )
 }
