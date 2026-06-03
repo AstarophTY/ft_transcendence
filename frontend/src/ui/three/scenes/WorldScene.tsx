@@ -163,14 +163,13 @@ const WorldScene = () => {
           texture.magFilter = THREE.NearestFilter
           texture.colorSpace = THREE.SRGBColorSpace
           
-          // Exemple de découpage pour une texture en grille 2x2.
           const faceUVs = [
-            { offset: [0, 0.5], repeat: [0.25, 1] },   // 0: Droite (+x)
-            { offset: [0.25, 1], repeat: [0.25, 1] }, // 1: Gauche (-x)
-            { offset: [0, 0], repeat: [0.25, 1] },     // 2: Haut (+y)
-            { offset: [0.5, 0], cx : [0.25, 1] },   // 3: Bas (-y)
-            { offset: [0, 0.5], repeat: [0.25, 1] },   // 4: Avant (+z) - réutilise une face
-            { offset: [0.25, 1], repeat: [0.25, 1] }  // 5: Arrière (-z) - réutilise une face
+            { offset: [0, 0.5], repeat: [0.25, 1] },
+            { offset: [0.25, 1], repeat: [0.25, 1] },
+            { offset: [0, 0], repeat: [0.25, 1] },
+            { offset: [0.5, 0], cx : [0.25, 1] },
+            { offset: [0, 0.5], repeat: [0.25, 1] },
+            { offset: [0.25, 1], repeat: [0.25, 1] }
           ]
           
           materials.forEach((mat, index) => {
