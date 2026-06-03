@@ -17,6 +17,9 @@ export const useCurvedSceneMaterials = (scene: THREE.Object3D) => {
       if (!(child as THREE.Mesh).isMesh) return
 
       const mesh = child as THREE.Mesh
+      mesh.castShadow = true
+      mesh.receiveShadow = true
+      
       if (Array.isArray(mesh.material)) {
         mesh.material.forEach((m) => {
           m.onBeforeCompile = onBeforeCompile

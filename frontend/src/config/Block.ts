@@ -10,6 +10,9 @@ export const BlockMetadata: Record<Exclude<Block, Block.Air>, BlockMeta> = {
   [Block.Sand]: { id: Block.Sand, name: "Sand", color: "#f4a460", category: "yellow" },
   [Block.Glass]: { id: Block.Glass, name: "Glass", color: "#add8e6", category: "blue" },
   [Block.Bedrock]: { id: Block.Bedrock, name: "Bedrock", color: "#404040", category: "gray" },
+  [Block.Furnace]: { id: Block.Furnace, name: "Furnace", color: "#404040", category: "gray" },
+  [Block.Pumpkin]: { id: Block.Pumpkin, name: "Pumpkin", color: "#404040", category: "orange" },
+  [Block.Plank]: { id: Block.Plank, name: "Plank", color: "#404040", category: "brown" },
 };
 
 export const BlocksList = Object.values(BlockMetadata);

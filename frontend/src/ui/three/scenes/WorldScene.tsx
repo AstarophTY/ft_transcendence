@@ -131,11 +131,14 @@ const WorldScene = () => {
     []
   )
 
-  // Preload all 3D assets at the scene level to completely bypass useGLTF inside ChunkRenderer
   const blockAssets = useMemo(() => {
     const assets: Record<
       Exclude<Block, Block.Air>,
-      { geometry: THREE.BufferGeometry; material: THREE.Material | THREE.Material[] }
+      { 
+        geometry: THREE.BufferGeometry; 
+        material: THREE.Material | THREE.Material[]; 
+        customDepthMaterial: THREE.Material;
+      }
     > = {} as any
 
     const geometry = new THREE.BoxGeometry(2, 2, 2)
@@ -144,7 +147,11 @@ const WorldScene = () => {
     Object.values(BlockMetadata).forEach((meta) => {
       const blockType = meta.id as Exclude<Block, Block.Air>
       
-      // Création d'un matériau pour chaque face du cube (+x, -x, +y, -y, +z, -z)
+      const customDepthMaterial = new THREE.MeshDepthMaterial({
+        depthPacking: THREE.RGBADepthPacking
+      })
+      customDepthMaterial.onBeforeCompile = onBeforeCompile
+
       const materials = Array.from({ length: 6 }).map(() => {
         const mat = new THREE.MeshStandardMaterial({ color: meta.color })
         mat.onBeforeCompile = onBeforeCompile
@@ -190,14 +197,13 @@ const WorldScene = () => {
           })
         },
         undefined,
-        () => {
-          // Fallback to color if texture is missing
-        }
+        () => {}
       )
       
       assets[blockType] = {
         geometry,
         material: materials,
+        customDepthMaterial
       }
     })
 
@@ -211,6 +217,9 @@ const WorldScene = () => {
         asset.material.forEach((mat) => updateCurvatureUniforms(mat, camera))
       } else {
         updateCurvatureUniforms(asset.material, camera)
+      }
+      if (asset.customDepthMaterial) {
+        updateCurvatureUniforms(asset.customDepthMaterial, camera)
       }
     })
   })
