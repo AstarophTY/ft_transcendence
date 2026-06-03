@@ -7,7 +7,7 @@ import { Chunk } from '@/types/maps/Chunk.ts'
 import { usePlanetStore } from '@/store/planetStore.ts'
 import { useEditorStore } from '@/store/editorStore'
 import Player from '../objects/Player'
-import { applyCurvature, updateCurvatureUniforms } from '../utils/curvature'
+
 import { DEMO_PLANET_PROFILES } from './planetSelection/demoPlanetProfiles'
 import { ChunkRenderer } from './worldScene/ChunkRenderer'
 import { CHUNKS_PER_SIDE, MAP_SIZE_BLOCKS } from './worldScene/constants'
@@ -127,6 +127,8 @@ const WorldShadowLight = ({ playerRef, currentMode }: WorldShadowLightProps) => 
         ref={lightRef}
         intensity={1.2}
         castShadow
+        shadow-bias={-0.0005}
+        shadow-normalBias={0.05}
         shadow-mapSize={[2048, 2048]}
         shadow-camera-left={-120}
         shadow-camera-right={120}
@@ -180,21 +182,12 @@ const WorldScene = () => {
 
   const { camera } = useThree()
 
-  const onBeforeCompile = useMemo(
-    () =>
-      function (this: THREE.Material, shader: THREE.WebGLProgramParametersWithUniforms) {
-        applyCurvature(shader, this)
-      },
-    []
-  )
-
   const blockAssets = useMemo(() => {
     const assets: Record<
       Exclude<Block, Block.Air>,
       { 
         geometry: THREE.BufferGeometry; 
         material: THREE.Material | THREE.Material[]; 
-        customDepthMaterial: THREE.Material;
       }
     > = {} as any
 
@@ -203,15 +196,9 @@ const WorldScene = () => {
 
     Object.values(BlockMetadata).forEach((meta) => {
       const blockType = meta.id as Exclude<Block, Block.Air>
-      
-      const customDepthMaterial = new THREE.MeshDepthMaterial({
-        depthPacking: THREE.RGBADepthPacking
-      })
-      customDepthMaterial.onBeforeCompile = onBeforeCompile
 
       const materials = Array.from({ length: 6 }).map(() => {
-        const mat = new THREE.MeshStandardMaterial({ color: meta.color })
-        mat.onBeforeCompile = onBeforeCompile
+        const mat = new THREE.MeshStandardMaterial({ color: meta.color, envMapIntensity: 0 })
         if (blockType === Block.Water || blockType === Block.Glass) {
           mat.transparent = true
           mat.opacity = 0.6
@@ -272,26 +259,12 @@ const WorldScene = () => {
       assets[blockType] = {
         geometry,
         material: materials,
-        customDepthMaterial
       }
     })
 
     return assets
-  }, [onBeforeCompile])
+  }, [])
 
-  // Single useFrame hook to update curvature uniforms once per frame for all shared materials
-  useFrame(() => {
-    Object.values(blockAssets).forEach((asset) => {
-      if (Array.isArray(asset.material)) {
-        asset.material.forEach((mat) => updateCurvatureUniforms(mat, camera))
-      } else {
-        updateCurvatureUniforms(asset.material, camera)
-      }
-      if (asset.customDepthMaterial) {
-        updateCurvatureUniforms(asset.customDepthMaterial, camera)
-      }
-    })
-  })
 
   const [visibleChunks, setVisibleChunks] = useState<{ cx: number; cz: number }[]>([])
 
@@ -341,7 +314,6 @@ const WorldScene = () => {
           chunkZ={cz}
           localMap={localMap}
           blockAssets={blockAssets}
-          camera={camera}
         />
       ))}
     </group>

@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 
 import { Block } from '@/types/Block'
-import { getCurvatureOffset } from '@/ui/three/utils/curvature'
 import { LocalMap } from '@/types/maps/LocalMap'
 import { Chunk } from '@/types/maps/Chunk'
 
@@ -28,6 +27,5 @@ export const getGroundHeightAt = (params: {
     }
   }
 
-  const curvatureOffset = getCurvatureOffset(params.worldPos, params.cameraPos)
-  return highestGround + params.heightOffset - curvatureOffset
+  return highestGround + params.heightOffset
 }

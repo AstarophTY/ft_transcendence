@@ -3,7 +3,6 @@ import * as THREE from 'three'
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
 
 import { PLAYER_BOUNDARY_PADDING } from './config'
-import { updateCurvatureUniforms } from '@/ui/three/utils/curvature'
 import React from "react";
 
 type Params = {
@@ -15,7 +14,7 @@ type Params = {
   mapSize: number
 }
 
-export const useThirdPersonCamera = ({ active, camera, playerRef, controlsRef, scene, mapSize }: Params) => {
+export const useThirdPersonCamera = ({ active, camera, playerRef, controlsRef, mapSize }: Params) => {
   useFrame(() => {
     if (!playerRef.current) return
 
@@ -24,17 +23,6 @@ export const useThirdPersonCamera = ({ active, camera, playerRef, controlsRef, s
     playerRef.current.position.z = THREE.MathUtils.clamp(playerRef.current.position.z, -halfSize + PLAYER_BOUNDARY_PADDING, halfSize - PLAYER_BOUNDARY_PADDING)
 
     if (!active) return
-
-    scene.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh) {
-        const material = (child as THREE.Mesh).material
-        if (Array.isArray(material)) {
-          material.forEach((mat) => updateCurvatureUniforms(mat, camera))
-        } else {
-          updateCurvatureUniforms(material, camera)
-        }
-      }
-    })
 
     if (controlsRef.current?.isLocked) {
       const distance = 10
