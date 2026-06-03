@@ -22,6 +22,11 @@ model User {
   bio               String?
   campusId          String?
   campus            Campus?    @relation("CampusUsers", fields: [campusId], references: [id])
+  coins             Int        @default(0)
+  logtimeHours      Float      @default(0)
+  monthLogtimeHours Float      @default(0)
+  fortyTwoAccessToken  String?
+  fortyTwoRefreshToken String?
   language          String?
   theme             String?
   status            UserStatus @default(ONLINE)
@@ -114,6 +119,8 @@ model ApiKey {
 model Campus {
   id    String @id @default(uuid())
   label String @unique
+  /// Admin bonus added on top of the members' earned coins for the campus total.
+  coins Int    @default(0)
   users User[] @relation("CampusUsers")
 }
 

@@ -120,6 +120,11 @@ export function getFortyTwoLoginUrl(): string {
 
 export type UserRole = 'USER' | 'ADMIN'
 
+/** A user's campus, exposed as a relation (only the label is sent). */
+export interface CampusRef {
+  label: string
+}
+
 /** Public-facing profile of another user — never exposes the email. */
 export interface PublicUser {
   id: string
@@ -130,7 +135,10 @@ export interface PublicUser {
   bio: string | null
   status: 'ONLINE' | 'AWAY' | 'DND' | 'OFFLINE'
   statusMessage: string | null
-  campus: string | null
+  campus: CampusRef | null
+  coins: number
+  logtimeHours: number
+  monthLogtimeHours: number
   createdAt: string
 }
 

@@ -1,5 +1,5 @@
 import { api } from '@/lib/api'
-import type { UserRole } from '@/lib/api'
+import type { CampusRef, UserRole } from '@/lib/api'
 import type { UserStatus } from '@/lib/account'
 
 export interface AdminStats {
@@ -19,7 +19,10 @@ export interface AdminUser {
   role: UserRole
   displayName: string | null
   bio: string | null
-  campus: string | null
+  campus: CampusRef | null
+  coins: number
+  logtimeHours: number
+  monthLogtimeHours: number
   status: UserStatus
   statusMessage: string | null
   fortyTwoLogin: string | null

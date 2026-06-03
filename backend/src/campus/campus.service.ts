@@ -1,6 +1,28 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Campus, CampusRequest, CampusRequestStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { UpdateCampusDto } from './dto/update-campus.dto';
+
+/** A campus together with the accounts attached to it (admin view). */
+const CAMPUS_WITH_MEMBERS = {
+  orderBy: { label: 'asc' },
+  include: {
+    users: {
+      select: {
+        id: true,
+        username: true,
+        avatar: true,
+        role: true,
+        coins: true,
+      },
+      orderBy: { username: 'asc' },
+    },
+  },
+} as const;
 
 /**
  * Campuses come from 42. A campus only lands in the table once staff approve it:
@@ -14,6 +36,53 @@ export class CampusService {
   /** Every approved campus, alphabetical. */
   list(): Promise<Campus[]> {
     return this.prisma.campus.findMany({ orderBy: { label: 'asc' } });
+  }
+
+  /**
+   * Admin view: every campus with its members. `totalCoins` is the sum of the
+   * members' earned coins plus the campus's admin bonus (`coins`).
+   */
+  async listWithMembers() {
+    const campuses = await this.prisma.campus.findMany(CAMPUS_WITH_MEMBERS);
+    return campuses.map((campus) => ({
+      ...campus,
+      totalCoins:
+        campus.coins + campus.users.reduce((sum, u) => sum + u.coins, 0),
+    }));
+  }
+
+  /** Admin: rename a campus and/or set its coin balance. */
+  async update(id: string, dto: UpdateCampusDto): Promise<Campus> {
+    await this.requireCampus(id);
+    if (dto.label) {
+      const clash = await this.prisma.campus.findUnique({
+        where: { label: dto.label },
+      });
+      if (clash && clash.id !== id) {
+        throw new ConflictException('A campus with this name already exists');
+      }
+    }
+    return this.prisma.campus.update({ where: { id }, data: dto });
+  }
+
+  /** Admin: delete a campus; its members are detached automatically. */
+  async remove(id: string): Promise<void> {
+    await this.requireCampus(id);
+    await this.prisma.campus.delete({ where: { id } });
+  }
+
+  /** Admin: detach a single member from a campus. */
+  async removeMember(campusId: string, userId: string): Promise<void> {
+    await this.prisma.user.updateMany({
+      where: { id: userId, campusId },
+      data: { campusId: null },
+    });
+  }
+
+  private async requireCampus(id: string): Promise<Campus> {
+    const campus = await this.prisma.campus.findUnique({ where: { id } });
+    if (!campus) throw new NotFoundException('Campus not found');
+    return campus;
   }
 
   /**

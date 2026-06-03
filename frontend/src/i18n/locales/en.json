@@ -138,6 +138,13 @@
       "theme": "Theme"
     }
   },
+  "profile": {
+    "coins": "{{count}} coins",
+    "coinsLabel": "Coins",
+    "logtime": "{{hours}} h logged",
+    "monthLogtime": "{{hours}} h this month",
+    "nextCoin": "{{minutes}} min to next coin"
+  },
   "admin": {
     "title": "Admin panel",
     "user": "User",
@@ -150,7 +157,8 @@
     "joined": "Joined",
     "tabs": {
       "overview": "Overview",
-      "users": "Users"
+      "users": "Users",
+      "campus": "Campus"
     },
     "search": "Search by username, email…",
     "filter": {
@@ -179,6 +187,25 @@
       "users": "Users",
       "fortyTwo": "42 accounts",
       "local": "Local accounts"
+    },
+    "campus": {
+      "empty": "No campus requests pending.",
+      "requestedBy": "Requested by {{user}}",
+      "approve": "Approve",
+      "decline": "Decline",
+      "approved": "Campus \"{{label}}\" approved",
+      "declined": "Request for \"{{label}}\" declined",
+      "requestsSection": "Pending requests",
+      "manageSection": "All campuses",
+      "delete": "Delete campus",
+      "deleted": "Campus \"{{label}}\" deleted",
+      "removeMember": "Remove from campus",
+      "noMembers": "No members yet.",
+      "noCampuses": "No campuses yet.",
+      "coinsDecrease": "Remove a coin",
+      "coinsIncrease": "Add a coin",
+      "totalHint": "Total coins (members + bonus)",
+      "bonus": "Admin bonus"
     }
   }
 }

@@ -1,5 +1,5 @@
 import { api } from '@/lib/api'
-import type { UserRole } from '@/lib/api'
+import type { CampusRef, UserRole } from '@/lib/api'
 
 export type UserStatus = 'ONLINE' | 'AWAY' | 'DND' | 'OFFLINE'
 
@@ -12,7 +12,11 @@ export interface SelfUser {
   role: UserRole
   displayName: string | null
   bio: string | null
-  campus: string | null
+  campus: CampusRef | null
+  coins: number
+  logtimeHours: number
+  monthLogtimeHours: number
+  coinsPerHour: number
   language: string | null
   theme: string | null
   status: UserStatus
