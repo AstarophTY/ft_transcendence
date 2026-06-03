@@ -32,8 +32,8 @@ const ChunkBlockTypeRenderer = ({
 
     const tempMatrix = new THREE.Matrix4()
     const halfSize = mapSize / 2
-    // Scale slightly larger to eliminate render gaps, with an increased vertical Y scale (0.6) for stylized voxel columns
-    const scaleVector = new THREE.Vector3(0.505, 0.6, 0.505)
+    // Scale slightly larger to eliminate render gaps, maintaining uniform cubic proportions to prevent vertical merging
+    const scaleVector = new THREE.Vector3(0.505, 0.505, 0.505)
 
     instances.forEach((inst, index) => {
       const x = chunkX * Chunk.WIDTH + inst.x
