@@ -9,6 +9,9 @@ export enum Block {
   Sand = 7,
   Glass = 8,
   Bedrock = 9,
+  Pumpkin = 10,
+  Furnace = 11,
+  Plank = 12
 }
 
 export interface BlockMeta {
