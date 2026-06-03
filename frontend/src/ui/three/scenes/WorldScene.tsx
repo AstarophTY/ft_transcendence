@@ -245,7 +245,17 @@ const WorldScene = () => {
             
             faceTex.needsUpdate = true
             mat.map = faceTex
-            mat.color.setHex(0xffffff)
+            
+            // Apply biome tints dynamically in the frontend:
+            // Top face (index 0) of grass_block should be green, and water_still should be blue.
+            if (meta.name.toLowerCase() === "grass_block" && index === 0) {
+              mat.color.setHex(0x7ca75e)
+            } else if (meta.name.toLowerCase() === "water_still") {
+              mat.color.setHex(0x2a5eff)
+            } else {
+              mat.color.setHex(0xffffff)
+            }
+            
             mat.needsUpdate = true
           })
         },
