@@ -89,7 +89,57 @@ export class LocalMap {
         const localZ = ((globalZ % Chunk.WIDTH) + Chunk.WIDTH) % Chunk.WIDTH;
 
         chunk.setBlock(localX, globalY, localZ, block);
+        chunk.setBlockRotation(localX, globalY, localZ, 0);
         chunk.version++;
+
+        // Increment versions of neighboring chunks if the block is on chunk borders
+        if (localX === 0) {
+            const neighbor = this.getChunk(chunkX - 1, chunkZ);
+            if (neighbor) neighbor.version++;
+        } else if (localX === Chunk.WIDTH - 1) {
+            const neighbor = this.getChunk(chunkX + 1, chunkZ);
+            if (neighbor) neighbor.version++;
+        }
+
+        if (localZ === 0) {
+            const neighbor = this.getChunk(chunkX, chunkZ - 1);
+            if (neighbor) neighbor.version++;
+        } else if (localZ === Chunk.WIDTH - 1) {
+            const neighbor = this.getChunk(chunkX, chunkZ + 1);
+            if (neighbor) neighbor.version++;
+        }
+    }
+
+    /**
+     * Retrieves a block rotation using GLOBAL world coordinates.
+     */
+    public getGlobalBlockRotation(globalX: number, globalY: number, globalZ: number): number {
+        const chunkX = Math.floor(globalX / Chunk.WIDTH);
+        const chunkZ = Math.floor(globalZ / Chunk.WIDTH);
+
+        const chunk = this.getChunk(chunkX, chunkZ);
+        if (!chunk) return 0;
+
+        const localX = ((globalX % Chunk.WIDTH) + Chunk.WIDTH) % Chunk.WIDTH;
+        const localZ = ((globalZ % Chunk.WIDTH) + Chunk.WIDTH) % Chunk.WIDTH;
+
+        return chunk.getBlockRotation(localX, globalY, localZ);
+    }
+
+    /**
+     * Sets a block rotation using GLOBAL world coordinates.
+     */
+    public setGlobalBlockRotation(globalX: number, globalY: number, globalZ: number, rotation: number): void {
+        const chunkX = Math.floor(globalX / Chunk.WIDTH);
+        const chunkZ = Math.floor(globalZ / Chunk.WIDTH);
+
+        const chunk = this.getChunk(chunkX, chunkZ);
+        if (!chunk) return;
+
+        const localX = ((globalX % Chunk.WIDTH) + Chunk.WIDTH) % Chunk.WIDTH;
+        const localZ = ((globalZ % Chunk.WIDTH) + Chunk.WIDTH) % Chunk.WIDTH;
+
+        chunk.setBlockRotation(localX, globalY, localZ, rotation);
 
         // Increment versions of neighboring chunks if the block is on chunk borders
         if (localX === 0) {

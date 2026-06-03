@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from 'react'
+import { useRef, useMemo, useLayoutEffect } from 'react'
 import * as THREE from 'three'
 
 import { Chunk } from '@/types/maps/Chunk.ts'
@@ -7,7 +7,7 @@ import { LocalMap } from '@/types/maps/LocalMap'
 
 interface ChunkBlockTypeRendererProps {
   blockType: Exclude<Block, Block.Air>
-  instances: { x: number; y: number; z: number }[]
+  instances: { x: number; y: number; z: number; r: number }[]
   chunkX: number
   chunkZ: number
   mapSize: number
@@ -26,26 +26,36 @@ const ChunkBlockTypeRenderer = ({
 }: ChunkBlockTypeRendererProps) => {
   const meshRef = useRef<THREE.InstancedMesh>(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const mesh = meshRef.current
     if (!mesh) return
 
     const tempMatrix = new THREE.Matrix4()
     const halfSize = mapSize / 2
-    // Scale slightly larger to eliminate render gaps, with an increased vertical Y scale (0.6) for stylized voxel columns
-    const scaleVector = new THREE.Vector3(0.505, 0.6, 0.505)
+    // Scale slightly larger to eliminate render gaps, maintaining uniform cubic proportions to prevent vertical merging
+    const scaleVector = new THREE.Vector3(0.505, 0.505, 0.505)
 
     instances.forEach((inst, index) => {
       const x = chunkX * Chunk.WIDTH + inst.x
       const z = chunkZ * Chunk.WIDTH + inst.z
       const y = inst.y
 
-      tempMatrix.makeTranslation(
-        x - halfSize + 0.5,
-        y + 0.5,
-        z - halfSize + 0.5
+      const position = new THREE.Vector3(x - halfSize + 0.5, y + 0.5, z - halfSize + 0.5)
+      
+      // Decode X, Y, and Z rotations (2 bits each)
+      const rx = inst.r & 3
+      const ry = (inst.r >> 2) & 3
+      const rz = (inst.r >> 4) & 3
+
+      const euler = new THREE.Euler(
+        rx * (Math.PI / 2),
+        ry * (Math.PI / 2),
+        rz * (Math.PI / 2),
+        'YXZ'
       )
-      tempMatrix.scale(scaleVector)
+      const quaternion = new THREE.Quaternion().setFromEuler(euler)
+
+      tempMatrix.compose(position, quaternion, scaleVector)
 
       mesh.setMatrixAt(index, tempMatrix)
     })
@@ -137,11 +147,10 @@ export const ChunkRenderer = ({
   blockAssets,
 }: ChunkRendererProps) => {
   const chunk = localMap.getChunk(chunkX, chunkZ)
-  if (!chunk) return null
 
   // Optimize: use chunk.version dependency to only recalculate instances if this chunk was modified!
   const instancesByBlock = useMemo(() => {
-    const lists: Record<Exclude<Block, Block.Air>, { x: number; y: number; z: number }[]> = {} as any
+    const lists: Record<Exclude<Block, Block.Air>, { x: number; y: number; z: number; r: number }[]> = {} as any
     const activeBlocks = Object.values(Block).filter(
       (b) => typeof b === 'number' && b !== Block.Air
     ) as Exclude<Block, Block.Air>[]
@@ -150,13 +159,16 @@ export const ChunkRenderer = ({
       lists[b] = []
     })
 
+    if (!chunk) return lists
+
     for (let y = 0; y < Chunk.HEIGHT; y++) {
       for (let lz = 0; lz < Chunk.WIDTH; lz++) {
         for (let lx = 0; lx < Chunk.WIDTH; lx++) {
           const block = chunk.getBlock(lx, y, lz)
           if (block !== Block.Air) {
             if (isBlockExposed(lx, y, lz, chunk, localMap, chunkX, chunkZ, block)) {
-              lists[block].push({ x: lx, y, z: lz })
+              const r = chunk.getBlockRotation(lx, y, lz)
+              lists[block].push({ x: lx, y, z: lz, r })
             }
           }
         }
@@ -164,7 +176,9 @@ export const ChunkRenderer = ({
     }
 
     return lists
-  }, [chunk, localMap, chunkX, chunkZ, chunk.version])
+  }, [chunk, localMap, chunkX, chunkZ, chunk?.version])
+
+  if (!chunk) return null
 
   const mapSize = localMap.widthInChunks * Chunk.WIDTH
 
