@@ -13,16 +13,17 @@ import { ChunkRenderer } from './worldScene/ChunkRenderer'
 import { CHUNKS_PER_SIDE, MAP_SIZE_BLOCKS, RENDER_DISTANCE_CHUNKS } from './worldScene/constants'
 import { FreeCameraControls } from './worldScene/FreeCameraControls'
 import { useHeightMap } from './worldScene/useHeightMap'
+import { useEditorStore } from '@/store/editorStore'
 
 const WorldScene = () => {
   const activeIndex = usePlanetStore((state) => state.activeIndex)
   const playerRef = useRef<THREE.Group>(null)
-
-  // Use state for mode to trigger re-renders
+  const editorMode = useEditorStore(state => state.activeEditor);
   const [currentMode, setCurrentMode] = useState<'freecam' | 'player'>('player')
 
   useHotkeys('c', () => {
     setCurrentMode((prev) => (prev === 'freecam' ? 'player' : 'freecam'))
+    editorMode(currentMode != "freecam")
   })
 
 
