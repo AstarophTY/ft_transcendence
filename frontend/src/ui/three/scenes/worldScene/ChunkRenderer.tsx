@@ -83,7 +83,6 @@ interface ChunkRendererProps {
     Exclude<Block, Block.Air>,
     { geometry: THREE.BufferGeometry; material: THREE.Material | THREE.Material[] }
   >
-  camera: THREE.Camera
 }
 
 // Optimized adjacency check: queries local chunk directly if neighbor coordinates lie inside the current chunk,
