@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from 'react'
+import { useRef, useMemo, useLayoutEffect } from 'react'
 import * as THREE from 'three'
 
 import { Chunk } from '@/types/maps/Chunk.ts'
@@ -26,7 +26,7 @@ const ChunkBlockTypeRenderer = ({
 }: ChunkBlockTypeRendererProps) => {
   const meshRef = useRef<THREE.InstancedMesh>(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const mesh = meshRef.current
     if (!mesh) return
 
@@ -137,7 +137,6 @@ export const ChunkRenderer = ({
   blockAssets,
 }: ChunkRendererProps) => {
   const chunk = localMap.getChunk(chunkX, chunkZ)
-  if (!chunk) return null
 
   // Optimize: use chunk.version dependency to only recalculate instances if this chunk was modified!
   const instancesByBlock = useMemo(() => {
@@ -149,6 +148,8 @@ export const ChunkRenderer = ({
     activeBlocks.forEach((b) => {
       lists[b] = []
     })
+
+    if (!chunk) return lists
 
     for (let y = 0; y < Chunk.HEIGHT; y++) {
       for (let lz = 0; lz < Chunk.WIDTH; lz++) {
@@ -164,7 +165,9 @@ export const ChunkRenderer = ({
     }
 
     return lists
-  }, [chunk, localMap, chunkX, chunkZ, chunk.version])
+  }, [chunk, localMap, chunkX, chunkZ, chunk?.version])
+
+  if (!chunk) return null
 
   const mapSize = localMap.widthInChunks * Chunk.WIDTH
 
