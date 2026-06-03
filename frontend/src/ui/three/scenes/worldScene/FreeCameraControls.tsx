@@ -104,6 +104,10 @@ export const FreeCameraControls = ({
             ;(previewRef.current.material as THREE.MeshBasicMaterial).color.set(color)
           }
           
+          // Prevent Z-fighting in Remove mode by scaling the preview block slightly larger (acting as a red filter overlay)
+          const scaleVal = tool === Tab.Add ? 1.0 : 1.02
+          previewRef.current.scale.set(scaleVal, scaleVal, scaleVal)
+
           previewRef.current.visible = true
           return
         }
@@ -319,8 +323,8 @@ export const FreeCameraControls = ({
     <>
       <PointerLockControls ref={(node) => { controlsRef.current = node }} selector="#canvas-container" />
       <mesh ref={previewRef} visible={false}>
-        <boxGeometry args={[1.01, 1.2, 1.01]} />
-        <meshBasicMaterial color="#fbbf24" transparent opacity={0.5} depthWrite={false} />
+        <boxGeometry args={[1.01, 1.01, 1.01]} />
+        <meshBasicMaterial color="#fbbf24" transparent opacity={0.4} depthWrite={false} />
       </mesh>
     </>
   ) : null
