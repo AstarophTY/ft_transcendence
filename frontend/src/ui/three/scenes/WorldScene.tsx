@@ -86,6 +86,59 @@ const generateLocalMap = (profile: any, mapSize: number) => {
   return localMap
 }
 
+interface WorldShadowLightProps {
+  playerRef: React.RefObject<THREE.Group>
+  currentMode: 'freecam' | 'player'
+}
+
+const WorldShadowLight = ({ playerRef, currentMode }: WorldShadowLightProps) => {
+  const { camera } = useThree()
+  const lightRef = useRef<THREE.DirectionalLight>(null)
+  const targetRef = useRef<THREE.Object3D>(null)
+
+  useFrame(() => {
+    if (!lightRef.current || !targetRef.current) return
+
+    let targetX = 0
+    let targetZ = 0
+
+    if (currentMode === 'player' && playerRef.current) {
+      targetX = playerRef.current.position.x
+      targetZ = playerRef.current.position.z
+    } else {
+      targetX = camera.position.x
+      targetZ = camera.position.z
+    }
+
+    // Shadow camera tracks the player/camera coordinate on the X/Z plane.
+    // By tracking the player capsule directly rather than the orbiting camera, we prevent visual shadow shimmering when looking around.
+    lightRef.current.position.set(targetX + 150, 250, targetZ + 150)
+    targetRef.current.position.set(targetX, 0, targetZ)
+
+    if (lightRef.current.target !== targetRef.current) {
+      lightRef.current.target = targetRef.current
+    }
+  })
+
+  return (
+    <>
+      <object3D ref={targetRef} />
+      <directionalLight
+        ref={lightRef}
+        intensity={1.2}
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-left={-120}
+        shadow-camera-right={120}
+        shadow-camera-top={120}
+        shadow-camera-bottom={-120}
+        shadow-camera-near={0.1}
+        shadow-camera-far={500}
+      />
+    </>
+  )
+}
+
 const WorldScene = () => {
   const activeIndex = usePlanetStore((state) => state.activeIndex)
   const renderDistance = usePlanetStore((state) => state.renderDistance)
@@ -115,9 +168,13 @@ const WorldScene = () => {
     setMapVersion((v) => v + 1)
   }, [profile])
 
-  const handleUpdateBlock = (x: number, y: number, z: number, block: Block | null) => {
-    const blockValue = block ?? Block.Air
-    localMap.setGlobalBlock(x, y, z, blockValue)
+  const handleUpdateBlock = (x: number, y: number, z: number, block: Block | null, rotation?: number) => {
+    if (rotation !== undefined) {
+      localMap.setGlobalBlockRotation(x, y, z, rotation)
+    } else {
+      const blockValue = block ?? Block.Air
+      localMap.setGlobalBlock(x, y, z, blockValue)
+    }
     setMapVersion((v) => v + 1)
   }
 
@@ -192,7 +249,19 @@ const WorldScene = () => {
             
             faceTex.needsUpdate = true
             mat.map = faceTex
-            mat.color.setHex(0xffffff)
+            
+            // Apply biome tints dynamically in the frontend:
+            const blockNameLower = meta.name.toLowerCase()
+            if ((blockNameLower === "grass" || blockNameLower === "grass_block") && index === 2) {
+              mat.color.setHex(0x5ebb2d)
+            } else if (blockNameLower === "water_still" || blockNameLower === "water") {
+              mat.color.setHex(0x2a5eff)
+            } else if (blockNameLower.includes("leaves")) {
+              mat.color.setHex(0x4a8f28)
+            } else {
+              mat.color.setHex(0xffffff)
+            }
+            
             mat.needsUpdate = true
           })
         },
@@ -252,6 +321,7 @@ const WorldScene = () => {
 
   return (
     <group>
+      <WorldShadowLight playerRef={playerRef} currentMode={currentMode} />
       <FreeCameraControls
         localMap={localMap}
         mapSize={MAP_SIZE_BLOCKS}
