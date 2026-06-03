@@ -2,7 +2,6 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useGLTF } from '@react-three/drei'
 
 import { Chunk } from '@/types/maps/Chunk.ts'
 import { usePlanetStore } from '@/store/planetStore.ts'
@@ -14,24 +13,9 @@ import { ChunkRenderer } from './worldScene/ChunkRenderer'
 import { CHUNKS_PER_SIDE, MAP_SIZE_BLOCKS } from './worldScene/constants'
 import { FreeCameraControls } from './worldScene/FreeCameraControls'
 import { Block } from '@/types/Block'
+import { BlockMetadata } from '@/config/Block'
 import { LocalMap } from '@/types/maps/LocalMap'
 import { IslandMap } from '@/perlin/terrain/IslandMap'
-
-const BLOCK_MODEL_PATHS: Record<Exclude<Block, Block.Air>, string> = {
-  [Block.Stone]: '/three/assets/blocks/stone.gltf',
-  [Block.Dirt]: '/three/assets/blocks/dirt.gltf',
-  [Block.Grass]: '/three/assets/blocks/dirt_with_grass.gltf',
-  [Block.Wood]: '/three/assets/blocks/wood.gltf',
-  [Block.Leaves]: '/three/assets/blocks/decorative_block_green.gltf',
-  [Block.Water]: '/three/assets/blocks/water.gltf',
-  [Block.Sand]: '/three/assets/blocks/sand_A.gltf',
-  [Block.Glass]: '/three/assets/blocks/glass.gltf',
-  [Block.Bedrock]: '/three/assets/blocks/stone_dark.gltf',
-}
-
-Object.values(BLOCK_MODEL_PATHS).forEach((path) => {
-  useGLTF.preload(path)
-})
 
 const generateLocalMap = (profile: any, mapSize: number) => {
   const widthInChunks = mapSize / Chunk.WIDTH
@@ -148,90 +132,80 @@ const WorldScene = () => {
   )
 
   // Preload all 3D assets at the scene level to completely bypass useGLTF inside ChunkRenderer
-  const stoneGLTF = useGLTF(BLOCK_MODEL_PATHS[Block.Stone])
-  const dirtGLTF = useGLTF(BLOCK_MODEL_PATHS[Block.Dirt])
-  const grassGLTF = useGLTF(BLOCK_MODEL_PATHS[Block.Grass])
-  const woodGLTF = useGLTF(BLOCK_MODEL_PATHS[Block.Wood])
-  const leavesGLTF = useGLTF(BLOCK_MODEL_PATHS[Block.Leaves])
-  const waterGLTF = useGLTF(BLOCK_MODEL_PATHS[Block.Water])
-  const sandGLTF = useGLTF(BLOCK_MODEL_PATHS[Block.Sand])
-  const glassGLTF = useGLTF(BLOCK_MODEL_PATHS[Block.Glass])
-  const bedrockGLTF = useGLTF(BLOCK_MODEL_PATHS[Block.Bedrock])
-
   const blockAssets = useMemo(() => {
     const assets: Record<
       Exclude<Block, Block.Air>,
       { geometry: THREE.BufferGeometry; material: THREE.Material | THREE.Material[] }
     > = {} as any
 
-    const mapping = {
-      [Block.Stone]: stoneGLTF,
-      [Block.Dirt]: dirtGLTF,
-      [Block.Grass]: grassGLTF,
-      [Block.Wood]: woodGLTF,
-      [Block.Leaves]: leavesGLTF,
-      [Block.Water]: waterGLTF,
-      [Block.Sand]: sandGLTF,
-      [Block.Glass]: glassGLTF,
-      [Block.Bedrock]: bedrockGLTF,
-    }
+    const geometry = new THREE.BoxGeometry(2, 2, 2)
+    const textureLoader = new THREE.TextureLoader()
 
-    Object.entries(mapping).forEach(([blockStr, gltf]) => {
-      const blockType = Number(blockStr) as Exclude<Block, Block.Air>
-      const mesh = Object.values(gltf.nodes).find((node) => (node as THREE.Mesh).isMesh) as THREE.Mesh | undefined
-      if (mesh) {
-        const mat = mesh.material
-        if (Array.isArray(mat)) {
-          mat.forEach((m) => {
-            if (!m.onBeforeCompile) {
-              m.onBeforeCompile = onBeforeCompile
-            }
+    Object.values(BlockMetadata).forEach((meta) => {
+      const blockType = meta.id as Exclude<Block, Block.Air>
+      
+      // Création d'un matériau pour chaque face du cube (+x, -x, +y, -y, +z, -z)
+      const materials = Array.from({ length: 6 }).map(() => {
+        const mat = new THREE.MeshStandardMaterial({ color: meta.color })
+        mat.onBeforeCompile = onBeforeCompile
+        if (blockType === Block.Water || blockType === Block.Glass) {
+          mat.transparent = true
+          mat.opacity = 0.6
+          mat.depthWrite = false
+        }
+        return mat
+      })
+      
+      const texturePath = `/three/assets/blocks/textures/${meta.name.toLowerCase()}.png`
+      textureLoader.load(
+        texturePath,
+        (texture) => {
+          texture.magFilter = THREE.NearestFilter
+          texture.colorSpace = THREE.SRGBColorSpace
+          
+          // Exemple de découpage pour une texture en grille 2x2.
+          const faceUVs = [
+            { offset: [0, 0.5], repeat: [0.25, 1] },   // 0: Droite (+x)
+            { offset: [0.25, 1], repeat: [0.25, 1] }, // 1: Gauche (-x)
+            { offset: [0, 0], repeat: [0.25, 1] },     // 2: Haut (+y)
+            { offset: [0.5, 0], cx : [0.25, 1] },   // 3: Bas (-y)
+            { offset: [0, 0.5], repeat: [0.25, 1] },   // 4: Avant (+z) - réutilise une face
+            { offset: [0.25, 1], repeat: [0.25, 1] }  // 5: Arrière (-z) - réutilise une face
+          ]
+          
+          materials.forEach((mat, index) => {
+            const faceTex = texture.clone()
+            faceTex.repeat.set(faceUVs[index].repeat[0], faceUVs[index].repeat[1])
+            faceTex.offset.set(faceUVs[index].offset[0], faceUVs[index].offset[1])
+            faceTex.needsUpdate = true
+            mat.map = faceTex
+            mat.color.setHex(0xffffff)
+            mat.needsUpdate = true
           })
-        } else {
-          if (!mat.onBeforeCompile) {
-            mat.onBeforeCompile = onBeforeCompile
-          }
+        },
+        undefined,
+        () => {
+          // Fallback to color if texture is missing
         }
-
-        if (blockType === Block.Water) {
-          if (Array.isArray(mat)) {
-            mat.forEach((m) => {
-              m.transparent = true
-              m.opacity = 0.6
-              m.depthWrite = false
-            })
-          } else {
-            mat.transparent = true
-            mat.opacity = 0.6
-            mat.depthWrite = false
-          }
-        }
-
-        assets[blockType] = {
-          geometry: mesh.geometry,
-          material: mat,
-        }
+      )
+      
+      assets[blockType] = {
+        geometry,
+        material: materials,
       }
     })
 
     return assets
-  }, [
-    stoneGLTF,
-    dirtGLTF,
-    grassGLTF,
-    woodGLTF,
-    leavesGLTF,
-    waterGLTF,
-    sandGLTF,
-    glassGLTF,
-    bedrockGLTF,
-    onBeforeCompile,
-  ])
+  }, [onBeforeCompile])
 
   // Single useFrame hook to update curvature uniforms once per frame for all shared materials
   useFrame(() => {
     Object.values(blockAssets).forEach((asset) => {
-      updateCurvatureUniforms(asset.material, camera)
+      if (Array.isArray(asset.material)) {
+        asset.material.forEach((mat) => updateCurvatureUniforms(mat, camera))
+      } else {
+        updateCurvatureUniforms(asset.material, camera)
+      }
     })
   })
 

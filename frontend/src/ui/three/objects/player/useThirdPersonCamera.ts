@@ -19,7 +19,6 @@ export const useThirdPersonCamera = ({ active, camera, playerRef, controlsRef, s
   useFrame(() => {
     if (!playerRef.current) return
 
-    // Map boundaries (kept with camera pass to match original behavior)
     const halfSize = mapSize / 2
     playerRef.current.position.x = THREE.MathUtils.clamp(playerRef.current.position.x, -halfSize + PLAYER_BOUNDARY_PADDING, halfSize - PLAYER_BOUNDARY_PADDING)
     playerRef.current.position.z = THREE.MathUtils.clamp(playerRef.current.position.z, -halfSize + PLAYER_BOUNDARY_PADDING, halfSize - PLAYER_BOUNDARY_PADDING)
@@ -28,7 +27,12 @@ export const useThirdPersonCamera = ({ active, camera, playerRef, controlsRef, s
 
     scene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
-        updateCurvatureUniforms((child as THREE.Mesh).material, camera)
+        const material = (child as THREE.Mesh).material
+        if (Array.isArray(material)) {
+          material.forEach((mat) => updateCurvatureUniforms(mat, camera))
+        } else {
+          updateCurvatureUniforms(material, camera)
+        }
       }
     })
 
