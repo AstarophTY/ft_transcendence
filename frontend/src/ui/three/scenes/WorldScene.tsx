@@ -11,7 +11,6 @@ import { connectWorldSocket, getWorldSocket } from '@/lib/worldSocket'
 import { tokenStore } from '@/lib/api'
 import Player from '../objects/Player'
 import RemotePlayers from '../objects/RemotePlayers'
-import { applyCurvature, updateCurvatureUniforms } from '../utils/curvature'
 import { ChunkRenderer } from './worldScene/ChunkRenderer'
 import { CHUNKS_PER_SIDE, MAP_SIZE_BLOCKS } from './worldScene/constants'
 import { FreeCameraControls } from './worldScene/FreeCameraControls'
@@ -97,20 +96,20 @@ const applyWorldBlock = (map: LocalMap, b: WorldBlock) => {
 }
 
 interface WorldShadowLightProps {
-  playerRef: React.RefObject<THREE.Group>
+  playerRef: React.RefObject<THREE.Group | null>
   currentMode: 'freecam' | 'player'
 }
 
 const WorldShadowLight = ({ playerRef, currentMode }: WorldShadowLightProps) => {
   const { camera } = useThree()
-  const lightRef = useRef<THREE.DirectionalLight>(null)
-  const targetRef = useRef<THREE.Object3D>(null)
+  const lightRef = useRef<THREE.DirectionalLight | null>(null)
+  const targetRef = useRef<THREE.Object3D | null>(null)
 
   useFrame(() => {
     if (!lightRef.current || !targetRef.current) return
 
-    let targetX = 0
-    let targetZ = 0
+    let targetX: number
+    let targetZ: number
 
     if (currentMode === 'player' && playerRef.current) {
       targetX = playerRef.current.position.x
@@ -137,6 +136,8 @@ const WorldShadowLight = ({ playerRef, currentMode }: WorldShadowLightProps) => 
         ref={lightRef}
         intensity={1.2}
         castShadow
+        shadow-bias={-0.0005}
+        shadow-normalBias={0.05}
         shadow-mapSize={[2048, 2048]}
         shadow-camera-left={-120}
         shadow-camera-right={120}
@@ -154,7 +155,7 @@ const WorldScene = () => {
   const activeCampusId = usePlanetStore((state) => state.activeCampusId)
   const worlds = usePlanetStore((state) => state.worlds)
   const renderDistance = usePlanetStore((state) => state.renderDistance)
-  const playerRef = useRef<THREE.Group>(null)
+  const playerRef = useRef<THREE.Group | null>(null)
 
   const [currentMode, setCurrentMode] = useState<'freecam' | 'player'>('player')
   const activeEditor = useEditorStore((state) => state.activeEditor)
@@ -312,21 +313,12 @@ const WorldScene = () => {
     if (!flushTimer.current) flushTimer.current = setTimeout(flushBlocks, 100)
   }
 
-  const onBeforeCompile = useMemo(
-    () =>
-      function (this: THREE.Material, shader: THREE.WebGLProgramParametersWithUniforms) {
-        applyCurvature(shader, this)
-      },
-    []
-  )
-
   const blockAssets = useMemo(() => {
     const assets: Record<
       Exclude<Block, Block.Air>,
       { 
         geometry: THREE.BufferGeometry; 
         material: THREE.Material | THREE.Material[]; 
-        customDepthMaterial: THREE.Material;
       }
     > = {} as any
 
@@ -335,15 +327,9 @@ const WorldScene = () => {
 
     Object.values(BlockMetadata).forEach((meta) => {
       const blockType = meta.id as Exclude<Block, Block.Air>
-      
-      const customDepthMaterial = new THREE.MeshDepthMaterial({
-        depthPacking: THREE.RGBADepthPacking
-      })
-      customDepthMaterial.onBeforeCompile = onBeforeCompile
 
       const materials = Array.from({ length: 6 }).map(() => {
-        const mat = new THREE.MeshStandardMaterial({ color: meta.color })
-        mat.onBeforeCompile = onBeforeCompile
+        const mat = new THREE.MeshStandardMaterial({ color: meta.color, envMapIntensity: 0 })
         if (blockType === Block.Water || blockType === Block.Glass) {
           mat.transparent = true
           mat.opacity = 0.6
@@ -363,10 +349,10 @@ const WorldScene = () => {
           const faceUVs = [
             { offset: [2 * w, 0], repeat: [w, 1], rotation: 0 },
             { offset: [4 * w, 0], repeat: [w, 1], rotation: 0 },
-            { offset: [0 * w, 0], repeat: [w, 1], rotation: 0 },
+            { offset: [0, 0], repeat: [w, 1], rotation: 0 },
             { offset: [5 * w, 0], repeat: [w, 1], rotation: 0 },
             { offset: [3 * w, 0], repeat: [w, 1], rotation: 0 },
-            { offset: [1 * w, 0], repeat: [w, 1], rotation: 0 }
+            { offset: [w, 0], repeat: [w, 1], rotation: 0 }
           ]
           
           materials.forEach((mat, index) => {
@@ -381,19 +367,10 @@ const WorldScene = () => {
             
             faceTex.needsUpdate = true
             mat.map = faceTex
-            
-            // Apply biome tints dynamically in the frontend:
-            const blockNameLower = meta.name.toLowerCase()
-            if ((blockNameLower === "grass" || blockNameLower === "grass_block") && index === 2) {
-              mat.color.setHex(0x5ebb2d)
-            } else if (blockNameLower === "water_still" || blockNameLower === "water") {
-              mat.color.setHex(0x2a5eff)
-            } else if (blockNameLower.includes("leaves")) {
-              mat.color.setHex(0x4a8f28)
-            } else {
-              mat.color.setHex(0xffffff)
-            }
-            
+
+            // Reset color to white by default when texture is loaded, to prevent oversaturation
+            mat.color.set('#ffffff' as any)
+
             mat.needsUpdate = true
           })
         },
@@ -404,26 +381,12 @@ const WorldScene = () => {
       assets[blockType] = {
         geometry,
         material: materials,
-        customDepthMaterial
       }
     })
 
     return assets
-  }, [onBeforeCompile])
+  }, [])
 
-  // Single useFrame hook to update curvature uniforms once per frame for all shared materials
-  useFrame(() => {
-    Object.values(blockAssets).forEach((asset) => {
-      if (Array.isArray(asset.material)) {
-        asset.material.forEach((mat) => updateCurvatureUniforms(mat, camera))
-      } else {
-        updateCurvatureUniforms(asset.material, camera)
-      }
-      if (asset.customDepthMaterial) {
-        updateCurvatureUniforms(asset.customDepthMaterial, camera)
-      }
-    })
-  })
 
   const [visibleChunks, setVisibleChunks] = useState<{ cx: number; cz: number }[]>([])
 
@@ -431,7 +394,7 @@ const WorldScene = () => {
     const cameraChunkX = Math.floor((camera.position.x + MAP_SIZE_BLOCKS / 2) / Chunk.WIDTH)
     const cameraChunkZ = Math.floor((camera.position.z + MAP_SIZE_BLOCKS / 2) / Chunk.WIDTH)
 
-    const newVisibleChunks = []
+    const newVisibleChunks: { cx: number; cz: number }[] = []
     for (let cz = 0; cz < CHUNKS_PER_SIDE; cz++) {
       for (let cx = 0; cx < CHUNKS_PER_SIDE; cx++) {
         const dx = cx - cameraChunkX
@@ -444,11 +407,13 @@ const WorldScene = () => {
     }
 
     const visibleKeys = newVisibleChunks.map((c) => `${c.cx}-${c.cz}`).join(',')
-    const currentKeys = visibleChunks.map((c) => `${c.cx}-${c.cz}`).join(',')
-
-    if (visibleKeys !== currentKeys) {
-      setVisibleChunks(newVisibleChunks)
-    }
+    setVisibleChunks((prev) => {
+      const currentKeys = prev.map((c) => `${c.cx}-${c.cz}`).join(',')
+      if (visibleKeys !== currentKeys) {
+        return newVisibleChunks
+      }
+      return prev
+    })
   })
 
   if (!localMap) return null
@@ -476,7 +441,6 @@ const WorldScene = () => {
           chunkZ={cz}
           localMap={localMap}
           blockAssets={blockAssets}
-          camera={camera}
         />
       ))}
     </group>

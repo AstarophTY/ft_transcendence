@@ -1,4 +1,4 @@
-import { useFrame, useThree } from '@react-three/fiber'
+import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
@@ -6,7 +6,6 @@ import { SkeletonUtils } from 'three-stdlib'
 
 import { connectWorldSocket } from '@/lib/worldSocket'
 import { tokenStore } from '@/lib/api'
-import { applyCurvature, updateCurvatureUniforms } from '../utils/curvature'
 import { useCurvedSceneMaterials } from './player/useCurvedSceneMaterials'
 
 const MODEL_PATH = '/three/assets/capsule/full_bodie/Body_AA_01.glb'
@@ -53,11 +52,6 @@ const createCameraModel = (): THREE.Group => {
     opacity: 0.5,
     depthWrite: false,
   })
-  for (const m of [bodyMat, lensMat]) {
-    m.onBeforeCompile = function (shader) {
-      applyCurvature(shader, this)
-    }
-  }
 
   const group = new THREE.Group()
   const body = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.8, 1.4), bodyMat)
@@ -74,23 +68,12 @@ const createCameraModel = (): THREE.Group => {
   return group
 }
 
-const updateGroupCurvature = (object: THREE.Object3D, camera: THREE.Camera) => {
-  object.traverse((child) => {
-    const mesh = child as THREE.Mesh
-    if (!mesh.isMesh) return
-    const material = mesh.material
-    if (Array.isArray(material)) material.forEach((m) => updateCurvatureUniforms(m, camera))
-    else updateCurvatureUniforms(material, camera)
-  })
-}
-
 /**
  * One remote player. The body avatar is always shown at the player's position;
  * in freecam an extra translucent camera marker is shown where they are flying.
  */
 const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
   const { scene } = useGLTF(MODEL_PATH)
-  const { camera } = useThree()
   const body = useMemo(() => SkeletonUtils.clone(scene), [scene])
   useCurvedSceneMaterials(body)
   const cameraModel = useMemo(() => createCameraModel(), [])
@@ -118,10 +101,7 @@ const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
       camGroup.rotation.y = lerpAngle(camGroup.rotation.y, target.camYaw, 0.25)
     }
 
-    const freecam = target.mode === 'freecam'
-    camGroup.visible = freecam
-    updateGroupCurvature(body, camera)
-    if (freecam) updateGroupCurvature(cameraModel, camera)
+    camGroup.visible = target.mode === 'freecam'
   })
 
   return (

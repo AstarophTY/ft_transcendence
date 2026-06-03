@@ -4,7 +4,7 @@ import React, { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
 
-import { getCurvatureOffset } from '../../utils/curvature'
+
 import { useEditorStore } from '@/store/editorStore'
 import { Tab } from '@/types/Editor'
 import { Block } from '@/types/Block'
@@ -322,8 +322,7 @@ export const FreeCameraControls = ({
     const isValidPosition = (pos: THREE.Vector3) => {
       const globalX = Math.floor(pos.x + halfSize)
       const globalZ = Math.floor(pos.z + halfSize)
-      const curvatureOffset = getCurvatureOffset(pos, camera.position)
-      const adjustedY = Math.floor(pos.y + curvatureOffset)
+      const adjustedY = Math.floor(pos.y)
 
       if (adjustedY < 0) return false
       if (adjustedY >= Chunk.HEIGHT) return true // skies
@@ -349,8 +348,7 @@ export const FreeCameraControls = ({
           break
         }
       }
-      const curvatureOffset = getCurvatureOffset(pos, camera.position)
-      return highestSolid - curvatureOffset
+      return highestSolid
     }
 
     // Try vertical movement first
