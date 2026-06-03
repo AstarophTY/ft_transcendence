@@ -122,6 +122,47 @@ model Campus {
   /// Admin bonus added on top of the members' earned coins for the campus total.
   coins Int    @default(0)
   users User[] @relation("CampusUsers")
+  world World?
+}
+
+/// The shared 3D world of a campus. The base terrain is regenerated on the fly
+/// from this generation profile, so only the player edits are persisted (in
+/// WorldBlock) on top of it.
+model World {
+  id       String @id @default(uuid())
+  campusId String @unique
+  campus   Campus @relation(fields: [campusId], references: [id], onDelete: Cascade)
+
+  /// Terrain generation profile (mirrors the frontend DemoPlanetProfile).
+  seed           String
+  widthInChunks  Int
+  depthInChunks  Int
+  scale          Float
+  octaves        Int
+  persistence    Float
+  relief         Float
+  baseHeight     Float
+  variationRange Float
+
+  blocks    WorldBlock[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+/// A single block edited by a player, stored as a diff over the generated
+/// terrain. A broken block is stored with `block = 0` (Air), so destroyed ground
+/// is persisted too.
+model WorldBlock {
+  worldId String
+  world   World  @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  x       Int
+  y       Int
+  z       Int
+  /// Block enum value (0 = Air for a broken block).
+  block   Int
+
+  @@id([worldId, x, y, z])
+  @@index([worldId])
 }
 
 /// A request to open a campus that does not exist yet. Created automatically on
