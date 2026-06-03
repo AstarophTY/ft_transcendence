@@ -148,13 +148,13 @@ function getBlockPreview(name: string, color: string): Promise<string> {
 
           // Biome tints
           if (blockName === 'grass_block' && index === 2) {
-            mat.color.setHex(0x7ca75e);
+            mat.color.setHex(0x5ebb2d);
           } else if (blockName === 'grass_block' && (index === 0 || index === 4)) {
-            mat.color.setHex(0x7ca75e);
+            mat.color.setHex(0x5ebb2d);
           } else if (blockName === 'water_still' || blockName === 'water_flow') {
             mat.color.setHex(0x2a5eff);
           } else if (blockName.includes('leaves')) {
-            mat.color.setHex(0x5aab3e);
+            mat.color.setHex(0x4a8f28);
             mat.transparent = true;
             mat.alphaTest = 0.1;
           }
