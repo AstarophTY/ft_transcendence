@@ -163,19 +163,26 @@ const WorldScene = () => {
           texture.magFilter = THREE.NearestFilter
           texture.colorSpace = THREE.SRGBColorSpace
           
+          const w = 1 / 6
           const faceUVs = [
-            { offset: [0, 0.5], repeat: [0.25, 1] },
-            { offset: [0.25, 1], repeat: [0.25, 1] },
-            { offset: [0, 0], repeat: [0.25, 1] },
-            { offset: [0.5, 0], cx : [0.25, 1] },
-            { offset: [0, 0.5], repeat: [0.25, 1] },
-            { offset: [0.25, 1], repeat: [0.25, 1] }
+            { offset: [2 * w, 0], repeat: [w, 1], rotation: -(Math.PI / 2) },
+            { offset: [4 * w, 0], repeat: [w, 1], rotation: -(Math.PI / 2) },
+            { offset: [0 * w, 0], repeat: [w, 1], rotation: 0 },
+            { offset: [5 * w, 0], repeat: [w, 1], rotation: 0 },
+            { offset: [3 * w, 0], repeat: [w, 1], rotation: -(Math.PI / 2) },
+            { offset: [1 * w, 0], repeat: [w, 1], rotation: -(Math.PI / 2) }
           ]
           
           materials.forEach((mat, index) => {
             const faceTex = texture.clone()
-            faceTex.repeat.set(faceUVs[index].repeat[0], faceUVs[index].repeat[1])
-            faceTex.offset.set(faceUVs[index].offset[0], faceUVs[index].offset[1])
+            const config = faceUVs[index]
+            
+            faceTex.repeat.set(config.repeat[0], config.repeat[1])
+            
+            faceTex.center.set(0.5, 0.5)
+            faceTex.offset.set(config.offset[0] + config.repeat[0] / 2 - 0.5, config.offset[1] + config.repeat[1] / 2 - 0.5)
+            faceTex.rotation = config.rotation
+            
             faceTex.needsUpdate = true
             mat.map = faceTex
             mat.color.setHex(0xffffff)
