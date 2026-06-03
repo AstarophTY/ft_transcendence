@@ -10,6 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { CampusService } from '../campus/campus.service';
+import { FortyTwoService } from './forty-two.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
 import { UsersService } from '../users/users.service';
@@ -27,6 +28,7 @@ export class AuthService {
     private readonly config: ConfigService,
     private readonly redis: RedisService,
     private readonly campus: CampusService,
+    private readonly fortyTwo: FortyTwoService,
   ) {}
 
   async register(
@@ -94,7 +96,7 @@ export class AuthService {
       const updated = await this.users.update(linked.id, {
         avatar: profile.avatar,
       });
-      await this.syncCampus(updated.id, profile.campus);
+      await this.syncFortyTwo(updated, profile);
       return this.generateTokens(updated);
     }
 
@@ -107,7 +109,7 @@ export class AuthService {
           avatar: profile.avatar,
           isVerified: true,
         });
-        await this.syncCampus(merged.id, profile.campus);
+        await this.syncFortyTwo(merged, profile);
         return this.generateTokens(merged);
       }
     }
@@ -125,18 +127,20 @@ export class AuthService {
       isVerified: true,
     });
 
-    await this.syncCampus(created.id, profile.campus);
+    await this.syncFortyTwo(created, profile);
     return this.generateTokens(created);
   }
 
-  /**
-   * Attach the user to their 42 campus. Unknown campuses are not created here:
-   * a request is opened for staff to approve (see CampusService).
-   */
-  private async syncCampus(userId: string, label?: string): Promise<void> {
-    if (label) {
-      await this.campus.syncFortyTwoCampus(userId, label);
+  /** Keep campus and logtime-coins in sync with 42 on every login. */
+  private async syncFortyTwo(
+    user: User,
+    profile: FortyTwoProfile,
+  ): Promise<void> {
+    if (profile.campus) {
+      // Unknown campuses are not created here: a request is opened for staff.
+      await this.campus.syncFortyTwoCampus(user.id, profile.campus);
     }
+    await this.fortyTwo.resyncCoins(user.id);
   }
 
   private async generateTokens(user: User): Promise<AuthTokens> {

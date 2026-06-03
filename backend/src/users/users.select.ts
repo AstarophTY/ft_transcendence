@@ -14,6 +14,9 @@ export const PUBLIC_USER_SELECT = {
       label: true,
     },
   },
+  coins: true,
+  logtimeHours: true,
+  monthLogtimeHours: true,
   createdAt: true,
 } satisfies Prisma.UserSelect;
 
@@ -39,6 +42,9 @@ export const SELF_USER_SELECT = {
       label: true,
     },
   },
+  coins: true,
+  logtimeHours: true,
+  monthLogtimeHours: true,
   language: true,
   theme: true,
   status: true,
@@ -51,6 +57,9 @@ export const SELF_USER_SELECT = {
 export type SelfUser = Prisma.UserGetPayload<{
   select: typeof SELF_USER_SELECT;
 }>;
+
+/** Self profile enriched with the coin rate (coins earned per logtime hour). */
+export type SelfProfile = SelfUser & { coinsPerHour: number };
 
 /** Fields an admin sees for each account in the admin panel. */
 export const ADMIN_USER_SELECT = {
@@ -66,6 +75,9 @@ export const ADMIN_USER_SELECT = {
       label: true,
     },
   },
+  coins: true,
+  logtimeHours: true,
+  monthLogtimeHours: true,
   status: true,
   statusMessage: true,
   fortyTwoLogin: true,
