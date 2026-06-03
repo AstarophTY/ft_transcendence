@@ -1,42 +1,128 @@
 import { useFrame, useThree } from '@react-three/fiber'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
-
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import { Chunk } from '@/types/maps/Chunk.ts'
 import { usePlanetStore } from '@/store/planetStore.ts'
+import { useEditorStore } from '@/store/editorStore'
 import Player from '../objects/Player'
-import { applyCurvature, CURVATURE_INTENSITY } from '../utils/curvature'
+import { applyCurvature, updateCurvatureUniforms } from '../utils/curvature'
 import { DEMO_PLANET_PROFILES } from './planetSelection/demoPlanetProfiles'
 import { ChunkRenderer } from './worldScene/ChunkRenderer'
-import { CHUNKS_PER_SIDE, MAP_SIZE_BLOCKS, RENDER_DISTANCE_CHUNKS } from './worldScene/constants'
+import { CHUNKS_PER_SIDE, MAP_SIZE_BLOCKS } from './worldScene/constants'
 import { FreeCameraControls } from './worldScene/FreeCameraControls'
-import { useHeightMap } from './worldScene/useHeightMap'
-import { useEditorStore } from '@/store/editorStore'
+import { Block } from '@/types/Block'
+import { BlockMetadata } from '@/config/Block'
+import { LocalMap } from '@/types/maps/LocalMap'
+import { IslandMap } from '@/perlin/terrain/IslandMap'
+
+const generateLocalMap = (profile: any, mapSize: number) => {
+  const widthInChunks = mapSize / Chunk.WIDTH
+  const depthInChunks = mapSize / Chunk.WIDTH
+  const localMap = new LocalMap(widthInChunks, depthInChunks)
+
+  const islandMap = new IslandMap({
+    seed: profile.seed,
+    mapSize,
+    maxHeight: Chunk.HEIGHT - 1,
+    scale: profile.scale,
+    octaves: profile.octaves,
+    persistence: profile.persistence,
+    relief: profile.relief,
+    baseHeight: profile.baseHeight,
+    variationRange: profile.variationRange,
+  })
+
+  const waterHeight = 15
+
+  for (let chunkX = 0; chunkX < widthInChunks; chunkX++) {
+    for (let chunkZ = 0; chunkZ < depthInChunks; chunkZ++) {
+      const chunk = new Chunk()
+
+      for (let x = 0; x < Chunk.WIDTH; x++) {
+        for (let z = 0; z < Chunk.WIDTH; z++) {
+          const worldX = chunkX * Chunk.WIDTH + x
+          const worldZ = chunkZ * Chunk.WIDTH + z
+          const height = islandMap.getHeightAt(worldX, worldZ)
+
+          // 1. Bedrock at the very bottom
+          chunk.setBlock(x, 0, z, Block.Bedrock)
+
+          // 2. y from 1 up to height
+          for (let y = 1; y <= height; y++) {
+            if (height < waterHeight) {
+              // Below water level: Sand top + Stone below
+              if (y >= height - 2) {
+                chunk.setBlock(x, y, z, Block.Sand)
+              } else {
+                chunk.setBlock(x, y, z, Block.Stone)
+              }
+            } else {
+              // Above water level: Grass top, Dirt middle, Stone below
+              if (y === height) {
+                chunk.setBlock(x, y, z, Block.Grass)
+              } else if (y >= height - 3) {
+                chunk.setBlock(x, y, z, Block.Dirt)
+              } else {
+                chunk.setBlock(x, y, z, Block.Stone)
+              }
+            }
+          }
+
+          // 3. Water layer: height + 1 to waterHeight (if height < waterHeight)
+          if (height < waterHeight) {
+            for (let y = height + 1; y <= waterHeight; y++) {
+              chunk.setBlock(x, y, z, Block.Water)
+            }
+          }
+        }
+      }
+
+      localMap.setChunk(chunkX, chunkZ, chunk)
+    }
+  }
+
+  return localMap
+}
 
 const WorldScene = () => {
   const activeIndex = usePlanetStore((state) => state.activeIndex)
+  const renderDistance = usePlanetStore((state) => state.renderDistance)
   const playerRef = useRef<THREE.Group>(null)
-  const editorMode = useEditorStore(state => state.activeEditor);
+
   const [currentMode, setCurrentMode] = useState<'freecam' | 'player'>('player')
+  const activeEditor = useEditorStore((state) => state.activeEditor)
 
   useHotkeys('c', () => {
-    setCurrentMode((prev) => (prev === 'freecam' ? 'player' : 'freecam'))
-    editorMode(currentMode != "freecam")
+    setCurrentMode((prev) => {
+      const nextMode = prev === 'freecam' ? 'player' : 'freecam'
+      activeEditor(nextMode === 'freecam')
+      return nextMode
+    })
   })
-
 
   const profile = useMemo(() => {
     const safeIndex = Math.min(Math.max(activeIndex, 0), DEMO_PLANET_PROFILES.length - 1)
     return DEMO_PLANET_PROFILES[safeIndex]!
   }, [activeIndex])
 
-  const heightMap = useHeightMap(profile, MAP_SIZE_BLOCKS)
+  const [localMap, setLocalMap] = useState<LocalMap>(() => generateLocalMap(profile, MAP_SIZE_BLOCKS))
+  const [, setMapVersion] = useState(0)
+
+  useEffect(() => {
+    setLocalMap(generateLocalMap(profile, MAP_SIZE_BLOCKS))
+    setMapVersion((v) => v + 1)
+  }, [profile])
+
+  const handleUpdateBlock = (x: number, y: number, z: number, block: Block | null) => {
+    const blockValue = block ?? Block.Air
+    localMap.setGlobalBlock(x, y, z, blockValue)
+    setMapVersion((v) => v + 1)
+  }
 
   const { camera } = useThree()
 
-  // Curvature effect
   const onBeforeCompile = useMemo(
     () =>
       function (this: THREE.Material, shader: THREE.WebGLProgramParametersWithUniforms) {
@@ -44,6 +130,90 @@ const WorldScene = () => {
       },
     []
   )
+
+  // Preload all 3D assets at the scene level to completely bypass useGLTF inside ChunkRenderer
+  const blockAssets = useMemo(() => {
+    const assets: Record<
+      Exclude<Block, Block.Air>,
+      { geometry: THREE.BufferGeometry; material: THREE.Material | THREE.Material[] }
+    > = {} as any
+
+    const geometry = new THREE.BoxGeometry(2, 2, 2)
+    const textureLoader = new THREE.TextureLoader()
+
+    Object.values(BlockMetadata).forEach((meta) => {
+      const blockType = meta.id as Exclude<Block, Block.Air>
+      
+      // Création d'un matériau pour chaque face du cube (+x, -x, +y, -y, +z, -z)
+      const materials = Array.from({ length: 6 }).map(() => {
+        const mat = new THREE.MeshStandardMaterial({ color: meta.color })
+        mat.onBeforeCompile = onBeforeCompile
+        if (blockType === Block.Water || blockType === Block.Glass) {
+          mat.transparent = true
+          mat.opacity = 0.6
+          mat.depthWrite = false
+        }
+        return mat
+      })
+      
+      const texturePath = `/three/assets/blocks/textures/${meta.name.toLowerCase()}.png`
+      textureLoader.load(
+        texturePath,
+        (texture) => {
+          texture.magFilter = THREE.NearestFilter
+          texture.colorSpace = THREE.SRGBColorSpace
+          
+          const w = 1 / 6
+          const faceUVs = [
+            { offset: [2 * w, 0], repeat: [w, 1], rotation: 0 },
+            { offset: [4 * w, 0], repeat: [w, 1], rotation: 0 },
+            { offset: [0 * w, 0], repeat: [w, 1], rotation: 0 },
+            { offset: [5 * w, 0], repeat: [w, 1], rotation: 0 },
+            { offset: [3 * w, 0], repeat: [w, 1], rotation: 0 },
+            { offset: [1 * w, 0], repeat: [w, 1], rotation: 0 }
+          ]
+          
+          materials.forEach((mat, index) => {
+            const faceTex = texture.clone()
+            const config = faceUVs[index]
+            
+            faceTex.repeat.set(config.repeat[0], config.repeat[1])
+            
+            faceTex.center.set(0.5, 0.5)
+            faceTex.offset.set(config.offset[0] + config.repeat[0] / 2 - 0.5, config.offset[1] + config.repeat[1] / 2 - 0.5)
+            faceTex.rotation = config.rotation
+            
+            faceTex.needsUpdate = true
+            mat.map = faceTex
+            mat.color.setHex(0xffffff)
+            mat.needsUpdate = true
+          })
+        },
+        undefined,
+        () => {
+          // Fallback to color if texture is missing
+        }
+      )
+      
+      assets[blockType] = {
+        geometry,
+        material: materials,
+      }
+    })
+
+    return assets
+  }, [onBeforeCompile])
+
+  // Single useFrame hook to update curvature uniforms once per frame for all shared materials
+  useFrame(() => {
+    Object.values(blockAssets).forEach((asset) => {
+      if (Array.isArray(asset.material)) {
+        asset.material.forEach((mat) => updateCurvatureUniforms(mat, camera))
+      } else {
+        updateCurvatureUniforms(asset.material, camera)
+      }
+    })
+  })
 
   const [visibleChunks, setVisibleChunks] = useState<{ cx: number; cz: number }[]>([])
 
@@ -57,13 +227,12 @@ const WorldScene = () => {
         const dx = cx - cameraChunkX
         const dz = cz - cameraChunkZ
         const distSq = dx * dx + dz * dz
-        if (distSq <= RENDER_DISTANCE_CHUNKS * RENDER_DISTANCE_CHUNKS) {
+        if (distSq <= renderDistance * renderDistance) {
           newVisibleChunks.push({ cx, cz })
         }
       }
     }
 
-    // Only update state if the set of visible chunks changed to avoid unnecessary re-renders
     const visibleKeys = newVisibleChunks.map((c) => `${c.cx}-${c.cz}`).join(',')
     const currentKeys = visibleChunks.map((c) => `${c.cx}-${c.cz}`).join(',')
 
@@ -75,14 +244,14 @@ const WorldScene = () => {
   return (
     <group>
       <FreeCameraControls
-        heightMap={heightMap}
+        localMap={localMap}
         mapSize={MAP_SIZE_BLOCKS}
         active={currentMode === 'freecam'}
         playerRef={playerRef}
+        onUpdateBlock={handleUpdateBlock}
       />
       <Player
-        heightMap={heightMap}
-        mapSize={MAP_SIZE_BLOCKS}
+        localMap={localMap}
         active={currentMode === 'player'}
         playerRef={playerRef}
       />
@@ -91,10 +260,8 @@ const WorldScene = () => {
           key={`${cx}-${cz}`}
           chunkX={cx}
           chunkZ={cz}
-          heightMap={heightMap}
-          mapSize={MAP_SIZE_BLOCKS}
-          onBeforeCompile={onBeforeCompile}
-          curvature={CURVATURE_INTENSITY}
+          localMap={localMap}
+          blockAssets={blockAssets}
           camera={camera}
         />
       ))}

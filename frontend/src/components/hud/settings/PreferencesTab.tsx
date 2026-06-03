@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from '@/components/shadcn/select'
 import Field from './Field'
+import { usePlanetStore } from '@/store/planetStore'
 
 const THEMES = ['light', 'dark'] as const
 
@@ -16,6 +17,7 @@ export default function PreferencesTab() {
   const { t, i18n } = useTranslation()
   const { me, saveProfile } = useSettings()
   const storedTheme = localStorage.getItem('theme')
+  const { renderDistance, setRenderDistance } = usePlanetStore()
 
   const onLanguage = (language: string) => {
     void i18n.changeLanguage(language)
@@ -57,6 +59,24 @@ export default function PreferencesTab() {
             {THEMES.map((th) => (
               <SelectItem key={th} value={th}>
                 {t(`settings.theme.${th}`)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+
+      <Field label={t('settings.prefs.renderDistance')}>
+        <Select
+          value={renderDistance.toString()}
+          onValueChange={(val) => setRenderDistance(parseInt(val, 10))}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {[4, 6, 8, 10, 12, 14, 16].map((dist) => (
+              <SelectItem key={dist} value={dist.toString()}>
+                {dist} {t('settings.prefs.chunks')}
               </SelectItem>
             ))}
           </SelectContent>

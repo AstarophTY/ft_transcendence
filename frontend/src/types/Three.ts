@@ -1,8 +1,9 @@
 import type { Group } from 'three'
 
+import type { LocalMap } from './maps/LocalMap'
+
 export interface PlayerProps {
-  heightMap: Uint16Array
-  mapSize: number
+  localMap: LocalMap
   active: boolean
   playerRef: React.RefObject<Group>
 }

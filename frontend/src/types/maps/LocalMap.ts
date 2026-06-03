@@ -89,5 +89,23 @@ export class LocalMap {
         const localZ = ((globalZ % Chunk.WIDTH) + Chunk.WIDTH) % Chunk.WIDTH;
 
         chunk.setBlock(localX, globalY, localZ, block);
+        chunk.version++;
+
+        // Increment versions of neighboring chunks if the block is on chunk borders
+        if (localX === 0) {
+            const neighbor = this.getChunk(chunkX - 1, chunkZ);
+            if (neighbor) neighbor.version++;
+        } else if (localX === Chunk.WIDTH - 1) {
+            const neighbor = this.getChunk(chunkX + 1, chunkZ);
+            if (neighbor) neighbor.version++;
+        }
+
+        if (localZ === 0) {
+            const neighbor = this.getChunk(chunkX, chunkZ - 1);
+            if (neighbor) neighbor.version++;
+        } else if (localZ === Chunk.WIDTH - 1) {
+            const neighbor = this.getChunk(chunkX, chunkZ + 1);
+            if (neighbor) neighbor.version++;
+        }
     }
 }

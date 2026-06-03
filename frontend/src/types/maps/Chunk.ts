@@ -13,6 +13,7 @@ export class Chunk {
     public static readonly SUBCHUNKS_COUNT = 4;
 
     private subChunks: SubChunk[];
+    public version: number = 0;
 
     constructor() {
         this.subChunks = Array.from(
@@ -23,15 +24,15 @@ export class Chunk {
 
     public getBlock(x: number, y: number, z: number): Block {
         if (y < 0 || y >= Chunk.HEIGHT) return Block.Air;
-        const subChunkIndex = Math.floor(y / SubChunk.SIZE);
-        const localY = y % SubChunk.SIZE;
+        const subChunkIndex = y >> 4;
+        const localY = y & 15;
         return this.subChunks[subChunkIndex].getBlock(x, localY, z);
     }
 
     public setBlock(x: number, y: number, z: number, block: Block): void {
         if (y < 0 || y >= Chunk.HEIGHT) return;
-        const subChunkIndex = Math.floor(y / SubChunk.SIZE);
-        const localY = y % SubChunk.SIZE;
+        const subChunkIndex = y >> 4;
+        const localY = y & 15;
         this.subChunks[subChunkIndex].setBlock(x, localY, z, block);
     }
 }

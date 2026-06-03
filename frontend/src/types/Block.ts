@@ -8,6 +8,7 @@ export enum Block {
   Water = 6,
   Sand = 7,
   Glass = 8,
+  Bedrock = 9,
 }
 
 export interface BlockMeta {

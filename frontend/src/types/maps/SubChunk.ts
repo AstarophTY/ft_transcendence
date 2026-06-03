@@ -22,7 +22,7 @@ export class SubChunk {
     }
 
     private getIndex(x: number, y: number, z: number): number {
-        return x + (z * SubChunk.SIZE) + (y * SubChunk.SIZE * SubChunk.SIZE);
+        return x + (z << 4) + (y << 8);
     }
 
     public getBlock(x: number, y: number, z: number): Block {

@@ -5,23 +5,113 @@ import * as THREE from 'three'
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
 
 import { getCurvatureOffset } from '../../utils/curvature'
+import { useEditorStore } from '@/store/editorStore'
+import { Tab } from '@/types/Editor'
+import { Block } from '@/types/Block'
+import { LocalMap } from '@/types/maps/LocalMap'
+import { Chunk } from '@/types/maps/Chunk'
 
 interface FreeCameraControlsProps {
-  heightMap: Uint16Array
+  localMap: LocalMap
   mapSize: number
   active: boolean
   playerRef: React.RefObject<THREE.Group>
+  onUpdateBlock: (x: number, y: number, z: number, block: Block | null) => void
 }
 
 export const FreeCameraControls = ({
-  heightMap,
+  localMap,
   mapSize,
   active,
   playerRef,
+  onUpdateBlock,
 }: FreeCameraControlsProps) => {
-  const { camera, gl } = useThree()
+  const { camera, gl, scene } = useThree()
   const controlsRef = useRef<PointerLockControlsImpl | null>(null)
   const keysRef = useRef<Record<string, boolean>>({})
+  const previewRef = useRef<THREE.Mesh>(null)
+
+  const updatePreview = () => {
+    if (!previewRef.current) return
+
+    const { tool } = useEditorStore.getState()
+    if ((tool !== Tab.Add && tool !== Tab.Remove) || !controlsRef.current?.isLocked) {
+      previewRef.current.visible = false
+      return
+    }
+
+    const raycaster = new THREE.Raycaster()
+    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera)
+
+    // Force update matrix world of the entire scene to be absolutely sure all world matrices are correct before raycasting
+    scene.updateMatrixWorld(true)
+
+    const intersects = raycaster.intersectObjects(scene.children, true)
+    const hit = intersects.find(
+      (item) =>
+        item.object !== previewRef.current &&
+        (item.object as THREE.InstancedMesh).isInstancedMesh
+    )
+
+    if (hit && hit.distance <= 30) {
+      const point = hit.point
+      const normal = hit.face?.normal
+      if (normal) {
+        const halfSize = mapSize / 2
+        
+        let targetX = 0
+        let targetY = 0
+        let targetZ = 0
+        let showPreview = false
+
+        if (tool === Tab.Add) {
+          const placePos = point.clone().addScaledVector(normal, 0.5)
+          const x = Math.floor(placePos.x + halfSize)
+          const y = Math.floor(placePos.y)
+          const z = Math.floor(placePos.z + halfSize)
+
+          if (x >= 0 && x < mapSize && y >= 0 && y < 64 && z >= 0 && z < mapSize) {
+            const block = localMap.getGlobalBlock(x, y, z)
+            if (block === Block.Air || block === Block.Water) {
+              targetX = x - halfSize + 0.5
+              targetY = y + 0.5
+              targetZ = z - halfSize + 0.5
+              showPreview = true
+            }
+          }
+        } else if (tool === Tab.Remove) {
+          const blockPos = point.clone().addScaledVector(normal, -0.5)
+          const x = Math.floor(blockPos.x + halfSize)
+          const y = Math.floor(blockPos.y)
+          const z = Math.floor(blockPos.z + halfSize)
+
+          if (x >= 0 && x < mapSize && y >= 0 && y < 64 && z >= 0 && z < mapSize) {
+            const block = localMap.getGlobalBlock(x, y, z)
+            if (block !== Block.Air && block !== Block.Bedrock) {
+              targetX = x - halfSize + 0.5
+              targetY = y + 0.5
+              targetZ = z - halfSize + 0.5
+              showPreview = true
+            }
+          }
+        }
+
+        if (showPreview) {
+          previewRef.current.position.set(targetX, targetY, targetZ)
+          
+          if (previewRef.current.material) {
+            const color = tool === Tab.Add ? '#fbbf24' : '#ef4444'
+            ;(previewRef.current.material as THREE.MeshBasicMaterial).color.set(color)
+          }
+          
+          previewRef.current.visible = true
+          return
+        }
+      }
+    }
+
+    previewRef.current.visible = false
+  }
 
   useEffect(() => {
     if (active) {
@@ -35,6 +125,63 @@ export const FreeCameraControls = ({
     }
   }, [camera, active, playerRef])
 
+  const handleEditorAction = (e: MouseEvent) => {
+    if (e.button !== 0) return // Left click only
+
+    const { tool, selectedBlock } = useEditorStore.getState()
+    if (tool !== Tab.Add && tool !== Tab.Remove) return
+
+    const raycaster = new THREE.Raycaster()
+    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera)
+
+    // Force update matrix world of the entire scene to be absolutely sure all world matrices are correct before raycasting
+    scene.updateMatrixWorld(true)
+
+    const intersects = raycaster.intersectObjects(scene.children, true)
+    if (intersects.length === 0) return
+
+    const hit = intersects.find((item) => {
+      const obj = item.object
+      if (obj === previewRef.current) return false
+      return (obj as THREE.InstancedMesh).isInstancedMesh
+    })
+
+    if (!hit) return
+    if (hit.distance > 30) return
+
+    const point = hit.point
+    const normal = hit.face?.normal
+    if (!normal) return
+
+    const halfSize = mapSize / 2
+
+    if (tool === Tab.Remove) {
+      const blockPos = point.clone().addScaledVector(normal, -0.5)
+      const x = Math.floor(blockPos.x + halfSize)
+      const y = Math.floor(blockPos.y)
+      const z = Math.floor(blockPos.z + halfSize)
+
+      if (x >= 0 && x < mapSize && y >= 0 && y < 64 && z >= 0 && z < mapSize) {
+        const block = localMap.getGlobalBlock(x, y, z)
+        if (block !== Block.Air && block !== Block.Bedrock) {
+          onUpdateBlock(x, y, z, null)
+        }
+      }
+    } else if (tool === Tab.Add) {
+      const placePos = point.clone().addScaledVector(normal, 0.5)
+      const x = Math.floor(placePos.x + halfSize)
+      const y = Math.floor(placePos.y)
+      const z = Math.floor(placePos.z + halfSize)
+
+      if (x >= 0 && x < mapSize && y >= 0 && y < 64 && z >= 0 && z < mapSize) {
+        const block = localMap.getGlobalBlock(x, y, z)
+        if (block === Block.Air || block === Block.Water) {
+          onUpdateBlock(x, y, z, selectedBlock)
+        }
+      }
+    }
+  }
+
   useEffect(() => {
     if (!active) return
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -46,22 +193,27 @@ export const FreeCameraControls = ({
     const handleKeyUp = (event: KeyboardEvent) => {
       keysRef.current[event.code] = false
     }
-    const handleClick = (e: MouseEvent) => {
-      if (active && e.target === gl.domElement) {
-        controlsRef.current?.lock()
+    const handleMouseDown = (e: MouseEvent) => {
+      if (!active) return
+      if (!controlsRef.current?.isLocked) {
+        if (e.target === gl.domElement) {
+          controlsRef.current?.lock()
+        }
+      } else {
+        handleEditorAction(e)
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
-    gl.domElement.addEventListener('click', handleClick)
+    window.addEventListener('mousedown', handleMouseDown)
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
-      gl.domElement.removeEventListener('click', handleClick)
+      window.removeEventListener('mousedown', handleMouseDown)
     }
-  }, [gl.domElement, active])
+  }, [gl.domElement, active, localMap, onUpdateBlock])
 
   useFrame((_, delta) => {
     if (!active) return
@@ -98,28 +250,37 @@ export const FreeCameraControls = ({
 
     // Function to check if a position is valid (not inside a block)
     const isValidPosition = (pos: THREE.Vector3) => {
-      const mapX = Math.floor(pos.x + halfSize)
-      const mapZ = Math.floor(pos.z + halfSize)
-      const mapIndex = THREE.MathUtils.clamp(mapZ, 0, mapSize - 1) * mapSize + THREE.MathUtils.clamp(mapX, 0, mapSize - 1)
-      const rawGroundHeight = heightMap[mapIndex] ?? 0
+      const globalX = Math.floor(pos.x + halfSize)
+      const globalZ = Math.floor(pos.z + halfSize)
       const curvatureOffset = getCurvatureOffset(pos, camera.position)
-      const groundHeight = rawGroundHeight - curvatureOffset
-      // The block occupies space from groundHeight to groundHeight + 1
-      // We are inside a block if our y is between groundHeight and groundHeight + 1
-      const isInsideBlockVolume = pos.y >= groundHeight && pos.y <= groundHeight + 1
-      return !isInsideBlockVolume
+      const adjustedY = Math.floor(pos.y + curvatureOffset)
+
+      if (adjustedY < 0) return false
+      if (adjustedY >= Chunk.HEIGHT) return true // skies
+
+      const block = localMap.getGlobalBlock(globalX, adjustedY, globalZ)
+      if (block !== Block.Air && block !== Block.Water) {
+        return false
+      }
+      return true
     }
 
     // Collision handling: check each axis separately for sliding
     const finalPosition = camera.position.clone()
 
     const getPhysicGroundHeight = (pos: THREE.Vector3) => {
-      const mapX = Math.floor(pos.x + halfSize)
-      const mapZ = Math.floor(pos.z + halfSize)
-      const mapIndex = THREE.MathUtils.clamp(mapZ, 0, mapSize - 1) * mapSize + THREE.MathUtils.clamp(mapX, 0, mapSize - 1)
-      const rawGroundHeight = heightMap[mapIndex] ?? 0
+      const globalX = Math.floor(pos.x + halfSize)
+      const globalZ = Math.floor(pos.z + halfSize)
+      let highestSolid = 0
+      for (let y = Chunk.HEIGHT - 1; y >= 0; y--) {
+        const block = localMap.getGlobalBlock(globalX, y, globalZ)
+        if (block !== Block.Air && block !== Block.Water) {
+          highestSolid = y + 1
+          break
+        }
+      }
       const curvatureOffset = getCurvatureOffset(pos, camera.position)
-      return rawGroundHeight - curvatureOffset
+      return highestSolid - curvatureOffset
     }
 
     // Try vertical movement first
@@ -131,10 +292,8 @@ export const FreeCameraControls = ({
       // If moving into a block volume from above, snap to top
       const groundHeight = getPhysicGroundHeight(finalPosition)
 
-      if (finalPosition.y > groundHeight + 1) {
-        finalPosition.y = groundHeight + 1.1 // Stay slightly above
-      } else if (finalPosition.y < groundHeight) {
-        finalPosition.y = groundHeight - 0.1 // Stay slightly below if we were already under
+      if (finalPosition.y > groundHeight) {
+        finalPosition.y = groundHeight + 0.1 // Stay slightly above
       }
     }
 
@@ -153,7 +312,16 @@ export const FreeCameraControls = ({
     }
 
     camera.position.copy(finalPosition)
+    updatePreview()
   })
 
-  return active ? <PointerLockControls ref={(node) => { controlsRef.current = node }} selector="#canvas-container" /> : null
+  return active ? (
+    <>
+      <PointerLockControls ref={(node) => { controlsRef.current = node }} selector="#canvas-container" />
+      <mesh ref={previewRef} visible={false}>
+        <boxGeometry args={[1.01, 1.2, 1.01]} />
+        <meshBasicMaterial color="#fbbf24" transparent opacity={0.5} depthWrite={false} />
+      </mesh>
+    </>
+  ) : null
 }

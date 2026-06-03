@@ -12,8 +12,9 @@ import { usePlayerVertical } from './player/usePlayerVertical'
 import { useThirdPersonCamera } from './player/useThirdPersonCamera'
 
 import type { PlayerProps } from '@/types/Three'
+import { Chunk } from '@/types/maps/Chunk'
 
-const Player = ({ heightMap, mapSize, active, playerRef }: PlayerProps) => {
+const Player = ({ localMap, active, playerRef }: PlayerProps) => {
   const { camera, gl } = useThree()
   const { scene } = useGLTF('/three/assets/capsule/full_bodie/Body_AA_01.glb')
 
@@ -22,18 +23,19 @@ const Player = ({ heightMap, mapSize, active, playerRef }: PlayerProps) => {
   const velocityRef = useRef(new THREE.Vector3())
   const isGroundedRef = useRef(false)
 
+  const mapSize = localMap.widthInChunks * Chunk.WIDTH
+
   useCurvedSceneMaterials(scene)
   usePlayerInput({ active, domElement: gl.domElement, controlsRef, keysRef })
   usePlayerRotation({ active, camera, playerRef, controlsRef, keysRef })
-  usePlayerMovement({ active, camera, playerRef, controlsRef, keysRef, heightMap, mapSize })
+  usePlayerMovement({ active, camera, playerRef, controlsRef, keysRef, localMap })
   usePlayerVertical({
     active,
     keysRef,
     velocityRef,
     isGroundedRef,
     playerRef,
-    heightMap,
-    mapSize,
+    localMap,
     cameraPos: camera.position,
   })
   useThirdPersonCamera({ active, camera, playerRef, controlsRef, scene, mapSize })
