@@ -26,6 +26,8 @@ export interface WorldBlock {
   y: number
   z: number
   block: Block
+  /** Encoded orientation (2 bits per X/Y/Z axis, 0..63); 0 = unrotated. */
+  rotation: number
 }
 
 /** A campus world with its profile and every persisted block edit. */

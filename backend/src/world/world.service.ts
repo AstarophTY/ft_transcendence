@@ -49,7 +49,7 @@ export class WorldService {
     const world = await this.ensureWorld(campusId);
     const blocks = await this.prisma.worldBlock.findMany({
       where: { worldId: world.id },
-      select: { x: true, y: true, z: true, block: true },
+      select: { x: true, y: true, z: true, block: true, rotation: true },
     });
     return {
       campusId,
@@ -74,15 +74,23 @@ export class WorldService {
     if (blocks.length === 0) return;
     const world = await this.ensureWorld(campusId);
     await this.prisma.$transaction(
-      blocks.map((b) =>
-        this.prisma.worldBlock.upsert({
+      blocks.map((b) => {
+        const rotation = b.rotation ?? 0;
+        return this.prisma.worldBlock.upsert({
           where: {
             worldId_x_y_z: { worldId: world.id, x: b.x, y: b.y, z: b.z },
           },
-          create: { worldId: world.id, x: b.x, y: b.y, z: b.z, block: b.block },
-          update: { block: b.block },
-        }),
-      ),
+          create: {
+            worldId: world.id,
+            x: b.x,
+            y: b.y,
+            z: b.z,
+            block: b.block,
+            rotation,
+          },
+          update: { block: b.block, rotation },
+        });
+      }),
     );
   }
 

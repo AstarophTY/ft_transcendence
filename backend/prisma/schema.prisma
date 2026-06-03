@@ -160,6 +160,8 @@ model WorldBlock {
   z       Int
   /// Block enum value (0 = Air for a broken block).
   block   Int
+  /// Encoded block orientation (2 bits per X/Y/Z axis); 0 = unrotated.
+  rotation Int    @default(0)
 
   @@id([worldId, x, y, z])
   @@index([worldId])

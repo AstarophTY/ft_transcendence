@@ -18,6 +18,7 @@ import { WorldService } from './world.service';
 const MAP_WIDTH = 512;
 const MAP_HEIGHT = 64;
 const MAX_BLOCK = 12;
+const MAX_ROTATION = 63; // 2 bits per X/Y/Z axis
 const MAX_BATCH = 4096;
 
 interface EditPayload {
@@ -227,7 +228,7 @@ export class WorldGateway
     for (const item of raw) {
       if (blocks.length >= MAX_BATCH) break;
       if (!item || typeof item !== 'object') continue;
-      const { x, y, z, block } = item as Record<string, unknown>;
+      const { x, y, z, block, rotation } = item as Record<string, unknown>;
       if (
         Number.isInteger(x) &&
         Number.isInteger(y) &&
@@ -242,11 +243,18 @@ export class WorldGateway
         (block as number) >= 0 &&
         (block as number) <= MAX_BLOCK
       ) {
+        const rot =
+          Number.isInteger(rotation) &&
+          (rotation as number) >= 0 &&
+          (rotation as number) <= MAX_ROTATION
+            ? (rotation as number)
+            : 0;
         blocks.push({
           x: x as number,
           y: y as number,
           z: z as number,
           block: block as number,
+          rotation: rot,
         });
       }
     }
