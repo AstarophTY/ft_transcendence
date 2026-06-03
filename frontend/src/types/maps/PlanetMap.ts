@@ -1,6 +1,20 @@
 import { LocalMap } from "./LocalMap.ts";
 import { Block } from "@/types/Block";
+import { BlockMetadata } from "@/config/Block";
 import { PreviewVoxel } from "./PreviewVoxel.ts";
+
+const BLOCK_COLORS = BlockMetadata as Record<number, { color: string }>;
+
+const hexToRgb = (hex: string): [number, number, number] => {
+    const value = parseInt(hex.replace("#", ""), 16);
+    return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
+};
+
+const rgbToHex = (r: number, g: number, b: number): string =>
+    "#" +
+    [r, g, b]
+        .map((n) => Math.round(n).toString(16).padStart(2, "0"))
+        .join("");
 
 export class PlanetMap {
     public continent: LocalMap;
@@ -35,33 +49,61 @@ export class PlanetMap {
         for (let px = 0; px < resolution; px++) {
             for (let pz = 0; pz < resolution; pz++) {
 
-                // Find the center coordinate of this sample region
-                const realX = Math.floor(px * stepX + stepX / 2);
-                const realZ = Math.floor(pz * stepZ + stepZ / 2);
+                // Average the surface over the whole sample region instead of
+                // point-sampling its center, so the miniature looks smooth.
+                const startX = px * stepX;
+                const startZ = pz * stepZ;
 
-                // Raycast downwards to find the surface block
-                let surfaceY = 0;
-                let surfaceBlock = Block.Air;
+                let heightSum = 0;
+                let surfaceCount = 0;
+                let rSum = 0, gSum = 0, bSum = 0;
+                const blockCounts = new Map<Block, number>();
 
-                for (let y = MAX_HEIGHT; y >= 0; y--) {
-                    const block = this.continent.getGlobalBlock(realX, y, realZ);
-                    if (block !== Block.Air) {
-                        surfaceY = y;
-                        surfaceBlock = block;
-                        break;
+                for (let ox = 0; ox < stepX; ox++) {
+                    for (let oz = 0; oz < stepZ; oz++) {
+                        const realX = startX + ox;
+                        const realZ = startZ + oz;
+
+                        // Raycast downwards to find the surface block of this column.
+                        for (let y = MAX_HEIGHT; y >= 0; y--) {
+                            const block = this.continent.getGlobalBlock(realX, y, realZ);
+                            if (block !== Block.Air) {
+                                heightSum += y;
+                                surfaceCount++;
+                                blockCounts.set(block, (blockCounts.get(block) ?? 0) + 1);
+
+                                // Accumulate the block color to average it later.
+                                const hex = BLOCK_COLORS[block]?.color ?? "#808080";
+                                const [r, g, b] = hexToRgb(hex);
+                                rSum += r; gSum += g; bSum += b;
+                                break;
+                            }
+                        }
                     }
                 }
 
-                if (surfaceBlock !== Block.Air) {
-                    // Smooth the height by scaling it down relative to the horizontal step.
-                    // This prevents the miniature from looking like sharp needles.
-                    const smoothedY = surfaceY / stepX;
+                if (surfaceCount > 0) {
+                    // Most common surface block in the region (for the block id).
+                    let surfaceBlock = Block.Air;
+                    let best = 0;
+                    for (const [block, count] of blockCounts) {
+                        if (count > best) {
+                            best = count;
+                            surfaceBlock = block;
+                        }
+                    }
+
+                    const averagedY = heightSum / surfaceCount;
+                    // Smooth the height by scaling it down relative to the step,
+                    // preventing the miniature from looking like sharp needles.
+                    const smoothedY = averagedY / stepX;
 
                     previewData.push({
                         x: px,
                         y: smoothedY,
                         z: pz,
-                        block: surfaceBlock
+                        block: surfaceBlock,
+                        color: rgbToHex(rSum / surfaceCount, gSum / surfaceCount, bSum / surfaceCount)
                     });
                 }
             }
