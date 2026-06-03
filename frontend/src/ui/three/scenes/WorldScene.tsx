@@ -1,5 +1,5 @@
 import { useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { useHotkeys } from 'react-hotkeys-hook'
 
@@ -87,20 +87,20 @@ const generateLocalMap = (profile: any, mapSize: number) => {
 }
 
 interface WorldShadowLightProps {
-  playerRef: React.RefObject<THREE.Group>
+  playerRef: React.RefObject<THREE.Group | null>
   currentMode: 'freecam' | 'player'
 }
 
 const WorldShadowLight = ({ playerRef, currentMode }: WorldShadowLightProps) => {
   const { camera } = useThree()
-  const lightRef = useRef<THREE.DirectionalLight>(null)
-  const targetRef = useRef<THREE.Object3D>(null)
+  const lightRef = useRef<THREE.DirectionalLight | null>(null)
+  const targetRef = useRef<THREE.Object3D | null>(null)
 
   useFrame(() => {
     if (!lightRef.current || !targetRef.current) return
 
-    let targetX = 0
-    let targetZ = 0
+    let targetX: number
+    let targetZ: number
 
     if (currentMode === 'player' && playerRef.current) {
       targetX = playerRef.current.position.x
@@ -144,7 +144,7 @@ const WorldShadowLight = ({ playerRef, currentMode }: WorldShadowLightProps) => 
 const WorldScene = () => {
   const activeIndex = usePlanetStore((state) => state.activeIndex)
   const renderDistance = usePlanetStore((state) => state.renderDistance)
-  const playerRef = useRef<THREE.Group>(null)
+  const playerRef = useRef<THREE.Group | null>(null)
 
   const [currentMode, setCurrentMode] = useState<'freecam' | 'player'>('player')
   const activeEditor = useEditorStore((state) => state.activeEditor)
@@ -218,10 +218,10 @@ const WorldScene = () => {
           const faceUVs = [
             { offset: [2 * w, 0], repeat: [w, 1], rotation: 0 },
             { offset: [4 * w, 0], repeat: [w, 1], rotation: 0 },
-            { offset: [0 * w, 0], repeat: [w, 1], rotation: 0 },
+            { offset: [0, 0], repeat: [w, 1], rotation: 0 },
             { offset: [5 * w, 0], repeat: [w, 1], rotation: 0 },
             { offset: [3 * w, 0], repeat: [w, 1], rotation: 0 },
-            { offset: [1 * w, 0], repeat: [w, 1], rotation: 0 }
+            { offset: [w, 0], repeat: [w, 1], rotation: 0 }
           ]
           
           materials.forEach((mat, index) => {
@@ -236,6 +236,9 @@ const WorldScene = () => {
             
             faceTex.needsUpdate = true
             mat.map = faceTex
+
+            // Reset color to white by default when texture is loaded, to prevent oversaturation
+            mat.color.set('#ffffff' as any)
 
             mat.needsUpdate = true
           })
@@ -260,7 +263,7 @@ const WorldScene = () => {
     const cameraChunkX = Math.floor((camera.position.x + MAP_SIZE_BLOCKS / 2) / Chunk.WIDTH)
     const cameraChunkZ = Math.floor((camera.position.z + MAP_SIZE_BLOCKS / 2) / Chunk.WIDTH)
 
-    const newVisibleChunks = []
+    const newVisibleChunks: { cx: number; cz: number }[] = []
     for (let cz = 0; cz < CHUNKS_PER_SIDE; cz++) {
       for (let cx = 0; cx < CHUNKS_PER_SIDE; cx++) {
         const dx = cx - cameraChunkX
@@ -273,11 +276,13 @@ const WorldScene = () => {
     }
 
     const visibleKeys = newVisibleChunks.map((c) => `${c.cx}-${c.cz}`).join(',')
-    const currentKeys = visibleChunks.map((c) => `${c.cx}-${c.cz}`).join(',')
-
-    if (visibleKeys !== currentKeys) {
-      setVisibleChunks(newVisibleChunks)
-    }
+    setVisibleChunks((prev) => {
+      const currentKeys = prev.map((c) => `${c.cx}-${c.cz}`).join(',')
+      if (visibleKeys !== currentKeys) {
+        return newVisibleChunks
+      }
+      return prev
+    })
   })
 
   return (
