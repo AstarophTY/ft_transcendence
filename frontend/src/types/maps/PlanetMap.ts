@@ -1,7 +1,6 @@
 import { LocalMap } from "./LocalMap.ts";
-import { Block } from "../Block.ts";
-import {PreviewVoxel} from "../PreviewVoxel.ts";
-
+import { Block } from "@/types/Block";
+import { PreviewVoxel } from "./PreviewVoxel.ts";
 
 export class PlanetMap {
     public continent: LocalMap;

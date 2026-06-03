@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, Loader2, Lock, LogIn, Mail, User, UserPlus, X } from 'lucide-react'
 
@@ -257,8 +257,14 @@ function AuthDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="absolute pointer-events-auto">
-          <LogIn className="size-4" /> {t('auth.signIn')}
+        <Button variant="ghost" className="absolute pointer-events-auto flex left-5 top-5">
+          <UserBadge user={{
+              username: t('auth.signIn'),
+              userId: "test",
+              avatar: "",
+              email: null,
+              role: 'USER'
+            }}/>
         </Button>
       </DialogTrigger>
       <DialogContent className="pointer-events-auto">
@@ -298,10 +304,10 @@ function UserMenu() {
   if (!user) return null
 
   return (
-    <div className="pointer-events-auto absolute">
+    <div className="pointer-events-auto absolute left-5 top-5">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost"  className="flex">
+          <Button variant="ghost" className="flex">
             <UserBadge user={user} />
           </Button>
         </DropdownMenuTrigger>

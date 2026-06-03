@@ -14,3 +14,6 @@ frontend/.vite/
 nginx/ssl/*.pem
 nginx/ssl/*.key
 nginx/ssl/*.crt
+
+frontend/package-lock.json
+backend/package-lock.json

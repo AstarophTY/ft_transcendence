@@ -1,4 +1,4 @@
-import {Block} from "../Block.ts";
+import {Block} from "@/types/Block";
 
 /**
  * Represents a 16x16x16 section of the world.

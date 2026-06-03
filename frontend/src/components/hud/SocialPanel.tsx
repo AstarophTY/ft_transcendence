@@ -28,7 +28,8 @@ export default function SocialPanel() {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          className="pointer-events-auto absolute left-4 top-20 z-50 flex h-[70vh] w-96 flex-col overflow-hidden rounded-xl border bg-popover/95 text-popover-foreground shadow-2xl backdrop-blur-md"
+          className="z-50 absolute left-4 top-20 flex flex-col h-[70vh] w-96l space-y-4 p-4 pointer-events-auto bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 rounded-xl border shadow-lg"
+          style={{width: "400px"}}
         >
           <AnimatePresence mode="wait">
             {activeFriend ? <ChatView dragControls={dragControls} key="chat" /> : <FriendsPanel dragControls={dragControls} key="panel" />}
