@@ -31,7 +31,7 @@ export default function AdminEditUser() {
   const [displayName, setDisplayName] = useState(editing?.displayName ?? '')
   const [bio, setBio] = useState(editing?.bio ?? '')
   const [email, setEmail] = useState(editing?.email ?? '')
-  const [campus, setCampus] = useState(editing?.campus ?? '')
+  const [campus, setCampus] = useState(editing?.campus?.label ?? '')
   const [status, setStatus] = useState<UserStatus>(editing?.status ?? 'ONLINE')
   const [statusMessage, setStatusMessage] = useState(editing?.statusMessage ?? '')
   const [password, setPassword] = useState('')

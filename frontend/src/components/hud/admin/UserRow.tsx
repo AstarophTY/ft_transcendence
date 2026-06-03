@@ -52,7 +52,7 @@ export default function UserRow({ user }: { user: AdminUser }) {
             )}
             <div className="truncate text-xs text-muted-foreground">
               {user.email ?? user.fortyTwoLogin ?? '—'}
-              {user.campus ? ` · ${user.campus}` : ''}
+              {user.campus ? ` · ${user.campus.label}` : ''}
             </div>
           </div>
         </div>
