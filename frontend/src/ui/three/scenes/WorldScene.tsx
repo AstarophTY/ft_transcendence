@@ -17,7 +17,7 @@ import { FreeCameraControls } from './worldScene/FreeCameraControls'
 import { Block } from '@/types/Block'
 import { BlockMetadata } from '@/config/Block'
 import { LocalMap } from '@/types/maps/LocalMap'
-import { IslandMap } from '@/perlin/terrain/IslandMap'
+import { IslandMap, BiomeType, getBiomeBlock } from '@/perlin'
 
 const generateLocalMap = (profile: any, mapSize: number) => {
   const widthInChunks = mapSize / Chunk.WIDTH
@@ -36,46 +36,64 @@ const generateLocalMap = (profile: any, mapSize: number) => {
     variationRange: profile.variationRange,
   })
 
-  const waterHeight = 15
-
   for (let chunkX = 0; chunkX < widthInChunks; chunkX++) {
     for (let chunkZ = 0; chunkZ < depthInChunks; chunkZ++) {
       const chunk = new Chunk()
 
+      // Pass 1: Heightmap and terrain blocks placement
       for (let x = 0; x < Chunk.WIDTH; x++) {
         for (let z = 0; z < Chunk.WIDTH; z++) {
           const worldX = chunkX * Chunk.WIDTH + x
           const worldZ = chunkZ * Chunk.WIDTH + z
           const height = islandMap.getHeightAt(worldX, worldZ)
+          const biome = islandMap.getBiomeAt(worldX, worldZ)
 
-          // 1. Bedrock at the very bottom
+          // Bedrock at the very bottom
           chunk.setBlock(x, 0, z, Block.Bedrock)
 
-          // 2. y from 1 up to height
+          // Fill vertical blocks based on biome config
           for (let y = 1; y <= height; y++) {
-            if (height < waterHeight) {
-              // Below water level: Sand top + Stone below
-              if (y >= height - 2) {
-                chunk.setBlock(x, y, z, Block.Sand)
-              } else {
-                chunk.setBlock(x, y, z, Block.Stone)
-              }
-            } else {
-              // Above water level: Grass top, Dirt middle, Stone below
-              if (y === height) {
-                chunk.setBlock(x, y, z, Block.Grass)
-              } else if (y >= height - 3) {
-                chunk.setBlock(x, y, z, Block.Dirt)
-              } else {
-                chunk.setBlock(x, y, z, Block.Stone)
-              }
-            }
+            chunk.setBlock(x, y, z, getBiomeBlock(biome, y, height))
           }
+        }
+      }
 
-          // 3. Water layer: height + 1 to waterHeight (if height < waterHeight)
-          if (height < waterHeight) {
-            for (let y = height + 1; y <= waterHeight; y++) {
-              chunk.setBlock(x, y, z, Block.Water)
+      // Pass 2: Spawn trees in Forest biome (using deterministic hash coordinate positioning)
+      for (let x = 2; x < Chunk.WIDTH - 2; x++) {
+        for (let z = 2; z < Chunk.WIDTH - 2; z++) {
+          const worldX = chunkX * Chunk.WIDTH + x
+          const worldZ = chunkZ * Chunk.WIDTH + z
+          const height = islandMap.getHeightAt(worldX, worldZ)
+          const biome = islandMap.getBiomeAt(worldX, worldZ)
+
+          if (biome === BiomeType.Forest) {
+            const hash = (Math.abs(Math.sin(worldX * 12.9898 + worldZ * 78.233) * 43758.5453) % 1)
+            
+            // 2% chance to spawn a tree in forest biome
+            if (hash < 0.02) {
+              const treeHeight = 4 + Math.floor(hash * 100) % 2 // 4 or 5 blocks tall
+              
+              // Place wood trunk
+              for (let ty = 1; ty <= treeHeight; ty++) {
+                chunk.setBlock(x, height + ty, z, Block.Wood)
+              }
+
+              // Place leaves canopy
+              for (let dy = -2; dy <= 2; dy++) {
+                for (let dx = -2; dx <= 2; dx++) {
+                  for (let dz = -2; dz <= 2; dz++) {
+                    const ly = height + treeHeight + dy
+                    if (ly < 1 || ly >= Chunk.HEIGHT) continue
+
+                    const dist = Math.abs(dx) + Math.abs(dy) + Math.abs(dz)
+                    if (dist <= 3 && !(dx === 0 && dz === 0 && dy <= 0)) {
+                      if (chunk.getBlock(x + dx, ly, z + dz) === Block.Air) {
+                        chunk.setBlock(x + dx, ly, z + dz, Block.Leaves)
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -330,7 +348,7 @@ const WorldScene = () => {
 
       const materials = Array.from({ length: 6 }).map(() => {
         const mat = new THREE.MeshStandardMaterial({ color: meta.color, envMapIntensity: 0 })
-        if (blockType === Block.Water || blockType === Block.Glass) {
+        if (blockType === Block.Water) {
           mat.transparent = true
           mat.opacity = 0.6
           mat.depthWrite = false
