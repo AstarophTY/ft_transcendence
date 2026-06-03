@@ -34,7 +34,8 @@ class BlockTextureBuilder:
         faces = self._resolve_faces()
 
         # If any face contains fully transparent pixels (alpha == 0), skip it
-        if any(self._has_transparency(img) for img in faces.values()):
+        # (Exception: keep glass blocks)
+        if "glass" not in self.block_name and any(self._has_transparency(img) for img in faces.values()):
             return None
 
         return self._assemble_strip(faces)
@@ -358,25 +359,57 @@ def generate_typescript_files(
         ("Plank", 12),
     ]
 
-    default_mapping = {
-        "stone": "Stone",
-        "dirt": "Dirt",
-        "grass_block": "Grass",
-        "oak_log": "Wood",
-        "oak_leaves": "Leaves",
-        "water_still": "Water",
-        "sand": "Sand",
-        "glass": "Glass",
-        "bedrock": "Bedrock",
-        "pumpkin": "Pumpkin",
-        "furnace": "Furnace",
-        "oak_planks": "Plank",
+    default_candidates = {
+        "Stone": ["stone"],
+        "Dirt": ["dirt"],
+        "Grass": ["grass_block", "grass"],
+        "Wood": ["oak_log", "log_oak", "wood"],
+        "Leaves": ["oak_leaves", "leaves_oak_opaque", "leaves_oak", "leaves"],
+        "Water": ["water_still", "water"],
+        "Sand": ["sand"],
+        "Glass": ["glass"],
+        "Bedrock": ["bedrock"],
+        "Pumpkin": ["pumpkin"],
+        "Furnace": ["furnace"],
+        "Plank": ["oak_planks", "planks_oak", "planks"],
     }
+
+    default_mapping = {}
+    for block_enum, candidates in default_candidates.items():
+        for cand in candidates:
+            if cand in block_colors:
+                default_mapping[cand] = block_enum
+                break
+
+    # Determine resolved names for metadata mapping, falling back to default if not found
+    matched_names = {
+        "Stone": "stone",
+        "Dirt": "dirt",
+        "Grass": "grass_block",
+        "Wood": "oak_log",
+        "Leaves": "oak_leaves",
+        "Water": "water_still",
+        "Sand": "sand",
+        "Glass": "glass",
+        "Bedrock": "bedrock",
+        "Pumpkin": "pumpkin",
+        "Furnace": "furnace",
+        "Plank": "oak_planks",
+    }
+    for key, enum_val in default_mapping.items():
+        matched_names[enum_val] = key
+
+    default_names = {b[0] for b in default_blocks}
+    seen_names = set(default_names)
 
     extra_blocks = []
     for b_name in sorted(block_colors.keys()):
         if b_name in default_mapping:
             continue
+        pascal = to_pascal_case(b_name)
+        if pascal in seen_names:
+            continue
+        seen_names.add(pascal)
         extra_blocks.append(b_name)
 
     enum_lines = []
@@ -408,18 +441,18 @@ def generate_typescript_files(
 
     meta_lines = []
     default_metadata = [
-        ("Stone", "stone", 'colors.stone || "#808080"', "gray"),
-        ("Dirt", "dirt", 'colors.dirt || "#8b4513"', "brown"),
-        ("Grass", "grass_block", '"#7ca75e"', "green"),
-        ("Wood", "oak_log", 'colors.oak_log || "#a0522d"', "brown"),
-        ("Leaves", "oak_leaves", '"#567d30"', "green"),
-        ("Water", "water_still", '"#2a5eff"', "blue"),
-        ("Sand", "sand", 'colors.sand || "#f4a460"', "yellow"),
-        ("Glass", "glass", '"#add8e6"', "blue"),
-        ("Bedrock", "bedrock", 'colors.bedrock || "#404040"', "gray"),
-        ("Furnace", "furnace", 'colors.furnace || "#404040"', "gray"),
-        ("Pumpkin", "pumpkin", 'colors.pumpkin || "#404040"', "orange"),
-        ("Plank", "oak_planks", 'colors.oak_planks || "#404040"', "brown"),
+        ("Stone", matched_names["Stone"], f'colors.{matched_names["Stone"]} || "#808080"', "gray"),
+        ("Dirt", matched_names["Dirt"], f'colors.{matched_names["Dirt"]} || "#8b4513"', "brown"),
+        ("Grass", matched_names["Grass"], '"#7ca75e"', "green"),
+        ("Wood", matched_names["Wood"], f'colors.{matched_names["Wood"]} || "#a0522d"', "brown"),
+        ("Leaves", matched_names["Leaves"], '"#567d30"', "green"),
+        ("Water", matched_names["Water"], '"#2a5eff"', "blue"),
+        ("Sand", matched_names["Sand"], f'colors.{matched_names["Sand"]} || "#f4a460"', "yellow"),
+        ("Glass", matched_names["Glass"], '"#add8e6"', "blue"),
+        ("Bedrock", matched_names["Bedrock"], f'colors.{matched_names["Bedrock"]} || "#404040"', "gray"),
+        ("Furnace", matched_names["Furnace"], f'colors.{matched_names["Furnace"]} || "#404040"', "gray"),
+        ("Pumpkin", matched_names["Pumpkin"], f'colors.{matched_names["Pumpkin"]} || "#404040"', "orange"),
+        ("Plank", matched_names["Plank"], f'colors.{matched_names["Plank"]} || "#404040"', "brown"),
     ]
 
     for enum_key, raw_name, color_expr, category in default_metadata:

@@ -136,10 +136,8 @@ function getBlockPreview(name: string, color: string): Promise<string> {
 
           // Transparency
           if (
-            blockName === 'water_still' || 
-            blockName === 'water_flow' || 
-            blockName === 'glass' || 
-            blockName.includes('stained_glass') || 
+            blockName.includes('water') || 
+            blockName.includes('glass') || 
             blockName === 'ice'
           ) {
             mat.transparent = true;
@@ -147,11 +145,11 @@ function getBlockPreview(name: string, color: string): Promise<string> {
           }
 
           // Biome tints
-          if (blockName === 'grass_block' && index === 2) {
+          if ((blockName === 'grass_block' || blockName === 'grass') && index === 2) {
             mat.color.setHex(0x5ebb2d);
-          } else if (blockName === 'grass_block' && (index === 0 || index === 4)) {
+          } else if ((blockName === 'grass_block' || blockName === 'grass') && (index === 0 || index === 4)) {
             mat.color.setHex(0x5ebb2d);
-          } else if (blockName === 'water_still' || blockName === 'water_flow') {
+          } else if (blockName.includes('water')) {
             mat.color.setHex(0x2a5eff);
           } else if (blockName.includes('leaves')) {
             mat.color.setHex(0x4a8f28);
