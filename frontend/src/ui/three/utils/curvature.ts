@@ -28,20 +28,19 @@ export const applyCurvature = (
   // Actually, Three.js provides #ifdef USE_INSTANCING.
   
   shader.vertexShader = shader.vertexShader.replace(
-    '#include <begin_vertex>',
+    '#include <project_vertex>',
     `
-    #include <begin_vertex>
-    
-    vec4 worldPos;
+    vec4 mvPosition = vec4( transformed, 1.0 );
     #ifdef USE_INSTANCING
-      worldPos = instanceMatrix * vec4(position, 1.0);
-    #else
-      worldPos = vec4(position, 1.0);
+      mvPosition = instanceMatrix * mvPosition;
     #endif
-    worldPos = modelMatrix * worldPos;
+    vec4 worldPos = modelMatrix * mvPosition;
     
     float dist = distance(worldPos.xz, uCameraPosition.xz);
-    transformed.y -= pow(dist, 2.0) * uCurvature;
+    worldPos.y -= pow(dist, 2.0) * uCurvature;
+    
+    mvPosition = viewMatrix * worldPos;
+    gl_Position = projectionMatrix * mvPosition;
     `
   )
 }

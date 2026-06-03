@@ -1,6 +1,5 @@
 import Cross from "@/components/hud/editor/Cross"
 import ToolBar from "@/components/hud/editor/ToolBar"
-import KeysEditor from "@/components/hud/editor/KeysEditor"
 import { SearchBlock } from "@/components/hud/editor/SearchBlock"
 import { Tab } from "@/types/Editor"
 import { useEditorStore } from '@/store/editorStore'
@@ -15,11 +14,13 @@ export default function EditorMode() {
   }
   useHotkeys('1', () => changeTool(Tab.Add))
   useHotkeys('2', () => changeTool(Tab.Remove))
+  useHotkeys('3', () => changeTool(Tab.RotateX))
+  useHotkeys('4', () => changeTool(Tab.RotateY))
+  useHotkeys('5', () => changeTool(Tab.RotateZ))
   useHotkeys('escape', () => changeTool(Tab.None))
 
   return (
       <>
-        <KeysEditor />
         <ToolBar updateCurrenTool={changeTool} currentTool={currentTool} />
         <Cross />
         {currentTool === Tab.Add && (<SearchBlock />)}

@@ -16,7 +16,7 @@ interface FreeCameraControlsProps {
   mapSize: number
   active: boolean
   playerRef: React.RefObject<THREE.Group>
-  onUpdateBlock: (x: number, y: number, z: number, block: Block | null) => void
+  onUpdateBlock: (x: number, y: number, z: number, block: Block | null, rotation?: number) => void
 }
 
 export const FreeCameraControls = ({
@@ -35,7 +35,8 @@ export const FreeCameraControls = ({
     if (!previewRef.current) return
 
     const { tool } = useEditorStore.getState()
-    if ((tool !== Tab.Add && tool !== Tab.Remove) || !controlsRef.current?.isLocked) {
+    const isRotate = tool === Tab.RotateX || tool === Tab.RotateY || tool === Tab.RotateZ
+    if ((tool !== Tab.Add && tool !== Tab.Remove && !isRotate) || !controlsRef.current?.isLocked) {
       previewRef.current.visible = false
       return
     }
@@ -55,8 +56,14 @@ export const FreeCameraControls = ({
 
     if (hit && hit.distance <= 30) {
       const point = hit.point
-      const normal = hit.face?.normal
+      let normal = hit.face?.normal
       if (normal) {
+        const instMesh = hit.object as THREE.InstancedMesh
+        if (instMesh.isInstancedMesh && hit.instanceId !== undefined) {
+          const instMatrix = new THREE.Matrix4()
+          instMesh.getMatrixAt(hit.instanceId, instMatrix)
+          normal = normal.clone().transformDirection(instMatrix)
+        }
         const halfSize = mapSize / 2
         
         let targetX = 0
@@ -94,17 +101,41 @@ export const FreeCameraControls = ({
               showPreview = true
             }
           }
+        } else if (tool === Tab.RotateX || tool === Tab.RotateY || tool === Tab.RotateZ) {
+          const blockPos = point.clone().addScaledVector(normal, -0.5)
+          const x = Math.floor(blockPos.x + halfSize)
+          const y = Math.floor(blockPos.y)
+          const z = Math.floor(blockPos.z + halfSize)
+
+          if (x >= 0 && x < mapSize && y >= 0 && y < 64 && z >= 0 && z < mapSize) {
+            const block = localMap.getGlobalBlock(x, y, z)
+            if (block !== Block.Air && block !== Block.Bedrock) {
+              targetX = x - halfSize + 0.5
+              targetY = y + 0.5
+              targetZ = z - halfSize + 0.5
+              showPreview = true
+            }
+          }
         }
 
         if (showPreview) {
           previewRef.current.position.set(targetX, targetY, targetZ)
           
           if (previewRef.current.material) {
-            const color = tool === Tab.Add ? '#fbbf24' : '#ef4444'
+            let color = '#fbbf24' // Add: gold
+            if (tool === Tab.Remove) {
+              color = '#ef4444' // Remove: red
+            } else if (tool === Tab.RotateX) {
+              color = '#ec4899' // Rotate X: pink
+            } else if (tool === Tab.RotateY) {
+              color = '#10b981' // Rotate Y: green
+            } else if (tool === Tab.RotateZ) {
+              color = '#3b82f6' // Rotate Z: blue
+            }
             ;(previewRef.current.material as THREE.MeshBasicMaterial).color.set(color)
           }
           
-          // Prevent Z-fighting in Remove mode by scaling the preview block slightly larger (acting as a red filter overlay)
+          // Prevent Z-fighting in Remove mode by scaling the preview block slightly larger (acting as a filter overlay)
           const scaleVal = tool === Tab.Add ? 1.0 : 1.02
           previewRef.current.scale.set(scaleVal, scaleVal, scaleVal)
 
@@ -133,7 +164,8 @@ export const FreeCameraControls = ({
     if (e.button !== 0) return // Left click only
 
     const { tool, selectedBlock } = useEditorStore.getState()
-    if (tool !== Tab.Add && tool !== Tab.Remove) return
+    const isRotate = tool === Tab.RotateX || tool === Tab.RotateY || tool === Tab.RotateZ
+    if (tool !== Tab.Add && tool !== Tab.Remove && !isRotate) return
 
     const raycaster = new THREE.Raycaster()
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera)
@@ -154,8 +186,15 @@ export const FreeCameraControls = ({
     if (hit.distance > 30) return
 
     const point = hit.point
-    const normal = hit.face?.normal
+    let normal = hit.face?.normal
     if (!normal) return
+
+    const instMesh = hit.object as THREE.InstancedMesh
+    if (instMesh.isInstancedMesh && hit.instanceId !== undefined) {
+      const instMatrix = new THREE.Matrix4()
+      instMesh.getMatrixAt(hit.instanceId, instMatrix)
+      normal = normal.clone().transformDirection(instMatrix)
+    }
 
     const halfSize = mapSize / 2
 
@@ -181,6 +220,33 @@ export const FreeCameraControls = ({
         const block = localMap.getGlobalBlock(x, y, z)
         if (block === Block.Air || block === Block.Water) {
           onUpdateBlock(x, y, z, selectedBlock)
+        }
+      }
+    } else if (tool === Tab.RotateX || tool === Tab.RotateY || tool === Tab.RotateZ) {
+      const blockPos = point.clone().addScaledVector(normal, -0.5)
+      const x = Math.floor(blockPos.x + halfSize)
+      const y = Math.floor(blockPos.y)
+      const z = Math.floor(blockPos.z + halfSize)
+
+      if (x >= 0 && x < mapSize && y >= 0 && y < 64 && z >= 0 && z < mapSize) {
+        const block = localMap.getGlobalBlock(x, y, z)
+        if (block !== Block.Air && block !== Block.Bedrock) {
+          const currentRotation = localMap.getGlobalBlockRotation(x, y, z)
+          
+          let rx = currentRotation & 3
+          let ry = (currentRotation >> 2) & 3
+          let rz = (currentRotation >> 4) & 3
+
+          if (tool === Tab.RotateX) {
+            rx = (rx + 1) % 4
+          } else if (tool === Tab.RotateY) {
+            ry = (ry + 1) % 4
+          } else if (tool === Tab.RotateZ) {
+            rz = (rz + 1) % 4
+          }
+
+          const nextRotation = rx | (ry << 2) | (rz << 4)
+          onUpdateBlock(x, y, z, block, nextRotation)
         }
       }
     }

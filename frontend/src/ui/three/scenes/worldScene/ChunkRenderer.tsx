@@ -7,7 +7,7 @@ import { LocalMap } from '@/types/maps/LocalMap'
 
 interface ChunkBlockTypeRendererProps {
   blockType: Exclude<Block, Block.Air>
-  instances: { x: number; y: number; z: number }[]
+  instances: { x: number; y: number; z: number; r: number }[]
   chunkX: number
   chunkZ: number
   mapSize: number
@@ -40,12 +40,22 @@ const ChunkBlockTypeRenderer = ({
       const z = chunkZ * Chunk.WIDTH + inst.z
       const y = inst.y
 
-      tempMatrix.makeTranslation(
-        x - halfSize + 0.5,
-        y + 0.5,
-        z - halfSize + 0.5
+      const position = new THREE.Vector3(x - halfSize + 0.5, y + 0.5, z - halfSize + 0.5)
+      
+      // Decode X, Y, and Z rotations (2 bits each)
+      const rx = inst.r & 3
+      const ry = (inst.r >> 2) & 3
+      const rz = (inst.r >> 4) & 3
+
+      const euler = new THREE.Euler(
+        rx * (Math.PI / 2),
+        ry * (Math.PI / 2),
+        rz * (Math.PI / 2),
+        'YXZ'
       )
-      tempMatrix.scale(scaleVector)
+      const quaternion = new THREE.Quaternion().setFromEuler(euler)
+
+      tempMatrix.compose(position, quaternion, scaleVector)
 
       mesh.setMatrixAt(index, tempMatrix)
     })
@@ -140,7 +150,7 @@ export const ChunkRenderer = ({
 
   // Optimize: use chunk.version dependency to only recalculate instances if this chunk was modified!
   const instancesByBlock = useMemo(() => {
-    const lists: Record<Exclude<Block, Block.Air>, { x: number; y: number; z: number }[]> = {} as any
+    const lists: Record<Exclude<Block, Block.Air>, { x: number; y: number; z: number; r: number }[]> = {} as any
     const activeBlocks = Object.values(Block).filter(
       (b) => typeof b === 'number' && b !== Block.Air
     ) as Exclude<Block, Block.Air>[]
@@ -157,7 +167,8 @@ export const ChunkRenderer = ({
           const block = chunk.getBlock(lx, y, lz)
           if (block !== Block.Air) {
             if (isBlockExposed(lx, y, lz, chunk, localMap, chunkX, chunkZ, block)) {
-              lists[block].push({ x: lx, y, z: lz })
+              const r = chunk.getBlockRotation(lx, y, lz)
+              lists[block].push({ x: lx, y, z: lz, r })
             }
           }
         }

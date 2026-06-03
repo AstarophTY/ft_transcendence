@@ -13,6 +13,7 @@ export class Chunk {
     public static readonly SUBCHUNKS_COUNT = 4;
 
     private subChunks: SubChunk[];
+    private rotations: Map<string, number> = new Map();
     public version: number = 0;
 
     constructor() {
@@ -34,5 +35,20 @@ export class Chunk {
         const subChunkIndex = y >> 4;
         const localY = y & 15;
         this.subChunks[subChunkIndex].setBlock(x, localY, z, block);
+    }
+
+    public getBlockRotation(x: number, y: number, z: number): number {
+        const key = `${x},${y},${z}`;
+        return this.rotations.get(key) || 0;
+    }
+
+    public setBlockRotation(x: number, y: number, z: number, rotation: number): void {
+        const key = `${x},${y},${z}`;
+        if (rotation === 0) {
+            this.rotations.delete(key);
+        } else {
+            this.rotations.set(key, rotation);
+        }
+        this.version++;
     }
 }

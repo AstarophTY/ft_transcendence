@@ -168,9 +168,13 @@ const WorldScene = () => {
     setMapVersion((v) => v + 1)
   }, [profile])
 
-  const handleUpdateBlock = (x: number, y: number, z: number, block: Block | null) => {
-    const blockValue = block ?? Block.Air
-    localMap.setGlobalBlock(x, y, z, blockValue)
+  const handleUpdateBlock = (x: number, y: number, z: number, block: Block | null, rotation?: number) => {
+    if (rotation !== undefined) {
+      localMap.setGlobalBlockRotation(x, y, z, rotation)
+    } else {
+      const blockValue = block ?? Block.Air
+      localMap.setGlobalBlock(x, y, z, blockValue)
+    }
     setMapVersion((v) => v + 1)
   }
 
