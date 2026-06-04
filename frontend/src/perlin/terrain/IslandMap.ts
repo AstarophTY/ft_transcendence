@@ -80,14 +80,14 @@ export class IslandMap {
 
         // Normal biome noise
         const normalNoise = (this.biomePerlin.getNoise(x * 0.025, z * 0.025) + 1) / 2;
-        // Blend noise towards Plains center (0.375) based on wFlat so center becomes Plains
-        const biomeNoiseVal = (1 - wFlat) * normalNoise + wFlat * 0.375;
+        // Blend noise towards Plains center (0.42) based on wFlat so center becomes Plains
+        const biomeNoiseVal = (1 - wFlat) * normalNoise + wFlat * 0.42;
 
-        if (biomeNoiseVal < 0.30) {
+        if (biomeNoiseVal < 0.38) {
             return BiomeType.Desert;
-        } else if (biomeNoiseVal < 0.45) {
+        } else if (biomeNoiseVal < 0.46) {
             return BiomeType.Plains;
-        } else if (biomeNoiseVal < 0.75) {
+        } else if (biomeNoiseVal < 0.65) {
             return BiomeType.Forest;
         } else {
             return BiomeType.Mountain;
@@ -126,7 +126,7 @@ export class IslandMap {
 
         // Blended biome noise for height calculation
         const normalNoise = (this.biomePerlin.getNoise(x * 0.025, z * 0.025) + 1) / 2;
-        const biomeNoiseVal = (1 - wFlat) * normalNoise + wFlat * 0.375;
+        const biomeNoiseVal = (1 - wFlat) * normalNoise + wFlat * 0.42;
 
         const hDesert = this.getBiomeHeightRaw(x, z, BIOME_CONFIGS[BiomeType.Desert]);
         const hPlains = this.getBiomeHeightRaw(x, z, BIOME_CONFIGS[BiomeType.Plains]);
@@ -134,10 +134,10 @@ export class IslandMap {
         const hMountain = this.getBiomeHeightRaw(x, z, BIOME_CONFIGS[BiomeType.Mountain]);
 
         // Biome center points for interpolation (adjusted for new distributions)
-        const p0 = 0.15;  // Center of Desert range [0.00, 0.30]
-        const p1 = 0.375; // Center of Plains range [0.30, 0.45]
-        const p2 = 0.60;  // Center of Forest range [0.45, 0.75]
-        const p3 = 0.875; // Center of Mountain range [0.75, 1.00]
+        const p0 = 0.19;  // Center of Desert range [0.00, 0.38]
+        const p1 = 0.42;  // Center of Plains range [0.38, 0.46]
+        const p2 = 0.555; // Center of Forest range [0.46, 0.65]
+        const p3 = 0.825; // Center of Mountain range [0.65, 1.00]
 
         let normalHeight = 0;
 
