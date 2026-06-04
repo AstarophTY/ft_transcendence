@@ -1,9 +1,10 @@
 import { useFrame } from '@react-three/fiber'
-import { useGLTF, Billboard, Text } from '@react-three/drei'
+import { useGLTF, Billboard, Html } from '@react-three/drei'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { SkeletonUtils } from 'three-stdlib'
 
+import UserBadge from '@/components/hud/UserBadge'
 import { connectWorldSocket } from '@/lib/worldSocket'
 import { tokenStore } from '@/lib/api'
 import { useCurvedSceneMaterials } from './player/useCurvedSceneMaterials'
@@ -15,6 +16,7 @@ type PlayerMode = 'player' | 'freecam'
 /** Last received transform of a remote player; mutated in place for lerping. */
 interface RemoteTransform {
   username: string
+  avatar: string
   pos: THREE.Vector3
   yaw: number
   camPos: THREE.Vector3
@@ -26,6 +28,7 @@ interface RemoteTransform {
 type MovePayload = {
   id: string
   u?: string
+  a?: string
   p: [number, number, number]
   r: number
   m: PlayerMode
@@ -114,17 +117,16 @@ const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
     <>
       <group ref={bodyRef}>
         <primitive object={body} scale={0.5} />
-        <Billboard position={[0, 2.2, 0]}>
-          <Text
-            fontSize={0.25}
-            color="white"
-            outlineWidth={0.02}
-            outlineColor="black"
-            anchorX="center"
-            anchorY="middle"
-          >
-            {target.username}
-          </Text>
+        <Billboard position={[0, 1.5, 0]}>
+          <Html center transform sprite distanceFactor={6} zIndexRange={[100, 0]}>
+            <UserBadge user={{
+                  username: target.username,
+                  userId: target.username,
+                  avatar: target.avatar,
+                  email: null,
+                  role: 'USER'
+                }}/>
+          </Html>
         </Billboard>
       </group>
       <group ref={camRef}>
@@ -149,7 +151,7 @@ const RemotePlayers = ({ campusId }: { campusId: string }) => {
     const socket = connectWorldSocket(token)
     const store = targets.current
 
-    const upsert = ({ id, u, p, r, m, c, cr, cp }: MovePayload) => {
+    const upsert = ({ id, u, a, p, r, m, c, cr, cp }: MovePayload) => {
       const mode: PlayerMode = m === 'freecam' ? 'freecam' : 'player'
       const camPos = c ?? p // fall back to the body when no camera is sent
       const camYaw = cr ?? r
@@ -157,6 +159,7 @@ const RemotePlayers = ({ campusId }: { campusId: string }) => {
       const existing = store.get(id)
       if (existing) {
         if (u) existing.username = u
+        if (a) existing.avatar = a
         existing.pos.set(p[0], p[1], p[2])
         existing.yaw = r
         existing.mode = mode
@@ -165,6 +168,7 @@ const RemotePlayers = ({ campusId }: { campusId: string }) => {
         existing.camPitch = camPitch
       } else {
         store.set(id, {
+          avatar: a || '',
           username: u || 'Unknown',
           pos: new THREE.Vector3(p[0], p[1], p[2]),
           yaw: r,
