@@ -38,7 +38,7 @@ const Player = ({ localMap, active, playerRef }: PlayerProps) => {
     localMap,
     cameraPos: camera.position,
   })
-  useThirdPersonCamera({ active, camera, playerRef, controlsRef, scene, mapSize })
+  useThirdPersonCamera({ active, camera, playerRef, controlsRef, scene, mapSize, localMap })
 
   useEffect(() => {
     playerRef.current?.position.set(0, 20, 0)
