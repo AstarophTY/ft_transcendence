@@ -58,7 +58,7 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
 
   useSelectablePlanetAnimation({ planetRef, blendRef, hovered, index, totalCount })
 
-  const factor = 32
+  const factor = 64
   const previewVoxels = useMemo(() => map.getPreview(factor), [map])
   const scale = 1 / factor
   const half = 0.5

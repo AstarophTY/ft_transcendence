@@ -1,16 +1,33 @@
 import { Block } from '@/types/Block'
 import { Chunk } from '@/types/maps/Chunk.ts'
-import { LocalMap } from '@/types/maps/LocalMap.ts'
 import { PlanetMap } from '@/types/maps/PlanetMap.ts'
-import { IslandMap, BiomeType, getBiomeBlock } from '@/perlin'
+import { IslandMap, getBiomeBlock } from '@/perlin'
 
 import type { DemoPlanetProfile } from '@/types/Three'
 
+import { CHUNKS_PER_SIDE } from '../worldScene/constants.ts'
+import type { PreviewVoxel } from '@/types/maps/PreviewVoxel.ts'
+import { BlockMetadata } from '@/config/Block'
+import { BiomeType } from '@/perlin'
+
+const BLOCK_COLORS = BlockMetadata as Record<number, { color: string }>
+
+const hexToRgb = (hex: string): [number, number, number] => {
+  const value = parseInt(hex.replace('#', ''), 16)
+  return [(value >> 16) & 255, (value >> 8) & 255, value & 255]
+}
+
+const rgbToHex = (r: number, g: number, b: number): string =>
+  '#' +
+  [r, g, b]
+    .map((n) => Math.round(n).toString(16).padStart(2, '0'))
+    .join('')
+
 export const createDemoPlanetMap = (profile: DemoPlanetProfile) => {
-  const continent = new LocalMap(profile.widthInChunks, profile.depthInChunks)
+  const mapSize = CHUNKS_PER_SIDE * Chunk.WIDTH
   const islandMap = new IslandMap({
     seed: profile.seed,
-    mapSize: Math.max(profile.widthInChunks, profile.depthInChunks) * Chunk.WIDTH,
+    mapSize: mapSize,
     maxHeight: Chunk.HEIGHT - 1,
     scale: profile.scale,
     octaves: profile.octaves,
@@ -18,64 +35,118 @@ export const createDemoPlanetMap = (profile: DemoPlanetProfile) => {
     relief: profile.relief,
     baseHeight: profile.baseHeight,
     variationRange: profile.variationRange,
+    applyConstraints: true,
   })
 
-  for (let chunkX = 0; chunkX < continent.widthInChunks; chunkX += 1) {
-    for (let chunkZ = 0; chunkZ < continent.depthInChunks; chunkZ += 1) {
-      const chunk = new Chunk()
-
-      // Pass 1: Set blocks based on biome mapping
-      for (let x = 0; x < Chunk.WIDTH; x += 1) {
-        for (let z = 0; z < Chunk.WIDTH; z += 1) {
-          const worldX = chunkX * Chunk.WIDTH + x
-          const worldZ = chunkZ * Chunk.WIDTH + z
-          const height = islandMap.getHeightAt(worldX, worldZ)
-          const biome = islandMap.getBiomeAt(worldX, worldZ)
-
-          for (let y = 0; y <= height; y += 1) {
-            if (y === 0) {
-              chunk.setBlock(x, y, z, Block.Bedrock)
-            } else {
-              chunk.setBlock(x, y, z, getBiomeBlock(biome, y, height))
-            }
-          }
-        }
+  // Build a lookup map of user edits to overlay on the procedural surface
+  const editsMap = new Map<string, Block>()
+  if (profile.blocks) {
+    for (const b of profile.blocks) {
+      if (
+        b.x >= 0 && b.x < mapSize &&
+        b.y >= 0 && b.y < Chunk.HEIGHT &&
+        b.z >= 0 && b.z < mapSize
+      ) {
+        editsMap.set(`${b.x},${b.y},${b.z}`, b.block)
       }
+    }
+  }
 
-      // Pass 2: Spawn trees in Forest biome for preview details
-      for (let x = 2; x < Chunk.WIDTH - 2; x += 1) {
-        for (let z = 2; z < Chunk.WIDTH - 2; z += 1) {
-          const worldX = chunkX * Chunk.WIDTH + x
-          const worldZ = chunkZ * Chunk.WIDTH + z
-          const height = islandMap.getHeightAt(worldX, worldZ)
-          const biome = islandMap.getBiomeAt(worldX, worldZ)
+  return {
+    getPreview: (resolution: number = 32): PreviewVoxel[] => {
+      const previewData: PreviewVoxel[] = []
+      
+      // The map has a 64-block flat border on all sides. We crop it out for the preview
+      // so the terrain extends all the way to the edges of the 3D cube faces.
+      const BORDER_SIZE = 64
+      const usableSize = mapSize - BORDER_SIZE * 2
+      const stepX = usableSize / resolution
+      const stepZ = usableSize / resolution
 
-          if (biome === BiomeType.Forest) {
-            const hash = (Math.abs(Math.sin(worldX * 12.9898 + worldZ * 78.233) * 43758.5453) % 1)
-            if (hash < 0.02) {
-              const treeHeight = 3 + Math.floor(hash * 100) % 2
-              for (let ty = 1; ty <= treeHeight; ty++) {
-                chunk.setBlock(x, height + ty, z, Block.Wood)
+      if (stepX === 0 || stepZ === 0) return []
+      const MAX_HEIGHT = Chunk.HEIGHT - 1
+
+      for (let px = 0; px < resolution; px++) {
+        for (let pz = 0; pz < resolution; pz++) {
+          const startX = BORDER_SIZE + Math.floor(px * stepX)
+          const startZ = BORDER_SIZE + Math.floor(pz * stepZ)
+          let endX = BORDER_SIZE + Math.floor((px + 1) * stepX)
+          let endZ = BORDER_SIZE + Math.floor((pz + 1) * stepZ)
+
+          if (endX <= startX) endX = Math.min(startX + 1, mapSize - BORDER_SIZE)
+          if (endZ <= startZ) endZ = Math.min(startZ + 1, mapSize - BORDER_SIZE)
+
+          let heightSum = 0
+          let surfaceCount = 0
+          let rSum = 0, gSum = 0, bSum = 0
+          const blockCounts = new Map<Block, number>()
+
+          for (let realX = startX; realX < endX; realX++) {
+            for (let realZ = startZ; realZ < endZ; realZ++) {
+              // The procedural surface altitude
+              const baseHeight = islandMap.getHeightAt(realX, realZ)
+              const biome = islandMap.getBiomeAt(realX, realZ)
+
+              // Emulate tree canopy scattering in the forest biome for preview texture
+              let hasLeaves = false
+              if (biome === BiomeType.Forest) {
+                const hash = (Math.abs(Math.sin(realX * 12.9898 + realZ * 78.233) * 43758.5453) % 1)
+                // ~45% canopy coverage creates a nice dense textured look
+                if (hash < 0.45) hasLeaves = true
               }
-              for (let dy = -1; dy <= 1; dy++) {
-                for (let dx = -1; dx <= 1; dx++) {
-                  for (let dz = -1; dz <= 1; dz++) {
-                    const ly = height + treeHeight + dy
-                    if (ly < 1 || ly >= Chunk.HEIGHT) continue
-                    if (chunk.getBlock(x + dx, ly, z + dz) === Block.Air) {
-                      chunk.setBlock(x + dx, ly, z + dz, Block.Leaves)
-                    }
-                  }
+
+              // We emulate a downward raycast combining user edits and procedural terrain
+              for (let y = MAX_HEIGHT; y >= 0; y--) {
+                const key = `${realX},${y},${realZ}`
+                let block = Block.Air
+
+                if (editsMap.has(key)) {
+                  block = editsMap.get(key)!
+                } else if (hasLeaves && y === baseHeight + 3) {
+                  block = Block.Leaves
+                } else if (y <= baseHeight) {
+                  block = y === 0 ? Block.Bedrock : getBiomeBlock(biome, y, baseHeight)
+                }
+
+                if (block !== Block.Air) {
+                  heightSum += y
+                  surfaceCount++
+                  blockCounts.set(block, (blockCounts.get(block) ?? 0) + 1)
+
+                  const hex = BLOCK_COLORS[block]?.color ?? '#808080'
+                  const [r, g, b] = hexToRgb(hex)
+                  rSum += r; gSum += g; bSum += b
+                  break
                 }
               }
             }
           }
+
+          if (surfaceCount > 0) {
+            let surfaceBlock = Block.Air
+            let best = 0
+            for (const [block, count] of blockCounts) {
+              if (count > best) {
+                best = count
+                surfaceBlock = block
+              }
+            }
+
+            const averagedY = heightSum / surfaceCount
+            const smoothedY = averagedY
+
+            previewData.push({
+              x: px,
+              y: smoothedY,
+              z: pz,
+              block: surfaceBlock,
+              color: rgbToHex(rSum / surfaceCount, gSum / surfaceCount, bSum / surfaceCount),
+            })
+          }
         }
       }
 
-      continent.setChunk(chunkX, chunkZ, chunk)
-    }
-  }
-
-  return new PlanetMap(continent)
+      return previewData
+    },
+  } as unknown as PlanetMap
 }
