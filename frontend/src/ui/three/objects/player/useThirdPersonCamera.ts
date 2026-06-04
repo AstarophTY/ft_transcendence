@@ -13,13 +13,16 @@ type Params = {
   camera: THREE.Camera
   playerRef: React.RefObject<THREE.Group>
   controlsRef: React.RefObject<PointerLockControlsImpl>
+  keysRef: React.MutableRefObject<Record<string, boolean>>
   scene: THREE.Object3D
   mapSize: number
   localMap: LocalMap
 }
 
-export const useThirdPersonCamera = ({ active, camera, playerRef, controlsRef, mapSize, localMap }: Params) => {
-  useFrame(() => {
+export const useThirdPersonCamera = ({ active, camera, playerRef, controlsRef, keysRef, mapSize, localMap }: Params) => {
+  const pitchRef = React.useRef(0.463) // start at ~26 degrees looking down
+
+  useFrame((_, delta) => {
     if (!playerRef.current) return
 
     const halfSize = mapSize / 2
@@ -80,9 +83,16 @@ export const useThirdPersonCamera = ({ active, camera, playerRef, controlsRef, m
       return
     }
 
-    const idealOffset = new THREE.Vector3(0, 5, 10)
-    idealOffset.applyQuaternion(playerRef.current.quaternion)
-    idealOffset.add(playerRef.current.position)
+    // Dynamic pitch rotation on mobile/unlocked camera
+    const pitchSpeed = 1.5 // radians per second
+    if (keysRef.current.ArrowUp) {
+      pitchRef.current -= pitchSpeed * delta
+    }
+    if (keysRef.current.ArrowDown) {
+      pitchRef.current += pitchSpeed * delta
+    }
+    // Clamp vertical look angle so the camera doesn't flip upside down
+    pitchRef.current = THREE.MathUtils.clamp(pitchRef.current, -Math.PI / 6, Math.PI / 2.2)
 
     const startPos = new THREE.Vector3(
       playerRef.current.position.x,
@@ -90,7 +100,13 @@ export const useThirdPersonCamera = ({ active, camera, playerRef, controlsRef, m
       playerRef.current.position.z,
     )
 
-    const safeTargetPos = checkCollision(startPos, idealOffset)
+    // Calculate spherical-like offset behind the player
+    const pitchOffset = new THREE.Vector3(0, 0, 10)
+    const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitchRef.current)
+    pitchOffset.applyQuaternion(pitchQuat)
+    pitchOffset.applyQuaternion(playerRef.current.quaternion)
+
+    const safeTargetPos = checkCollision(startPos, startPos.clone().add(pitchOffset))
 
     camera.position.lerp(safeTargetPos, 0.1)
     camera.lookAt(playerRef.current.position.x, playerRef.current.position.y + 1, playerRef.current.position.z)

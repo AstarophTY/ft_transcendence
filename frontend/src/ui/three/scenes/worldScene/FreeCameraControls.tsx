@@ -168,6 +168,7 @@ export const FreeCameraControls = ({
 
   useEffect(() => {
     if (active) {
+      camera.rotation.order = 'YXZ'
       if (playerRef.current) {
         camera.position.copy(playerRef.current.position)
         camera.position.y += 2
@@ -280,6 +281,9 @@ export const FreeCameraControls = ({
       if (active && event.code === 'ControlLeft') {
         controlsRef.current?.unlock()
       }
+      if (active && event.code === 'Enter') {
+        handleEditorAction({ button: 0 } as MouseEvent)
+      }
     }
     const handleKeyUp = (event: KeyboardEvent) => {
       keysRef.current[event.code] = false
@@ -321,6 +325,26 @@ export const FreeCameraControls = ({
 
   useFrame((_, delta) => {
     if (!active) return
+
+    // Arrow key/Q/E/R/F rotation support for mobile/unlocked viewports
+    if (!controlsRef.current?.isLocked) {
+      const rotSpeed = 1.5 // radians per second
+      if (keysRef.current.ArrowLeft || keysRef.current.KeyQ) {
+        camera.rotation.y += rotSpeed * delta
+      }
+      if (keysRef.current.ArrowRight || keysRef.current.KeyE) {
+        camera.rotation.y -= rotSpeed * delta
+      }
+      if (keysRef.current.ArrowUp || keysRef.current.KeyR) {
+        camera.rotation.x += rotSpeed * delta
+        camera.rotation.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, camera.rotation.x))
+      }
+      if (keysRef.current.ArrowDown || keysRef.current.KeyF) {
+        camera.rotation.x -= rotSpeed * delta
+        camera.rotation.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, camera.rotation.x))
+      }
+    }
+
     const moveSpeed = 12
     const verticalSpeed = 8
     const wallPadding = 0.4
