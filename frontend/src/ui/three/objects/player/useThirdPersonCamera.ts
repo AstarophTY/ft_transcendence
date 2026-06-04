@@ -4,6 +4,9 @@ import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdli
 
 import { PLAYER_BOUNDARY_PADDING } from './config'
 import React from "react";
+import { LocalMap } from '@/types/maps/LocalMap'
+import { Block } from '@/types/Block'
+import { Chunk } from '@/types/maps/Chunk'
 
 type Params = {
   active: boolean
@@ -12,9 +15,10 @@ type Params = {
   controlsRef: React.RefObject<PointerLockControlsImpl>
   scene: THREE.Object3D
   mapSize: number
+  localMap: LocalMap
 }
 
-export const useThirdPersonCamera = ({ active, camera, playerRef, controlsRef, mapSize }: Params) => {
+export const useThirdPersonCamera = ({ active, camera, playerRef, controlsRef, mapSize, localMap }: Params) => {
   useFrame(() => {
     if (!playerRef.current) return
 
@@ -24,6 +28,35 @@ export const useThirdPersonCamera = ({ active, camera, playerRef, controlsRef, m
 
     if (!active) return
 
+    const checkCollision = (start: THREE.Vector3, end: THREE.Vector3): THREE.Vector3 => {
+      const dir = new THREE.Vector3().subVectors(end, start)
+      const maxDist = dir.length()
+      dir.normalize()
+      
+      const step = 0.5
+      let currentDist = 0
+      let finalPos = end.clone()
+
+      while (currentDist <= maxDist) {
+        const checkPos = start.clone().addScaledVector(dir, currentDist)
+        
+        const globalX = Math.floor(checkPos.x + halfSize)
+        const globalZ = Math.floor(checkPos.z + halfSize)
+        const adjustedY = Math.floor(checkPos.y)
+
+        if (adjustedY >= 0 && adjustedY < Chunk.HEIGHT) {
+          const block = localMap.getGlobalBlock(globalX, adjustedY, globalZ)
+          if (block !== Block.Air && block !== Block.Water) {
+            finalPos = start.clone().addScaledVector(dir, Math.max(0, currentDist - 0.5))
+            break
+          }
+        }
+
+        currentDist += step
+      }
+      return finalPos
+    }
+
     if (controlsRef.current?.isLocked) {
       const distance = 10
       const height = 1
@@ -31,11 +64,19 @@ export const useThirdPersonCamera = ({ active, camera, playerRef, controlsRef, m
       const offset = new THREE.Vector3(0, 0, distance)
       offset.applyQuaternion(camera.quaternion)
 
-      camera.position.set(
+      const targetPos = new THREE.Vector3(
         playerRef.current.position.x + offset.x,
         playerRef.current.position.y + height + offset.y,
         playerRef.current.position.z + offset.z,
       )
+
+      const startPos = new THREE.Vector3(
+        playerRef.current.position.x,
+        playerRef.current.position.y + height,
+        playerRef.current.position.z,
+      )
+
+      camera.position.copy(checkCollision(startPos, targetPos))
       return
     }
 
@@ -43,7 +84,16 @@ export const useThirdPersonCamera = ({ active, camera, playerRef, controlsRef, m
     idealOffset.applyQuaternion(playerRef.current.quaternion)
     idealOffset.add(playerRef.current.position)
 
-    camera.position.lerp(idealOffset, 0.1)
+    const startPos = new THREE.Vector3(
+      playerRef.current.position.x,
+      playerRef.current.position.y + 1,
+      playerRef.current.position.z,
+    )
+
+    const safeTargetPos = checkCollision(startPos, idealOffset)
+
+    camera.position.lerp(safeTargetPos, 0.1)
     camera.lookAt(playerRef.current.position.x, playerRef.current.position.y + 1, playerRef.current.position.z)
   })
 }
+
