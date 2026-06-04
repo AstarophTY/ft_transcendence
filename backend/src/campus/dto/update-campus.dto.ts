@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 
 /** Fields an admin may edit on a campus. */
 export class UpdateCampusDto {
@@ -7,4 +7,10 @@ export class UpdateCampusDto {
 
   @IsOptional() @IsInt() @Min(0)
   coins?: number;
+
+  @IsOptional() @IsString()
+  seed?: string;
+
+  @IsOptional() @IsBoolean()
+  regenerate?: boolean;
 }

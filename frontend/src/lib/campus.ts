@@ -19,6 +19,9 @@ export interface CampusWithMembers extends Campus {
   /** Members' earned coins + the admin bonus (`coins`). */
   totalCoins: number
   users: CampusMember[]
+  world?: {
+    seed: string
+  }
 }
 
 /** Approved campuses — any signed-in user can read these. */
@@ -37,7 +40,7 @@ export async function listManagedCampuses(): Promise<CampusWithMembers[]> {
 
 export async function updateCampus(
   id: string,
-  body: { label?: string; coins?: number },
+  body: { label?: string; coins?: number; seed?: string; regenerate?: boolean },
 ): Promise<Campus> {
   const { data } = await api.patch<Campus>(`/campus/${id}`, body)
   return data

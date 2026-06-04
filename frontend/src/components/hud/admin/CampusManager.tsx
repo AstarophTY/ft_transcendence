@@ -6,6 +6,7 @@ import {
   Coins,
   Minus,
   Plus,
+  RefreshCw,
   Save,
   Trash2,
   UserMinus,
@@ -25,12 +26,14 @@ function CampusRow({ campus }: { campus: CampusWithMembers }) {
 
   const [label, setLabel] = useState(campus.label)
   const [bonus, setBonus] = useState(String(campus.coins))
+  const [seed, setSeed] = useState(campus.world?.seed || '')
   const [open, setOpen] = useState(false)
 
   const bonusValue = Number(bonus || 0)
   const dirty =
     label.trim() !== campus.label ||
-    (Number.isFinite(bonusValue) && bonusValue !== campus.coins)
+    (Number.isFinite(bonusValue) && bonusValue !== campus.coins) ||
+    seed.trim() !== (campus.world?.seed || '')
 
   // Keep the bonus a non-negative integer string and bump it with the steppers.
   const setBonusSafe = (value: string) => setBonus(value.replace(/\D/g, ''))
@@ -42,7 +45,14 @@ function CampusRow({ campus }: { campus: CampusWithMembers }) {
     void saveCampus(campus.id, {
       label: label.trim() || undefined,
       coins: Number.isFinite(bonusValue) ? bonusValue : undefined,
+      seed: seed.trim() || undefined,
     })
+  }
+
+  const regenerate = () => {
+    if (confirm(t('admin.campus.regenerateConfirm'))) {
+      void saveCampus(campus.id, { regenerate: true })
+    }
   }
 
   return (
@@ -103,6 +113,30 @@ function CampusRow({ campus }: { campus: CampusWithMembers }) {
 
       {open && (
         <div className="mt-2 flex flex-col gap-2 border-t pt-2">
+          {/* Planet terrain profile edit. */}
+          <div className="flex items-center gap-2 text-sm">
+            <span className="flex-1 text-muted-foreground font-medium">
+              {t('admin.campus.planetConfig')}
+            </span>
+            <div className="flex items-center gap-1">
+              <Input
+                value={seed}
+                onChange={(e) => setSeed(e.target.value)}
+                placeholder={t('admin.campus.seedPlaceholder')}
+                className="h-8 w-32"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                className="size-8"
+                title={t('admin.campus.regenerate')}
+                onClick={regenerate}
+              >
+                <RefreshCw className="size-3.5" />
+              </Button>
+            </div>
+          </div>
+
           {/* Admin bonus added on top of the members' earned coins. */}
           <div className="flex items-center gap-2 text-sm">
             <span className="flex-1 text-muted-foreground">
