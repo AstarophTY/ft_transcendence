@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Patch,
   Post,
+  UnauthorizedException,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -34,7 +35,9 @@ export class ProfileController {
   @Get()
   async me(@CurrentUser() user: AuthUser): Promise<SelfProfile> {
     const me = await this.profile.getMe(user.userId);
-    if (!me) throw new Error('User not found');
+    // Stale token (e.g. user deleted / DB reset): 401 so the client logs out
+    // and redirects to login instead of getting a 500.
+    if (!me) throw new UnauthorizedException('User not found');
     return me;
   }
 
