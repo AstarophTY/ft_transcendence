@@ -18,6 +18,7 @@ export interface WorldProfile {
 export interface CampusWorld extends WorldProfile {
   campusId: string
   label: string
+  blocks?: WorldBlock[]
 }
 
 /** A single persisted block edit (block = 0/Air for a broken block). */

@@ -1,6 +1,7 @@
 import type { Group } from 'three'
 
 import type { LocalMap } from './maps/LocalMap'
+import type { WorldBlock } from '@/lib/world'
 
 export interface PlayerProps {
   localMap: LocalMap
@@ -18,4 +19,5 @@ export type DemoPlanetProfile = {
   relief: number
   baseHeight: number
   variationRange: number
+  blocks?: WorldBlock[]
 }

@@ -21,7 +21,11 @@ export class WorldService {
   async listWorlds() {
     const campuses = await this.prisma.campus.findMany({
       orderBy: { label: 'asc' },
-      include: { world: true },
+      include: {
+        world: {
+          include: { blocks: true },
+        },
+      },
     });
 
     const worlds = [];
@@ -39,6 +43,7 @@ export class WorldService {
         relief: world.relief,
         baseHeight: world.baseHeight,
         variationRange: world.variationRange,
+        blocks: 'blocks' in world ? world.blocks : [],
       });
     }
     return worlds;

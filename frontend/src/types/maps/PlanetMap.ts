@@ -39,8 +39,8 @@ export class PlanetMap {
         const totalDepth = this.continent.depthInChunks * 16;
 
         // Calculate the sampling step (how many real blocks make up one preview block)
-        const stepX = Math.floor(totalWidth / resolution);
-        const stepZ = Math.floor(totalDepth / resolution);
+        const stepX = totalWidth / resolution;
+        const stepZ = totalDepth / resolution;
 
         if (stepX === 0 || stepZ === 0) return []; // Guard against invalid resolutions
 
@@ -51,19 +51,22 @@ export class PlanetMap {
 
                 // Average the surface over the whole sample region instead of
                 // point-sampling its center, so the miniature looks smooth.
-                const startX = px * stepX;
-                const startZ = pz * stepZ;
+                const startX = Math.floor(px * stepX);
+                const startZ = Math.floor(pz * stepZ);
+                let endX = Math.floor((px + 1) * stepX);
+                let endZ = Math.floor((pz + 1) * stepZ);
+
+                // Prevent holes if resolution is larger than the map size
+                if (endX <= startX) endX = Math.min(startX + 1, totalWidth);
+                if (endZ <= startZ) endZ = Math.min(startZ + 1, totalDepth);
 
                 let heightSum = 0;
                 let surfaceCount = 0;
                 let rSum = 0, gSum = 0, bSum = 0;
                 const blockCounts = new Map<Block, number>();
 
-                for (let ox = 0; ox < stepX; ox++) {
-                    for (let oz = 0; oz < stepZ; oz++) {
-                        const realX = startX + ox;
-                        const realZ = startZ + oz;
-
+                for (let realX = startX; realX < endX; realX++) {
+                    for (let realZ = startZ; realZ < endZ; realZ++) {
                         // Raycast downwards to find the surface block of this column.
                         for (let y = MAX_HEIGHT; y >= 0; y--) {
                             const block = this.continent.getGlobalBlock(realX, y, realZ);
