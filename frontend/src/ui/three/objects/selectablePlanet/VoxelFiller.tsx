@@ -1,0 +1,46 @@
+import * as THREE from 'three'
+import { useLayoutEffect, useRef } from 'react'
+import type { FillerVoxel } from './fillerTypes'
+
+type Props = {
+  fillerVoxels: FillerVoxel[]
+  newScale: number
+}
+
+const VoxelFiller = ({ fillerVoxels, newScale }: Props) => {
+  const instancedMeshRef = useRef<THREE.InstancedMesh>(null)
+
+  useLayoutEffect(() => {
+    if (!instancedMeshRef.current || fillerVoxels.length === 0) return
+    const mesh = instancedMeshRef.current
+
+    const tempMatrix = new THREE.Matrix4()
+    const tempPosition = new THREE.Vector3()
+    const tempScale = new THREE.Vector3(newScale, newScale, newScale)
+    const tempColor = new THREE.Color()
+    const quaternion = new THREE.Quaternion()
+
+    fillerVoxels.forEach((voxel, index) => {
+      tempPosition.set(voxel.x, voxel.y, voxel.z)
+      tempMatrix.compose(tempPosition, quaternion, tempScale)
+      mesh.setMatrixAt(index, tempMatrix)
+
+      tempColor.set(voxel.color)
+      mesh.setColorAt(index, tempColor)
+    })
+
+    mesh.instanceMatrix.needsUpdate = true
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
+  }, [fillerVoxels, newScale])
+
+  if (fillerVoxels.length === 0) return null
+
+  return (
+    <instancedMesh ref={instancedMeshRef} args={[null as any, null as any, fillerVoxels.length]}>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial />
+    </instancedMesh>
+  )
+}
+
+export default VoxelFiller
