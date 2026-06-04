@@ -178,11 +178,11 @@ export const FreeCameraControls = ({
   }, [camera, active, playerRef])
 
   const handleEditorAction = (e: MouseEvent) => {
-    if (e.button !== 0) return // Left click only
+    if (e.button !== 0 && e.button !== 1) return // Left click or middle click only
 
-    const { tool, selectedBlock, shape, shapeSize } = useEditorStore.getState()
+    const { tool, selectedBlock, shape, shapeSize, setSelectedBlock } = useEditorStore.getState()
     const isRotate = tool === Tab.RotateX || tool === Tab.RotateY || tool === Tab.RotateZ
-    if (tool !== Tab.Add && tool !== Tab.Remove && !isRotate) return
+    if (e.button === 0 && tool !== Tab.Add && tool !== Tab.Remove && !isRotate) return
 
     const raycaster = new THREE.Raycaster()
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera)
@@ -216,7 +216,7 @@ export const FreeCameraControls = ({
     const halfSize = mapSize / 2
     let blockPos = point.clone()
     
-    if (tool === Tab.Add) {
+    if (e.button === 0 && tool === Tab.Add) {
        blockPos.addScaledVector(normal, 0.5)
     } else {
        blockPos.addScaledVector(normal, -0.5)
@@ -225,6 +225,14 @@ export const FreeCameraControls = ({
     const centerX = Math.floor(blockPos.x + halfSize)
     const centerY = Math.floor(blockPos.y)
     const centerZ = Math.floor(blockPos.z + halfSize)
+
+    if (e.button === 1) {
+      const block = localMap.getGlobalBlock(centerX, centerY, centerZ)
+      if (block !== Block.Air && block !== Block.Bedrock && block !== Block.Water) {
+        setSelectedBlock(block)
+      }
+      return
+    }
 
     const blocksToUpdate = getAffectedBlocks(centerX, centerY, centerZ, shape, shapeSize, mapSize)
 
