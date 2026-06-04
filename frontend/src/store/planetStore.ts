@@ -53,7 +53,17 @@ export const usePlanetStore = create<PlanetStore>((set, get) => ({
   setTargetOffset: (offset) => set({ targetOffset: offset }),
   activeCampusId: null,
   sceneMode: 'selection',
-  setSceneMode: (mode) => set({ sceneMode: mode }),
+  setSceneMode: (mode) => {
+    if (mode === 'selection') {
+      const { worlds, activeIndex } = get()
+      set({
+        sceneMode: mode,
+        targetOffset: worlds.length > 1 ? activeIndex / (worlds.length - 1) : 0,
+      })
+    } else {
+      set({ sceneMode: mode })
+    }
+  },
   renderDistance: getInitialRenderDistance(),
   setRenderDistance: (dist) => {
     localStorage.setItem('renderDistance', dist.toString())
