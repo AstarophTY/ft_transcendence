@@ -32,6 +32,7 @@ const generateLocalMap = (profile: any, mapSize: number) => {
     relief: profile.relief,
     baseHeight: profile.baseHeight,
     variationRange: profile.variationRange,
+    applyConstraints: true,
   })
 
   for (let chunkX = 0; chunkX < widthInChunks; chunkX++) {

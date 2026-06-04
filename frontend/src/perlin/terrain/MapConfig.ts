@@ -9,4 +9,5 @@ export interface MapConfig {
     baseHeight?: number;
     variationRange?: number;
     relief?: number;
+    applyConstraints?: boolean;
 }
