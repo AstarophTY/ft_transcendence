@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, Loader2, Lock, LogIn, Mail, User, UserPlus, X } from 'lucide-react'
+import { Check, Loader2, Lock, LogIn, Mail, Rocket, User, UserPlus, X } from 'lucide-react'
 
 import { Button } from '@/components/shadcn/button'
 import {
@@ -30,6 +30,7 @@ import { useAuth } from '@/store/auth'
 import { useFriends } from '@/store/friends'
 import { useSettings } from '@/store/settings'
 import { useAdmin } from '@/store/admin'
+import { usePlanetStore } from '@/store/planetStore'
 
 const PASSWORD_RULES = [
   { key: 'pwLength', test: (p: string) => p.length >= 8 },
@@ -304,35 +305,63 @@ function UserMenu() {
   if (!user) return null
 
   return (
-    <div className="pointer-events-auto absolute left-5 top-5">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="secondary" className="flex p-5">
-            <UserBadge user={user} />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-32">
-          <DropdownMenuGroup>
-            <DropdownMenuItem onSelect={() => togglePanel()}>{t('friends.title')} {incoming.length > 0 && (incoming.length)}</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => openSettings(true)}>{t('settings.title')}</DropdownMenuItem>
-            {user.role === 'ADMIN' && (
-              <DropdownMenuItem onSelect={() => openAdmin(true)}>{t('admin.title')}</DropdownMenuItem>
-            )}
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem variant="destructive" onSelect={() => logout()}>{t('auth.logout')}</DropdownMenuItem>
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      
-      <SettingsDialog />
-      {user.role === 'ADMIN' && <AdminDialog />}
-    </div>
+    <>
+      <div className="pointer-events-auto absolute left-5 top-5">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="secondary" className="flex p-5">
+              <UserBadge user={user} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-32">
+            <DropdownMenuGroup>
+              <DropdownMenuItem onSelect={() => togglePanel()}>{t('friends.title')} {incoming.length > 0 && (incoming.length)}</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => openSettings(true)}>{t('settings.title')}</DropdownMenuItem>
+              {user.role === 'ADMIN' && (
+                <DropdownMenuItem onSelect={() => openAdmin(true)}>{t('admin.title')}</DropdownMenuItem>
+              )}
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem variant="destructive" onSelect={() => logout()}>{t('auth.logout')}</DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        
+        <SettingsDialog />
+        {user.role === 'ADMIN' && <AdminDialog />}
+      </div>
+      <TakeOffButton />
+    </>
+  )
+}
+
+function TakeOffButton() {
+  const sceneMode = usePlanetStore((s) => s.sceneMode)
+  const setSceneMode = usePlanetStore((s) => s.setSceneMode)
+
+  if (sceneMode !== 'world') return null
+
+  return (
+    <Button
+      variant="secondary"
+      size="icon"
+      className="pointer-events-auto absolute right-5 top-5 transition-transform hover:-translate-y-1 hover:scale-110"
+      onClick={() => setSceneMode('selection')}
+    >
+      <Rocket className="size-5" />
+    </Button>
   )
 }
 
 export default function AuthPanel() {
   const user = useAuth((s) => s.user)
-  return user ? <UserMenu /> : <AuthDialog />
+  const sceneMode = usePlanetStore((s) => s.sceneMode)
+
+  return (
+    <>
+      {user ? <UserMenu /> : <AuthDialog />}
+      {(!user && sceneMode === 'world') && <TakeOffButton />}
+    </>
+  )
 }

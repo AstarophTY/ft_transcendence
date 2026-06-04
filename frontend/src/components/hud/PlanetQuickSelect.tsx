@@ -7,6 +7,7 @@ import {
 } from '@/components/shadcn/tooltip'
 
 export default function PlanetQuickSelect() {
+  const worlds = usePlanetStore((state) => state.worlds)
   const planetCount = usePlanetStore((state) => state.planetCount)
   const activeIndex = usePlanetStore((state) => state.activeIndex)
   const setTargetOffset = usePlanetStore((state) => state.setTargetOffset)
@@ -19,34 +20,30 @@ export default function PlanetQuickSelect() {
     setActiveIndex(index)
   }
 
-  const planets = Array.from({ length: planetCount })
-
   if (planetCount <= 0) return null
 
   return (
     <div className='absolute bottom-2 left-0 w-full flex justify-center'>
 			<Card className='px-4 py-3 flex-row gap-3'>
-      {planets.map((_, index) => {
+      {worlds.map((world, index) => {
         const isActive = index === activeIndex
         return (
-          <Tooltip>
+          <Tooltip key={world.campusId}>
             <TooltipTrigger>
                 <button
-                key={index}
                 onClick={() => handleSelect(index)}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
                   isActive 
                     ? 'bg-white scale-125' 
                     : 'bg-white/50 hover:bg-white/75'
                 }`}
-                aria-label={`Select planet ${index + 1}`}
+                aria-label={`Select planet ${world.label}`}
               />
             </TooltipTrigger>
             <TooltipContent>
-              CAMPUS_NAME
+              {world.label}
             </TooltipContent>
           </Tooltip>
-
         )
       })}
       </Card>
