@@ -34,8 +34,8 @@ export default function PlanetQuickSelect() {
                 onClick={() => handleSelect(index)}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
                   isActive 
-                    ? 'bg-white scale-125' 
-                    : 'bg-white/50 hover:bg-white/75'
+                    ? 'bg-foreground scale-125' 
+                    : 'bg-foreground/50 hover:bg-foreground/75'
                 }`}
                 aria-label={`Select planet ${world.label}`}
               />

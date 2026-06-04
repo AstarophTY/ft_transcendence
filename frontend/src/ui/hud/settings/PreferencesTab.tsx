@@ -25,8 +25,7 @@ export default function PreferencesTab() {
   }
 
   const onTheme = (theme: string) => {
-    document.documentElement.classList.toggle('dark', theme === 'dark')
-    localStorage.setItem('theme', theme)
+    usePlanetStore.getState().setTheme(theme as 'light' | 'dark')
     void saveProfile({ theme })
   }
 

@@ -1,7 +1,7 @@
 import pseudorandom from 'seedrandom';
 
 export class Perlin2D {
-    private p: Uint8Array<any>;
+    private p: Uint8Array;
 
     constructor(seed: string) {
         // Initialize the seeded random number generator

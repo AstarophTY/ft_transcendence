@@ -3,6 +3,7 @@ import { Toaster } from '@/ui/shadcn/sonner'
 import { useAuth } from '@/store/auth'
 import { useFriends } from '@/store/friends'
 import { useSettings } from '@/store/settings'
+import { usePlanetStore } from '@/store/planetStore'
 import i18n from '@/i18n'
 import HUDFrame from './ui/hud/HUDFrame'
 import SceneFrame from './ui/three/SceneFrame'
@@ -16,6 +17,12 @@ function App() {
   const disconnect = useFriends((s) => s.disconnect)
   const loadSettings = useSettings((s) => s.load)
 
+  // Load local theme preference immediately on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'dark'
+    document.documentElement.classList.toggle('dark', savedTheme === 'dark')
+  }, [])
+
   // Consume 42 OAuth tokens from the callback URL and restore the session.
   useEffect(() => {
     init()
@@ -28,8 +35,7 @@ function App() {
       void loadSettings().then(() => {
         const me = useSettings.getState().me
         if (me?.theme) {
-          document.documentElement.classList.toggle('dark', me.theme === 'dark')
-          localStorage.setItem('theme', me.theme)
+          usePlanetStore.getState().setTheme(me.theme as 'light' | 'dark')
         }
         if (me?.language) {
           void i18n.changeLanguage(me.language)

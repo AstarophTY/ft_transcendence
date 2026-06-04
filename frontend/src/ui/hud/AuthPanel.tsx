@@ -259,14 +259,14 @@ function AuthDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary" className="absolute pointer-events-auto flex left-5 top-5">
+        <Button variant="ghost" className="absolute pointer-events-auto flex right-3 top-3 md:right-5 md:top-5 size-12 p-0 rounded-full justify-center items-center hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 border-none shadow-none">
           <UserBadge user={{
               username: t('auth.signIn'),
               userId: "test",
               avatar: "",
               email: null,
               role: 'USER'
-            }}/>
+            }} onlyAvatar />
         </Button>
       </DialogTrigger>
       <DialogContent className="pointer-events-auto">
@@ -307,11 +307,11 @@ function UserMenu() {
 
   return (
     <>
-      <div className="pointer-events-auto absolute left-5 top-5">
+      <div className="pointer-events-auto absolute right-3 top-3 md:right-5 md:top-5">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="secondary" className="flex p-5">
-              <UserBadge user={user} />
+            <Button variant="ghost" className="flex size-12 p-0 rounded-full justify-center items-center hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 border-none shadow-none">
+              <UserBadge user={user} onlyAvatar />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-32">
@@ -341,8 +341,9 @@ function TakeOffButton() {
   const sceneMode = usePlanetStore((s) => s.sceneMode)
   const setSceneMode = usePlanetStore((s) => s.setSceneMode)
   const activeEditor = useEditorStore((s) => s.activeEditor)
+  const inEditor = useEditorStore((s) => s.in_editor)
 
-  if (sceneMode !== 'world') return null
+  if (sceneMode !== 'world' || inEditor) return null
 
   const handleTakeoff = () => {
     activeEditor(false)
@@ -353,7 +354,7 @@ function TakeOffButton() {
     <Button
       variant="secondary"
       size="icon"
-      className="pointer-events-auto absolute right-5 top-5 transition-transform hover:-translate-y-1 hover:scale-110"
+      className="pointer-events-auto absolute left-3 top-3 md:left-5 md:top-5 transition-transform hover:-translate-y-1 hover:scale-110"
       onClick={handleTakeoff}
     >
       <Rocket className="size-5" />
