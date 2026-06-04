@@ -31,6 +31,7 @@ import { useFriends } from '@/store/friends'
 import { useSettings } from '@/store/settings'
 import { useAdmin } from '@/store/admin'
 import { usePlanetStore } from '@/store/planetStore'
+import { useEditorStore } from '@/store/editorStore'
 
 const PASSWORD_RULES = [
   { key: 'pwLength', test: (p: string) => p.length >= 8 },
@@ -339,15 +340,21 @@ function UserMenu() {
 function TakeOffButton() {
   const sceneMode = usePlanetStore((s) => s.sceneMode)
   const setSceneMode = usePlanetStore((s) => s.setSceneMode)
+  const activeEditor = useEditorStore((s) => s.activeEditor)
 
   if (sceneMode !== 'world') return null
+
+  const handleTakeoff = () => {
+    activeEditor(false)
+    setSceneMode('selection')
+  }
 
   return (
     <Button
       variant="secondary"
       size="icon"
       className="pointer-events-auto absolute right-5 top-5 transition-transform hover:-translate-y-1 hover:scale-110"
-      onClick={() => setSceneMode('selection')}
+      onClick={handleTakeoff}
     >
       <Rocket className="size-5" />
     </Button>
