@@ -1,7 +1,9 @@
-
+import { useMemo } from 'react'
 import type { PreviewVoxel } from '@/types/maps/PreviewVoxel.ts'
 
 import VoxelFace from './VoxelFace'
+import VoxelFiller from './VoxelFiller'
+import { useFillerVoxels } from './useFillerVoxels'
 
 type Props = {
   previewVoxels: PreviewVoxel[]
@@ -12,34 +14,45 @@ type Props = {
 }
 
 const PlanetPreviewFaces = ({ previewVoxels, scale, half, inset, getHeight }: Props) => {
-  // The map is e.g. 64x64. The corner is at 32x32.
-  // Since `scale` was meant for 64 voxels to fill 1 unit, we now map 32 voxels to fill 1 unit.
-  // So the new scale is double.
   const halfRes = 1 / (scale * 2)
   const newScale = scale * 2
 
   // Top face gets the top-left quadrant of the 2D map
-  const topVoxels = previewVoxels
-    .filter((v) => v.x < halfRes && v.z < halfRes)
-    .map((v) => ({ ...v }))
+  const topVoxels = useMemo(() => {
+    return previewVoxels
+      .filter((v) => v.x < halfRes && v.z < halfRes)
+      .map((v) => ({ ...v }))
+  }, [previewVoxels, halfRes])
 
   // Right face gets the top-right quadrant, folded down the right edge
-  const rightVoxels = previewVoxels
-    .filter((v) => v.x >= halfRes && v.z < halfRes)
-    .map((v) => ({
-      ...v,
-      x: v.z,
-      z: halfRes - 1 - (v.x - halfRes),
-    }))
+  const rightVoxels = useMemo(() => {
+    return previewVoxels
+      .filter((v) => v.x >= halfRes && v.z < halfRes)
+      .map((v) => ({
+        ...v,
+        x: v.z,
+        z: halfRes - 1 - (v.x - halfRes),
+      }))
+  }, [previewVoxels, halfRes])
 
   // Front face gets the bottom-left quadrant, folded down the front edge
-  const frontVoxels = previewVoxels
-    .filter((v) => v.x < halfRes && v.z >= halfRes)
-    .map((v) => ({
-      ...v,
-      x: v.x,
-      z: halfRes - 1 - (v.z - halfRes),
-    }))
+  const frontVoxels = useMemo(() => {
+    return previewVoxels
+      .filter((v) => v.x < halfRes && v.z >= halfRes)
+      .map((v) => ({
+        ...v,
+        x: v.x,
+        z: halfRes - 1 - (v.z - halfRes),
+      }))
+  }, [previewVoxels, halfRes])
+
+  const fillerVoxels = useFillerVoxels({
+    previewVoxels,
+    newScale,
+    half,
+    inset,
+    getHeight,
+  })
 
   return (
     <>
@@ -70,6 +83,8 @@ const PlanetPreviewFaces = ({ previewVoxels, scale, half, inset, getHeight }: Pr
         getHeight={getHeight}
         keyPrefix="front"
       />
+
+      <VoxelFiller fillerVoxels={fillerVoxels} newScale={newScale} />
     </>
   )
 }
