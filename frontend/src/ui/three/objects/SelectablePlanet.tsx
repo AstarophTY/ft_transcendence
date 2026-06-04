@@ -1,8 +1,10 @@
 import { useMemo, useRef, useState } from 'react'
+import { ThreeEvent, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
 import type { PlanetMap } from '@/types/maps/PlanetMap.ts'
 import { usePlanetStore } from '@/store/planetStore.ts'
+import { useAuth } from '@/store/auth'
 
 import PlanetPreviewFaces from './selectablePlanet/PlanetPreviewFaces'
 import { useSelectablePlanetAnimation } from './selectablePlanet/useSelectablePlanetAnimation'
@@ -13,10 +15,46 @@ interface SelectablePlanetProps {
   totalCount: number
 }
 
+function Satellite({ onClick }: { onClick: (event: ThreeEvent<MouseEvent>) => void }) {
+  const satelliteRef = useRef<THREE.Mesh>(null);
+  const [_, setHovered] = useState(false);
+
+  useFrame((state) => {
+    if (!satelliteRef.current) return
+    const t = state.clock.getElapsedTime()
+    const radius = 1
+    const speed = 0.5
+    satelliteRef.current.position.set(
+      Math.cos(t * speed) * radius,
+      Math.sin(t * speed * 0.5) * 0.5,
+      Math.sin(t * speed) * radius
+    )
+    satelliteRef.current.rotation.y += 0.01
+  })
+
+  return (
+    <mesh ref={satelliteRef} onClick={onClick} onPointerOver={() => {
+      document.body.style.cursor = 'pointer';
+      setHovered(true);
+    }}
+    onPointerOut={() => {
+      document.body.style.cursor = 'auto';
+      setHovered(false);
+    }}>
+      <boxGeometry args={[0.2, 0.2, 0.2]} />
+      <meshStandardMaterial color="#fbbf24" emissive="#fbbf24" emissiveIntensity={0.5} />
+    </mesh>    
+  )
+}
+
 const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => {
   const planetRef = useRef<THREE.Group>(null)
   const blendRef = useRef(0)
   const [hovered, setHovered] = useState(false)
+  
+  const user = useAuth((s) => s.user)
+  const worlds = usePlanetStore((s) => s.worlds)
+  const isPlayerCampus = user?.campusId && worlds[index]?.campusId === user.campusId
 
   useSelectablePlanetAnimation({ planetRef, blendRef, hovered, index, totalCount })
 
@@ -62,12 +100,12 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
         }}
         onClick={(e) => {
           e.stopPropagation()
-          const storeState = usePlanetStore.getState()
+          const storeState = usePlanetStore.getState();
           if (storeState.activeIndex === index) {
-            storeState.setSceneMode('zooming')
+            storeState.setSceneMode('zooming');
           } else {
             storeState.setTargetOffset(index / (totalCount - 1))
-            storeState.setActiveIndex(index)
+            storeState.setActiveIndex(index);
           }
         }}
       >
@@ -82,6 +120,15 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
         inset={inset}
         getHeight={getHeight}
       />
+
+      {isPlayerCampus &&
+      <Satellite onClick={(e) => {
+          e.stopPropagation();
+          const storeState = usePlanetStore.getState();
+          storeState.setSceneMode('zooming');
+        }}
+      />
+    }
     </group>
   )
 }
