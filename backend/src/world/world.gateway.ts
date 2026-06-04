@@ -31,6 +31,7 @@ interface EditPayload {
  * the flying camera, so peers can see both the avatar and the camera marker.
  */
 interface PlayerState {
+  u: string;
   p: [number, number, number];
   r: number;
   m: 'player' | 'freecam';
@@ -76,6 +77,7 @@ export class WorldGateway
       return;
     }
     client.data.userId = auth.userId;
+    client.data.username = auth.username;
   }
 
   handleDisconnect(client: Socket): void {
@@ -133,7 +135,8 @@ export class WorldGateway
     const room = campusId ? this.room(campusId) : null;
     if (!campusId || !room || !client.rooms.has(room)) return;
 
-    const state = this.sanitizeTransform(body.p, body.r, body.m, body.c, body.cr, body.cp);
+    const username = (client.data.username as string) || 'Unknown';
+    const state = this.sanitizeTransform(username, body.p, body.r, body.m, body.c, body.cr, body.cp);
     if (!state) return;
 
     let roomPlayers = this.players.get(campusId);
@@ -194,6 +197,7 @@ export class WorldGateway
 
   /** Validate an incoming transform; returns null if malformed. */
   private sanitizeTransform(
+    username: string,
     p: unknown,
     r: unknown,
     m: unknown,
@@ -205,7 +209,7 @@ export class WorldGateway
     if (!pos || typeof r !== 'number' || !Number.isFinite(r)) return null;
 
     const mode = m === 'freecam' ? 'freecam' : 'player';
-    const state: PlayerState = { p: pos, r, m: mode };
+    const state: PlayerState = { u: username, p: pos, r, m: mode };
 
     if (typeof cp === 'number' && Number.isFinite(cp)) {
       state.cp = cp;

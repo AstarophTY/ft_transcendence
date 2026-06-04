@@ -1,5 +1,5 @@
 import { useFrame } from '@react-three/fiber'
-import { useGLTF } from '@react-three/drei'
+import { useGLTF, Billboard, Text } from '@react-three/drei'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { SkeletonUtils } from 'three-stdlib'
@@ -14,6 +14,7 @@ type PlayerMode = 'player' | 'freecam'
 
 /** Last received transform of a remote player; mutated in place for lerping. */
 interface RemoteTransform {
+  username: string
   pos: THREE.Vector3
   yaw: number
   camPos: THREE.Vector3
@@ -24,6 +25,7 @@ interface RemoteTransform {
 
 type MovePayload = {
   id: string
+  u?: string
   p: [number, number, number]
   r: number
   m: PlayerMode
@@ -112,6 +114,18 @@ const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
     <>
       <group ref={bodyRef}>
         <primitive object={body} scale={0.5} />
+        <Billboard position={[0, 2.2, 0]}>
+          <Text
+            fontSize={0.25}
+            color="white"
+            outlineWidth={0.02}
+            outlineColor="black"
+            anchorX="center"
+            anchorY="middle"
+          >
+            {target.username}
+          </Text>
+        </Billboard>
       </group>
       <group ref={camRef}>
         <primitive object={cameraModel} />
@@ -135,13 +149,14 @@ const RemotePlayers = ({ campusId }: { campusId: string }) => {
     const socket = connectWorldSocket(token)
     const store = targets.current
 
-    const upsert = ({ id, p, r, m, c, cr, cp }: MovePayload) => {
+    const upsert = ({ id, u, p, r, m, c, cr, cp }: MovePayload) => {
       const mode: PlayerMode = m === 'freecam' ? 'freecam' : 'player'
       const camPos = c ?? p // fall back to the body when no camera is sent
       const camYaw = cr ?? r
       const camPitch = cp ?? 0
       const existing = store.get(id)
       if (existing) {
+        if (u) existing.username = u
         existing.pos.set(p[0], p[1], p[2])
         existing.yaw = r
         existing.mode = mode
@@ -150,6 +165,7 @@ const RemotePlayers = ({ campusId }: { campusId: string }) => {
         existing.camPitch = camPitch
       } else {
         store.set(id, {
+          username: u || 'Unknown',
           pos: new THREE.Vector3(p[0], p[1], p[2]),
           yaw: r,
           camPos: new THREE.Vector3(camPos[0], camPos[1], camPos[2]),
