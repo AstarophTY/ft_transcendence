@@ -23,7 +23,16 @@ const CameraController = () => {
       }
     } else if (sceneMode === 'selection') {
       const defaultPos = new THREE.Vector3(0, 1.5, 4)
+      const targetLookAt = new THREE.Vector3(0, 0, 0)
+      
       camera.position.lerp(defaultPos, delta * 5)
+      
+      // Gradually reset rotation to look at the center planets
+      const currentQuaternion = camera.quaternion.clone()
+      camera.lookAt(targetLookAt)
+      const targetQuaternion = camera.quaternion.clone()
+      camera.quaternion.copy(currentQuaternion)
+      camera.quaternion.slerp(targetQuaternion, delta * 5)
     }
   })
 
