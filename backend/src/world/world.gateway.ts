@@ -31,6 +31,8 @@ interface EditPayload {
  * the flying camera, so peers can see both the avatar and the camera marker.
  */
 interface PlayerState {
+  u: string;
+  a: string | null;
   p: [number, number, number];
   r: number;
   m: 'player' | 'freecam';
@@ -76,6 +78,8 @@ export class WorldGateway
       return;
     }
     client.data.userId = auth.userId;
+    client.data.username = auth.username;
+    client.data.avatar = auth.avatar;
   }
 
   handleDisconnect(client: Socket): void {
@@ -133,7 +137,9 @@ export class WorldGateway
     const room = campusId ? this.room(campusId) : null;
     if (!campusId || !room || !client.rooms.has(room)) return;
 
-    const state = this.sanitizeTransform(body.p, body.r, body.m, body.c, body.cr, body.cp);
+    const username = (client.data.username as string) || 'Unknown';
+    const avatar = (client.data.avatar as string | null) || null;
+    const state = this.sanitizeTransform(username, avatar, body.p, body.r, body.m, body.c, body.cr, body.cp);
     if (!state) return;
 
     let roomPlayers = this.players.get(campusId);
@@ -194,6 +200,8 @@ export class WorldGateway
 
   /** Validate an incoming transform; returns null if malformed. */
   private sanitizeTransform(
+    username: string,
+    avatar: string | null,
     p: unknown,
     r: unknown,
     m: unknown,
@@ -205,7 +213,7 @@ export class WorldGateway
     if (!pos || typeof r !== 'number' || !Number.isFinite(r)) return null;
 
     const mode = m === 'freecam' ? 'freecam' : 'player';
-    const state: PlayerState = { p: pos, r, m: mode };
+    const state: PlayerState = { u: username, a: avatar, p: pos, r, m: mode };
 
     if (typeof cp === 'number' && Number.isFinite(cp)) {
       state.cp = cp;
