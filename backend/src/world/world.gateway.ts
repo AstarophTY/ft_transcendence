@@ -23,6 +23,7 @@ const MAX_BATCH = 4096;
 
 interface EditPayload {
   campusId?: string;
+  personalWorld?: boolean;
   blocks?: unknown;
 }
 
@@ -90,12 +91,22 @@ export class WorldGateway
   @SubscribeMessage('world:join')
   handleJoin(
     @ConnectedSocket() client: Socket,
-    @MessageBody() body: { campusId?: string },
+    @MessageBody() body: { campusId?: string; personalWorld?: boolean },
   ): void {
     const campusId = body?.campusId;
-    if (!campusId) return;
+    const personalWorld = body?.personalWorld;
 
     this.leaveCampus(client);
+
+    if (personalWorld) {
+      const room = `world:personal:${client.data.userId}`;
+      void client.join(room);
+      client.data.personalWorld = true;
+      return;
+    }
+
+    if (!campusId) return;
+
     void client.join(this.room(campusId));
     client.data.campusId = campusId;
 
@@ -125,6 +136,7 @@ export class WorldGateway
     @MessageBody()
     body: {
       campusId?: string;
+      personalWorld?: boolean;
       p?: unknown;
       r?: unknown;
       m?: unknown;
@@ -134,20 +146,38 @@ export class WorldGateway
     },
   ): void {
     const campusId = body?.campusId;
-    const room = campusId ? this.room(campusId) : null;
-    if (!campusId || !room || !client.rooms.has(room)) return;
+    const personalWorld = body?.personalWorld;
+
+    const room = personalWorld
+      ? `world:personal:${client.data.userId}`
+      : campusId
+        ? this.room(campusId)
+        : null;
+
+    if (!room || !client.rooms.has(room)) return;
 
     const username = (client.data.username as string) || 'Unknown';
     const avatar = (client.data.avatar as string | null) || null;
-    const state = this.sanitizeTransform(username, avatar, body.p, body.r, body.m, body.c, body.cr, body.cp);
+    const state = this.sanitizeTransform(
+      username,
+      avatar,
+      body.p,
+      body.r,
+      body.m,
+      body.c,
+      body.cr,
+      body.cp,
+    );
     if (!state) return;
 
-    let roomPlayers = this.players.get(campusId);
-    if (!roomPlayers) {
-      roomPlayers = new Map();
-      this.players.set(campusId, roomPlayers);
+    if (campusId) {
+      let roomPlayers = this.players.get(campusId);
+      if (!roomPlayers) {
+        roomPlayers = new Map();
+        this.players.set(campusId, roomPlayers);
+      }
+      roomPlayers.set(client.id, state);
     }
-    roomPlayers.set(client.id, state);
 
     client.to(room).emit('player:move', { id: client.id, ...state });
   }
@@ -163,8 +193,15 @@ export class WorldGateway
     @MessageBody() body: EditPayload,
   ): Promise<void> {
     const campusId = body?.campusId;
-    const room = campusId ? this.room(campusId) : null;
-    if (!campusId || !room || !client.rooms.has(room)) return;
+    const personalWorld = body?.personalWorld;
+
+    const room = personalWorld
+      ? `world:personal:${client.data.userId}`
+      : campusId
+        ? this.room(campusId)
+        : null;
+
+    if (!room || !client.rooms.has(room)) return;
 
     const blocks = this.sanitize(body.blocks);
     if (blocks.length === 0) return;
@@ -172,7 +209,12 @@ export class WorldGateway
     client.to(room).emit('world:edit', { blocks });
 
     try {
-      await this.world.saveBlocks(campusId, blocks);
+      //if (personalWorld) {
+      //  await this.world.saveUserBlocks(client.data.userId, blocks);
+      //} else 
+      if (campusId) {
+        await this.world.saveBlocks(campusId, blocks);
+      }
     } catch {
       /* a failed persist should not break the live relay */
     }
@@ -185,6 +227,15 @@ export class WorldGateway
   /** Remove the client from its current campus and tell the others it left. */
   private leaveCampus(client: Socket): void {
     const campusId = client.data.campusId as string | undefined;
+    const personalWorld = client.data.personalWorld as boolean | undefined;
+
+    if (personalWorld) {
+      const room = `world:personal:${client.data.userId}`;
+      void client.leave(room);
+      delete client.data.personalWorld;
+      return;
+    }
+
     if (!campusId) return;
     delete client.data.campusId;
 

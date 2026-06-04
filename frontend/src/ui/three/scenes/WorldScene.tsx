@@ -188,10 +188,9 @@ const WorldScene = () => {
   })
 
   // Generation profile of the selected campus world.
-  const profile = useMemo(
-    () => worlds.find((w) => w.campusId === activeCampusId) ?? worlds[0] ?? null,
-    [worlds, activeCampusId],
-  )
+  const profile = useMemo(() => {
+    return worlds.find((w) => w.campusId === activeCampusId) ?? worlds[0] ?? null
+  }, [worlds, activeCampusId])
 
   const [localMap, setLocalMap] = useState<LocalMap | null>(() =>
     profile ? generateLocalMap(profile, MAP_SIZE_BLOCKS) : null,
@@ -210,7 +209,9 @@ const WorldScene = () => {
     setMapVersion((v) => v + 1)
 
     let cancelled = false
-    getWorld(activeCampusId)
+    const loadWorld = getWorld(activeCampusId!)
+
+    loadWorld
       .then((detail) => {
         if (cancelled) return
         for (const b of detail.blocks) applyWorldBlock(map, b)
@@ -231,6 +232,7 @@ const WorldScene = () => {
     const token = tokenStore.access
     if (!token) return
     const socket = connectWorldSocket(token)
+
     socket.emit('world:join', { campusId: activeCampusId })
 
     const onRemoteEdit = ({ blocks }: { blocks: WorldBlock[] }) => {
@@ -254,9 +256,9 @@ const WorldScene = () => {
   const camDir = useRef(new THREE.Vector3())
   useFrame(() => {
     const socket = getWorldSocket()
-    const campusId = usePlanetStore.getState().activeCampusId
+    const { activeCampusId } = usePlanetStore.getState()
     const p = playerRef.current
-    if (!socket || !campusId || !p) return
+    if (!socket || !activeCampusId || !p) return
 
     const freecam = currentMode === 'freecam'
     const round = (n: number) => Math.round(n * 50) / 50 // ~0.02 step
@@ -264,7 +266,8 @@ const WorldScene = () => {
     camera.getWorldDirection(camDir.current)
 
     const payload: {
-      campusId: string
+      campusId?: string
+      personalWorld?: boolean
       p: [number, number, number]
       r: number
       m: 'player' | 'freecam'
@@ -272,12 +275,13 @@ const WorldScene = () => {
       cr?: number
       cp?: number
     } = {
-      campusId,
       p: [round(p.position.x), round(p.position.y), round(p.position.z)],
       r: round(p.rotation.y),
       m: freecam ? 'freecam' : 'player',
       cp: round(Math.asin(camDir.current.y)),
     }
+
+    payload.campusId = activeCampusId!;
 
     if (freecam) {
       payload.c = [
@@ -305,13 +309,13 @@ const WorldScene = () => {
 
   const flushBlocks = useCallback(() => {
     flushTimer.current = null
-    const campusId = usePlanetStore.getState().activeCampusId
+    const { activeCampusId } = usePlanetStore.getState()
     const socket = getWorldSocket()
-    if (!campusId || !socket || pendingBlocks.current.length === 0) return
+    if (!activeCampusId || !socket || pendingBlocks.current.length === 0) return
     const batch = pendingBlocks.current
     pendingBlocks.current = []
-    // The gateway relays this to the other players and persists it.
-    socket.emit('world:edit', { campusId, blocks: batch })
+
+    socket.emit('world:edit', { campusId: activeCampusId, blocks: batch })
   }, [])
 
   // Flush any pending edits when leaving the world.
