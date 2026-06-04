@@ -1,7 +1,9 @@
 import { useFrame, useThree } from '@react-three/fiber'
+import { Html } from '@react-three/drei'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { useHotkeys } from 'react-hotkeys-hook'
+import { Loader2 } from 'lucide-react'
 
 import { Chunk } from '@/types/maps/Chunk.ts'
 import { usePlanetStore } from '@/store/planetStore.ts'
@@ -193,32 +195,37 @@ const WorldScene = () => {
     [worlds, activeCampusId],
   )
 
-  const [localMap, setLocalMap] = useState<LocalMap | null>(() =>
-    profile ? generateLocalMap(profile, MAP_SIZE_BLOCKS) : null,
-  )
+  const [localMap, setLocalMap] = useState<LocalMap | null>(null)
+  const [isLoaded, setIsLoaded] = useState(false)
   const [, setMapVersion] = useState(0)
   // Latest map, for the socket listener which is registered once per campus.
   const mapRef = useRef<LocalMap | null>(localMap)
 
-  // Rebuild the base terrain from the profile, then apply the persisted block
-  // edits (placed and broken) fetched for this campus.
   useEffect(() => {
     if (!profile || !activeCampusId) return
-    const map = generateLocalMap(profile, MAP_SIZE_BLOCKS)
-    mapRef.current = map
-    setLocalMap(map)
-    setMapVersion((v) => v + 1)
-
+    setIsLoaded(false)
     let cancelled = false
-    getWorld(activeCampusId)
-      .then((detail) => {
-        if (cancelled) return
-        for (const b of detail.blocks) applyWorldBlock(map, b)
-        setMapVersion((v) => v + 1)
-      })
-      .catch(() => {
-        /* keep the freshly generated terrain if the edits cannot be loaded */
-      })
+
+    setTimeout(() => {
+      if (cancelled) return
+      const map = generateLocalMap(profile, MAP_SIZE_BLOCKS)
+      mapRef.current = map
+      setLocalMap(map)
+      setMapVersion((v) => v + 1)
+
+      getWorld(activeCampusId)
+        .then((detail) => {
+          if (cancelled) return
+          for (const b of detail.blocks) applyWorldBlock(map, b)
+          setMapVersion((v) => v + 1)
+          setIsLoaded(true)
+        })
+        .catch(() => {
+          if (cancelled) return
+          setIsLoaded(true)
+        })
+    }, 50)
+
     return () => {
       cancelled = true
     }
@@ -438,7 +445,20 @@ const WorldScene = () => {
     })
   })
 
-  if (!localMap) return null
+  if (!localMap || !isLoaded) {
+    return (
+      <Html 
+        fullscreen 
+        zIndexRange={[100, 100]}
+        calculatePosition={(_, __, size) => [size.width / 2, size.height / 2]}
+      >
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
+          <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary" />
+          <h2 className="text-2xl font-bold tracking-tight text-primary">Loading World...</h2>
+        </div>
+      </Html>
+    )
+  }
 
   return (
     <group>
