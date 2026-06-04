@@ -7,17 +7,64 @@ import { useEditorStore } from '@/store/editorStore'
 import { usePlanetStore } from '@/store/planetStore'
 import { Joystick } from 'react-joystick-component'
 import { useIsTouchDevice } from '@/hooks/use-mobile.tsx'
+import { useRef, useState } from 'react'
 
 export default function MobileVirtualControls() {
   const inEditor = useEditorStore((s) => s.in_editor)
   const theme = usePlanetStore((s) => s.theme)
   const isTouch = useIsTouchDevice()
+  const leftMoved = useRef(false)
+  const rightMoved = useRef(false)
+  const [leftActive, setLeftActive] = useState(false)
+  const [rightActive, setRightActive] = useState(false)
 
   if (!isTouch) return null
 
   const dispatchKey = (code: string, isDown: boolean) => {
     const event = new KeyboardEvent(isDown ? 'keydown' : 'keyup', { code })
     window.dispatchEvent(event)
+  }
+
+  const handleLeftStart = () => {
+    leftMoved.current = false
+    setLeftActive(true)
+  }
+
+  const handleLeftMove = (event: { x: number | null; y: number | null }) => {
+    if (Math.abs(event.x ?? 0) > 0.15 || Math.abs(event.y ?? 0) > 0.15) {
+      leftMoved.current = true
+    }
+    handleMove(event)
+  }
+
+  const handleLeftStop = () => {
+    handleStop()
+    setLeftActive(false)
+    if (!leftMoved.current) {
+      dispatchKey('Space', true)
+      setTimeout(() => dispatchKey('Space', false), 50)
+    }
+  }
+
+  const handleRightStart = () => {
+    rightMoved.current = false
+    setRightActive(true)
+  }
+
+  const handleRightMove = (event: { x: number | null; y: number | null }) => {
+    if (Math.abs(event.x ?? 0) > 0.15 || Math.abs(event.y ?? 0) > 0.15) {
+      rightMoved.current = true
+    }
+    handleLook(event)
+  }
+
+  const handleRightStop = () => {
+    handleLookStop()
+    setRightActive(false)
+    if (!rightMoved.current) {
+      dispatchKey('Enter', true)
+      setTimeout(() => dispatchKey('Enter', false), 50)
+    }
   }
 
   // Left Joystick: Movement mapping (W, S, A, D)
@@ -102,14 +149,19 @@ export default function MobileVirtualControls() {
                    portrait:left-4 portrait:bottom-16
                    landscape:left-4 landscape:bottom-4"
       >
-        <div className="p-2 rounded-full bg-background/30 backdrop-blur-md border border-border/30 shadow-lg">
+        <div className={`p-2 rounded-full backdrop-blur-md border shadow-lg transition-all duration-150 ${
+          leftActive 
+            ? 'bg-background/80 border-primary/40 scale-95 brightness-125' 
+            : 'bg-background/30 border-border/30 hover:bg-background/45'
+        }`}>
           <Joystick
             size={90}
             sticky={false}
             baseColor={theme === 'light' ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)'}
             stickColor={theme === 'light' ? 'rgba(0, 0, 0, 0.25)' : 'rgba(255, 255, 255, 0.3)'}
-            move={handleMove}
-            stop={handleStop}
+            start={handleLeftStart}
+            move={handleLeftMove}
+            stop={handleLeftStop}
           />
         </div>
 
@@ -160,14 +212,19 @@ export default function MobileVirtualControls() {
           </button>
         )}
 
-        <div className="p-2 rounded-full bg-background/30 backdrop-blur-md border border-border/30 shadow-lg">
+        <div className={`p-2 rounded-full backdrop-blur-md border shadow-lg transition-all duration-150 ${
+          rightActive 
+            ? 'bg-background/80 border-primary/40 scale-95 brightness-125' 
+            : 'bg-background/30 border-border/30 hover:bg-background/45'
+        }`}>
           <Joystick
             size={90}
             sticky={false}
             baseColor={theme === 'light' ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)'}
             stickColor={theme === 'light' ? 'rgba(0, 0, 0, 0.25)' : 'rgba(255, 255, 255, 0.3)'}
-            move={handleLook}
-            stop={handleLookStop}
+            start={handleRightStart}
+            move={handleRightMove}
+            stop={handleRightStop}
           />
         </div>
       </div>
