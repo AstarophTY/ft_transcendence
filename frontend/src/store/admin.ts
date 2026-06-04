@@ -40,7 +40,7 @@ interface AdminState {
   removeUser: (user: AdminUser) => Promise<void>
   saveUser: (id: string, body: AdminUserUpdate) => Promise<boolean>
   resetPassword: (id: string, newPassword: string) => Promise<boolean>
-  saveCampus: (id: string, body: { label?: string; coins?: number }) => Promise<boolean>
+  saveCampus: (id: string, body: { label?: string; coins?: number; seed?: string; regenerate?: boolean }) => Promise<boolean>
   removeCampus: (campus: CampusWithMembers) => Promise<void>
   detachMember: (campusId: string, userId: string) => Promise<void>
 }

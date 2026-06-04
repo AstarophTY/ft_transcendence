@@ -12,6 +12,9 @@ import { UpdateCampusDto } from './dto/update-campus.dto';
 const CAMPUS_WITH_MEMBERS = {
   orderBy: { label: 'asc' },
   include: {
+    world: {
+      select: { seed: true },
+    },
     users: {
       select: {
         id: true,
@@ -62,7 +65,32 @@ export class CampusService {
         throw new ConflictException('A campus with this name already exists');
       }
     }
-    return this.prisma.campus.update({ where: { id }, data: dto });
+
+    const { seed, regenerate, ...rest } = dto;
+
+    if (seed !== undefined || regenerate) {
+      const world = await this.prisma.world.findUnique({ where: { campusId: id } });
+      if (world) {
+        if (regenerate) {
+          const { generateWorldProfile } = await import('../world/world.profile');
+          const profile = generateWorldProfile(id);
+          await this.prisma.$transaction([
+            this.prisma.worldBlock.deleteMany({ where: { worldId: world.id } }),
+            this.prisma.world.update({
+              where: { id: world.id },
+              data: { ...profile, updatedAt: new Date() },
+            }),
+          ]);
+        } else if (seed !== undefined) {
+          await this.prisma.world.update({
+            where: { id: world.id },
+            data: { seed, updatedAt: new Date() },
+          });
+        }
+      }
+    }
+
+    return this.prisma.campus.update({ where: { id }, data: rest });
   }
 
   /** Admin: delete a campus; its members are detached automatically. */

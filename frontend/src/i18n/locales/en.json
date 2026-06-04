@@ -200,7 +200,11 @@
       "coinsDecrease": "Remove a coin",
       "coinsIncrease": "Add a coin",
       "totalHint": "Total coins (members + bonus)",
-      "bonus": "Admin bonus"
+      "bonus": "Admin bonus",
+      "planetConfig": "Planet Configuration",
+      "seedPlaceholder": "Seed",
+      "regenerate": "Regenerate whole planet (erases edits)",
+      "regenerateConfirm": "Are you sure you want to regenerate this planet? This will erase all block edits made by players."
     }
   }
 }
