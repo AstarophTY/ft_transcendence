@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unknown-property */
 import { Environment, Sky } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 

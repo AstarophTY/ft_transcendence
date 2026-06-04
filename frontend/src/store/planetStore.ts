@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-import type { CampusWorld } from '@/lib/world'
+import type { CampusWorld } from '@/lib/api/world'
 
 interface PlanetStore {
   /** One world per campus, loaded from the backend. */

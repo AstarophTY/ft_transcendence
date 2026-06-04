@@ -149,7 +149,10 @@ export const ChunkRenderer = ({
 
   // Optimize: use chunk.version dependency to only recalculate instances if this chunk was modified!
   const instancesByBlock = useMemo(() => {
-    const lists: Record<Exclude<Block, Block.Air>, { x: number; y: number; z: number; r: number }[]> = {} as any
+    const lists: Record<Exclude<Block, Block.Air>, { x: number; y: number; z: number; r: number }[]> = {} as unknown as Record<
+      Exclude<Block, Block.Air>,
+      { x: number; y: number; z: number; r: number }[]
+    >
     const activeBlocks = Object.values(Block).filter(
       (b) => typeof b === 'number' && b !== Block.Air
     ) as Exclude<Block, Block.Air>[]
@@ -175,6 +178,7 @@ export const ChunkRenderer = ({
     }
 
     return lists
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chunk, localMap, chunkX, chunkZ, chunk?.version])
 
   if (!chunk) return null

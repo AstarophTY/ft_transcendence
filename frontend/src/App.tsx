@@ -1,13 +1,13 @@
 import { useEffect } from 'react'
-import { Toaster } from '@/components/shadcn/sonner'
+import { Toaster } from '@/ui/shadcn/sonner'
 import { useAuth } from '@/store/auth'
 import { useFriends } from '@/store/friends'
 import { useSettings } from '@/store/settings'
 import i18n from '@/i18n'
 import HUDFrame from './ui/hud/HUDFrame'
 import SceneFrame from './ui/three/SceneFrame'
-import { SidebarProvider } from '@/components/shadcn/sidebar'
-import { TooltipProvider } from '@/components/shadcn/tooltip'
+import { SidebarProvider } from '@/ui/shadcn/sidebar'
+import { TooltipProvider } from '@/ui/shadcn/tooltip'
 
 function App() {
   const init = useAuth((s) => s.init)

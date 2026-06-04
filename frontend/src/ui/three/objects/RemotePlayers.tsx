@@ -4,8 +4,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { SkeletonUtils } from 'three-stdlib'
 
-import UserBadge from '@/components/hud/UserBadge'
-import { connectWorldSocket } from '@/lib/worldSocket'
+import UserBadge from '@/ui/hud/UserBadge.tsx'
+import { connectWorldSocket } from '@/lib/sockets/worldSocket'
 import { tokenStore } from '@/lib/api'
 import { useCurvedSceneMaterials } from './player/useCurvedSceneMaterials'
 

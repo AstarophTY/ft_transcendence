@@ -36,7 +36,10 @@ const VoxelFiller = ({ fillerVoxels, newScale }: Props) => {
   if (fillerVoxels.length === 0) return null
 
   return (
-    <instancedMesh ref={instancedMeshRef} args={[null as any, null as any, fillerVoxels.length]}>
+    <instancedMesh
+      ref={instancedMeshRef}
+      args={[null as unknown as THREE.BufferGeometry, null as unknown as THREE.Material, fillerVoxels.length]}
+    >
       <boxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial />
     </instancedMesh>

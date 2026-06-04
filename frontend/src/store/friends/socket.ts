@@ -1,7 +1,7 @@
 import type { StateCreator } from 'zustand'
 import { toast } from 'sonner'
 import { tokenStore, type DirectMessage, type Friendship } from '@/lib/api'
-import { connectSocket, disconnectSocket } from '@/lib/socket'
+import { connectSocket, disconnectSocket } from '@/lib/sockets/socket'
 import { useAuth } from '@/store/auth'
 import { useChatChannels } from '@/store/chatChannels'
 import i18n from '@/i18n'

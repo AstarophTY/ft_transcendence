@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, Loader2, Lock, LogIn, Mail, Rocket, User, UserPlus, X } from 'lucide-react'
 
-import { Button } from '@/components/shadcn/button'
+import { Button } from '@/ui/shadcn/button'
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/shadcn/dialog'
+} from '@/ui/shadcn/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,13 +18,13 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/shadcn/dropdown-menu"
-import { Input } from '@/components/shadcn/input'
-import { Label } from '@/components/shadcn/label'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shadcn/tabs'
-import UserBadge from '@/components/hud/UserBadge'
-import SettingsDialog from '@/components/hud/settings/SettingsDialog'
-import AdminDialog from '@/components/hud/admin/AdminDialog'
+} from "@/ui/shadcn/dropdown-menu"
+import { Input } from '@/ui/shadcn/input'
+import { Label } from '@/ui/shadcn/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/shadcn/tabs'
+import UserBadge from '@/ui/hud/UserBadge.tsx'
+import SettingsDialog from '@/ui/hud/settings/SettingsDialog'
+import AdminDialog from '@/ui/hud/admin/AdminDialog'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/store/auth'
 import { useFriends } from '@/store/friends'

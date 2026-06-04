@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unknown-property */
 import { PointerLockControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import React, { useEffect, useRef } from 'react'
@@ -315,6 +316,7 @@ export const FreeCameraControls = ({
       window.removeEventListener('mousedown', handleMouseDown)
       window.removeEventListener('wheel', handleWheel)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gl.domElement, active, localMap, onUpdateBlock])
 
   useFrame((_, delta) => {

@@ -1,15 +1,17 @@
+/* eslint-disable react/no-unknown-property */
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { Loader2 } from 'lucide-react'
 
 import { Chunk } from '@/types/maps/Chunk.ts'
+import type { DemoPlanetProfile } from '@/types/Three'
 import { usePlanetStore } from '@/store/planetStore.ts'
 import { useEditorStore } from '@/store/editorStore'
-import { getWorld, type WorldBlock } from '@/lib/world'
-import { connectWorldSocket, getWorldSocket } from '@/lib/worldSocket'
+import { getWorld, type WorldBlock } from '@/lib/api/world'
+import { connectWorldSocket, getWorldSocket } from '@/lib/sockets/worldSocket'
 import { tokenStore } from '@/lib/api'
 import Player from '../objects/Player'
 import RemotePlayers from '../objects/RemotePlayers'
@@ -19,9 +21,9 @@ import { FreeCameraControls } from './worldScene/FreeCameraControls'
 import { Block } from '@/types/Block'
 import { BlockMetadata } from '@/config/Block'
 import { LocalMap } from '@/types/maps/LocalMap'
-import { IslandMap, BiomeType, getBiomeBlock } from '@/perlin'
+import { IslandMap, BiomeType, getBiomeBlock } from '@/generation'
 
-const generateLocalMap = (profile: any, mapSize: number) => {
+const generateLocalMap = (profile: DemoPlanetProfile, mapSize: number) => {
   const widthInChunks = mapSize / Chunk.WIDTH
   const depthInChunks = mapSize / Chunk.WIDTH
   const localMap = new LocalMap(widthInChunks, depthInChunks)
@@ -349,7 +351,13 @@ const WorldScene = () => {
         geometry: THREE.BufferGeometry; 
         material: THREE.Material | THREE.Material[]; 
       }
-    > = {} as any
+    > = {} as unknown as Record<
+      Exclude<Block, Block.Air>,
+      { 
+        geometry: THREE.BufferGeometry; 
+        material: THREE.Material | THREE.Material[]; 
+      }
+    >
 
     const geometry = new THREE.BoxGeometry(2, 2, 2)
     const textureLoader = new THREE.TextureLoader()
@@ -398,7 +406,7 @@ const WorldScene = () => {
             mat.map = faceTex
 
             // Reset color to white by default when texture is loaded, to prevent oversaturation
-            mat.color.set('#ffffff' as any)
+            mat.color.set(new THREE.Color('#ffffff'))
 
             mat.needsUpdate = true
           })

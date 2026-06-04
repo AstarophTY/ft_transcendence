@@ -1,14 +1,14 @@
 import { Block } from '@/types/Block'
 import { Chunk } from '@/types/maps/Chunk.ts'
 import { PlanetMap } from '@/types/maps/PlanetMap.ts'
-import { IslandMap, getBiomeBlock } from '@/perlin'
+import { IslandMap, getBiomeBlock } from '@/generation'
 
 import type { DemoPlanetProfile } from '@/types/Three'
 
 import { CHUNKS_PER_SIDE } from '../worldScene/constants.ts'
 import type { PreviewVoxel } from '@/types/maps/PreviewVoxel.ts'
 import { BlockMetadata } from '@/config/Block'
-import { BiomeType } from '@/perlin'
+import { BiomeType } from '@/generation'
 
 const BLOCK_COLORS = BlockMetadata as Record<number, { color: string }>
 
