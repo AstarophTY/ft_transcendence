@@ -1,6 +1,10 @@
 import { usePlanetStore } from '../../store/planetStore'
 import { Card } from '@/components/shadcn/card'
-// import { Button } from '@/components/shadcn/button'
+import {   
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from '@/components/shadcn/tooltip'
 
 export default function PlanetQuickSelect() {
   const planetCount = usePlanetStore((state) => state.planetCount)
@@ -25,16 +29,24 @@ export default function PlanetQuickSelect() {
       {planets.map((_, index) => {
         const isActive = index === activeIndex
         return (
-          <button
-            key={index}
-            onClick={() => handleSelect(index)}
-            className={`w-3 h-3 rounded-full transition-all duration-300 ${
-              isActive 
-                ? 'bg-white scale-125' 
-                : 'bg-white/50 hover:bg-white/75'
-            }`}
-            aria-label={`Select planet ${index + 1}`}
-          />
+          <Tooltip>
+            <TooltipTrigger>
+                <button
+                key={index}
+                onClick={() => handleSelect(index)}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  isActive 
+                    ? 'bg-white scale-125' 
+                    : 'bg-white/50 hover:bg-white/75'
+                }`}
+                aria-label={`Select planet ${index + 1}`}
+              />
+            </TooltipTrigger>
+            <TooltipContent>
+              CAMPUS_NAME
+            </TooltipContent>
+          </Tooltip>
+
         )
       })}
       </Card>
