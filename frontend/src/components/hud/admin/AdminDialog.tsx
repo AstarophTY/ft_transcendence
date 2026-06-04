@@ -19,7 +19,6 @@ import StatsGrid from './StatsGrid'
 import SignupsChart from './SignupsChart'
 import UserRow from './UserRow'
 import AdminEditUser from './AdminEditUser'
-import CampusRequests from './CampusRequests'
 import CampusManager from './CampusManager'
 
 type RoleFilter = 'all' | 'admin' | 'user'
@@ -121,7 +120,7 @@ function UsersTab({ users }: { users: AdminUser[] }) {
 
 export default function AdminDialog() {
   const { t } = useTranslation()
-  const { open, setOpen, stats, signups, users, campusRequests, loading } =
+  const { open, setOpen, stats, signups, users, loading } =
     useAdmin()
 
   return (
@@ -147,11 +146,6 @@ export default function AdminDialog() {
               </TabsTrigger>
               <TabsTrigger value="campus">
                 {t('admin.tabs.campus')}
-                {campusRequests.length > 0 && (
-                  <Badge className="ml-1.5 rounded-full px-1.5 py-0.5 text-[10px]">
-                    {campusRequests.length}
-                  </Badge>
-                )}
               </TabsTrigger>
             </TabsList>
 
@@ -165,12 +159,6 @@ export default function AdminDialog() {
             </TabsContent>
 
             <TabsContent value="campus" className="mt-4 flex flex-col gap-5">
-              <section className="flex flex-col gap-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {t('admin.campus.requestsSection')}
-                </p>
-                <CampusRequests />
-              </section>
               <section className="flex flex-col gap-2">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   {t('admin.campus.manageSection')}

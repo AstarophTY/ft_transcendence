@@ -3,8 +3,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Campus, CampusRequest, CampusRequestStatus } from '@prisma/client';
+import { Campus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { generateWorldProfile } from '../world/world.profile';
 import { UpdateCampusDto } from './dto/update-campus.dto';
 
 /** A campus together with the accounts attached to it (admin view). */
@@ -25,9 +26,8 @@ const CAMPUS_WITH_MEMBERS = {
 } as const;
 
 /**
- * Campuses come from 42. A campus only lands in the table once staff approve it:
- * on login we either attach the user to an existing campus or open a pending
- * request for the staff to review.
+ * Campuses come from 42. They are automatically added to the database on 42 login
+ * if they don't exist yet, along with their associated planet.
  */
 @Injectable()
 export class CampusService {
@@ -87,78 +87,24 @@ export class CampusService {
 
   /**
    * Run on every 42 login. If the campus already exists the user is attached to
-   * it; otherwise a pending request is opened for staff (one per label) and the
-   * user stays without a campus until it gets approved.
+   * it; otherwise it is created automatically.
    */
   async syncFortyTwoCampus(userId: string, label: string): Promise<void> {
-    const campus = await this.prisma.campus.findUnique({ where: { label } });
-    if (campus) {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { campusId: campus.id },
-      });
-      return;
-    }
-
-    const pending = await this.prisma.campusRequest.findFirst({
-      where: { label, status: CampusRequestStatus.PENDING },
+    const campus = await this.prisma.campus.upsert({
+      where: { label },
+      update: {},
+      create: { label },
     });
-    if (!pending) {
-      await this.prisma.campusRequest.create({
-        data: { label, requestedById: userId },
-      });
-    }
-  }
 
-  /** Pending campus requests awaiting staff review (newest first). */
-  listRequests(): Promise<CampusRequest[]> {
-    return this.prisma.campusRequest.findMany({
-      where: { status: CampusRequestStatus.PENDING },
-      orderBy: { createdAt: 'desc' },
+    await this.prisma.world.upsert({
+      where: { campusId: campus.id },
+      update: {},
+      create: { campusId: campus.id, ...generateWorldProfile(campus.id) },
     });
-  }
 
-  /**
-   * Staff approves a request: the campus is created (if missing) and the user
-   * who asked for it is attached to it.
-   */
-  async approve(requestId: string): Promise<Campus> {
-    const request = await this.requirePending(requestId);
-
-    return this.prisma.$transaction(async (tx) => {
-      const campus = await tx.campus.upsert({
-        where: { label: request.label },
-        update: {},
-        create: { label: request.label },
-      });
-      await tx.user.update({
-        where: { id: request.requestedById },
-        data: { campusId: campus.id },
-      });
-      await tx.campusRequest.update({
-        where: { id: request.id },
-        data: { status: CampusRequestStatus.APPROVED },
-      });
-      return campus;
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { campusId: campus.id },
     });
-  }
-
-  /** Staff rejects a request; no campus is created. */
-  async decline(requestId: string): Promise<void> {
-    const request = await this.requirePending(requestId);
-    await this.prisma.campusRequest.update({
-      where: { id: request.id },
-      data: { status: CampusRequestStatus.REJECTED },
-    });
-  }
-
-  private async requirePending(requestId: string): Promise<CampusRequest> {
-    const request = await this.prisma.campusRequest.findUnique({
-      where: { id: requestId },
-    });
-    if (!request || request.status !== CampusRequestStatus.PENDING) {
-      throw new NotFoundException('Campus request not found');
-    }
-    return request;
   }
 }

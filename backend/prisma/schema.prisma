@@ -44,8 +44,6 @@ model User {
 
   sentFriendRequests     Friendship[] @relation("FriendRequester")
   receivedFriendRequests Friendship[] @relation("FriendAddressee")
-
-  campusRequests CampusRequest[] @relation("CampusRequester")
 }
 
 model RefreshToken {
@@ -167,21 +165,6 @@ model WorldBlock {
   @@index([worldId])
 }
 
-/// A request to open a campus that does not exist yet. Created automatically on
-/// 42 login when the user's campus is unknown, then reviewed by staff (ADMIN).
-model CampusRequest {
-  id            String              @id @default(uuid())
-  label         String
-  status        CampusRequestStatus @default(PENDING)
-  requestedById String
-  requestedBy   User                @relation("CampusRequester", fields: [requestedById], references: [id], onDelete: Cascade)
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-
-  @@index([status])
-  @@index([requestedById])
-}
-
 enum Role {
   USER
   ADMIN
@@ -197,10 +180,4 @@ enum UserStatus {
 enum FriendshipStatus {
   PENDING
   ACCEPTED
-}
-
-enum CampusRequestStatus {
-  PENDING
-  APPROVED
-  REJECTED
 }
