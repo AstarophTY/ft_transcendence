@@ -257,7 +257,7 @@ function AuthDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="default" className="absolute pointer-events-auto flex left-5 top-5">
+        <Button variant="secondary" className="absolute pointer-events-auto flex left-5 top-5">
           <UserBadge user={{
               username: t('auth.signIn'),
               userId: "test",
@@ -307,7 +307,7 @@ function UserMenu() {
     <div className="pointer-events-auto absolute left-5 top-5">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="default" className="flex">
+          <Button variant="secondary" className="flex p-5">
             <UserBadge user={user} />
           </Button>
         </DropdownMenuTrigger>

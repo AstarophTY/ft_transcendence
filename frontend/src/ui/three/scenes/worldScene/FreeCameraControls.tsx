@@ -6,7 +6,7 @@ import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdli
 
 
 import { useEditorStore } from '@/store/editorStore'
-import { Tab } from '@/types/Editor'
+import { Tab, Shape } from '@/types/Editor'
 import { Block } from '@/types/Block'
 import { LocalMap } from '@/types/maps/LocalMap'
 import { Chunk } from '@/types/maps/Chunk'
@@ -19,6 +19,37 @@ interface FreeCameraControlsProps {
   onUpdateBlock: (x: number, y: number, z: number, block: Block | null, rotation?: number) => void
 }
 
+const getAffectedBlocks = (
+  cx: number, cy: number, cz: number,
+  shape: Shape, shapeSize: number, mapSize: number
+) => {
+  const blocks: {x: number, y: number, z: number}[] = []
+  const radius = shapeSize - 1
+
+  for (let dx = -radius; dx <= radius; dx++) {
+    for (let dy = -radius; dy <= radius; dy++) {
+      for (let dz = -radius; dz <= radius; dz++) {
+        const x = cx + dx
+        const y = cy + dy
+        const z = cz + dz
+
+        if (x < 0 || x >= mapSize || y < 0 || y >= 64 || z < 0 || z >= mapSize) {
+          continue
+        }
+
+        if (shape === Shape.Sphere && radius > 0) {
+          const dist = Math.sqrt(dx * dx + dy * dy + dz * dz)
+          if (dist > radius + 0.5) {
+            continue
+          }
+        }
+        blocks.push({x, y, z})
+      }
+    }
+  }
+  return blocks
+}
+
 export const FreeCameraControls = ({
   localMap,
   mapSize,
@@ -29,15 +60,17 @@ export const FreeCameraControls = ({
   const { camera, gl, scene } = useThree()
   const controlsRef = useRef<PointerLockControlsImpl | null>(null)
   const keysRef = useRef<Record<string, boolean>>({})
-  const previewRef = useRef<THREE.Mesh>(null)
+  const previewGroupRef = useRef<THREE.Group>(null)
+  const cubePreviewRef = useRef<THREE.Mesh>(null)
+  const spherePreviewRef = useRef<THREE.Mesh>(null)
 
   const updatePreview = () => {
-    if (!previewRef.current) return
+    if (!previewGroupRef.current || !cubePreviewRef.current || !spherePreviewRef.current) return
 
-    const { tool } = useEditorStore.getState()
+    const { tool, shape, shapeSize } = useEditorStore.getState()
     const isRotate = tool === Tab.RotateX || tool === Tab.RotateY || tool === Tab.RotateZ
     if ((tool !== Tab.Add && tool !== Tab.Remove && !isRotate) || !controlsRef.current?.isLocked) {
-      previewRef.current.visible = false
+      previewGroupRef.current.visible = false
       return
     }
 
@@ -50,7 +83,8 @@ export const FreeCameraControls = ({
     const intersects = raycaster.intersectObjects(scene.children, true)
     const hit = intersects.find(
       (item) =>
-        item.object !== previewRef.current &&
+        item.object !== cubePreviewRef.current &&
+        item.object !== spherePreviewRef.current &&
         (item.object as THREE.InstancedMesh).isInstancedMesh
     )
 
@@ -71,81 +105,64 @@ export const FreeCameraControls = ({
         let targetZ = 0
         let showPreview = false
 
+        let blockPos = point.clone()
         if (tool === Tab.Add) {
-          const placePos = point.clone().addScaledVector(normal, 0.5)
-          const x = Math.floor(placePos.x + halfSize)
-          const y = Math.floor(placePos.y)
-          const z = Math.floor(placePos.z + halfSize)
+           blockPos.addScaledVector(normal, 0.5)
+        } else {
+           blockPos.addScaledVector(normal, -0.5)
+        }
 
-          if (x >= 0 && x < mapSize && y >= 0 && y < 64 && z >= 0 && z < mapSize) {
-            const block = localMap.getGlobalBlock(x, y, z)
-            if (block === Block.Air || block === Block.Water) {
-              targetX = x - halfSize + 0.5
-              targetY = y + 0.5
-              targetZ = z - halfSize + 0.5
-              showPreview = true
-            }
-          }
-        } else if (tool === Tab.Remove) {
-          const blockPos = point.clone().addScaledVector(normal, -0.5)
-          const x = Math.floor(blockPos.x + halfSize)
-          const y = Math.floor(blockPos.y)
-          const z = Math.floor(blockPos.z + halfSize)
+        const x = Math.floor(blockPos.x + halfSize)
+        const y = Math.floor(blockPos.y)
+        const z = Math.floor(blockPos.z + halfSize)
 
-          if (x >= 0 && x < mapSize && y >= 0 && y < 64 && z >= 0 && z < mapSize) {
-            const block = localMap.getGlobalBlock(x, y, z)
-            if (block !== Block.Air && block !== Block.Bedrock) {
-              targetX = x - halfSize + 0.5
-              targetY = y + 0.5
-              targetZ = z - halfSize + 0.5
-              showPreview = true
-            }
-          }
-        } else if (tool === Tab.RotateX || tool === Tab.RotateY || tool === Tab.RotateZ) {
-          const blockPos = point.clone().addScaledVector(normal, -0.5)
-          const x = Math.floor(blockPos.x + halfSize)
-          const y = Math.floor(blockPos.y)
-          const z = Math.floor(blockPos.z + halfSize)
-
-          if (x >= 0 && x < mapSize && y >= 0 && y < 64 && z >= 0 && z < mapSize) {
-            const block = localMap.getGlobalBlock(x, y, z)
-            if (block !== Block.Air && block !== Block.Bedrock) {
-              targetX = x - halfSize + 0.5
-              targetY = y + 0.5
-              targetZ = z - halfSize + 0.5
-              showPreview = true
-            }
-          }
+        if (x >= 0 && x < mapSize && y >= 0 && y < 64 && z >= 0 && z < mapSize) {
+            targetX = x - halfSize + 0.5
+            targetY = y + 0.5
+            targetZ = z - halfSize + 0.5
+            showPreview = true
         }
 
         if (showPreview) {
-          previewRef.current.position.set(targetX, targetY, targetZ)
+          previewGroupRef.current.position.set(targetX, targetY, targetZ)
           
-          if (previewRef.current.material) {
-            let color = '#fbbf24' // Add: gold
-            if (tool === Tab.Remove) {
-              color = '#ef4444' // Remove: red
-            } else if (tool === Tab.RotateX) {
-              color = '#ec4899' // Rotate X: pink
-            } else if (tool === Tab.RotateY) {
-              color = '#10b981' // Rotate Y: green
-            } else if (tool === Tab.RotateZ) {
-              color = '#3b82f6' // Rotate Z: blue
-            }
-            ;(previewRef.current.material as THREE.MeshBasicMaterial).color.set(color)
+          let color = '#fbbf24' // Add: gold
+          if (tool === Tab.Remove) {
+            color = '#ef4444' // Remove: red
+          } else if (tool === Tab.RotateX) {
+            color = '#ec4899' // Rotate X: pink
+          } else if (tool === Tab.RotateY) {
+            color = '#10b981' // Rotate Y: green
+          } else if (tool === Tab.RotateZ) {
+            color = '#3b82f6' // Rotate Z: blue
           }
           
-          // Prevent Z-fighting in Remove mode by scaling the preview block slightly larger (acting as a filter overlay)
-          const scaleVal = tool === Tab.Add ? 1.0 : 1.02
-          previewRef.current.scale.set(scaleVal, scaleVal, scaleVal)
+          const matCube = cubePreviewRef.current.material as THREE.MeshBasicMaterial
+          const matSphere = spherePreviewRef.current.material as THREE.MeshBasicMaterial
+          matCube.color.set(color)
+          matSphere.color.set(color)
+          
+          const radius = shapeSize - 1
+          const scaleVal = (radius * 2 + 1) * (tool === Tab.Add ? 1.0 : 1.02)
+          
+          if (shape === Shape.Sphere && radius > 0) {
+            cubePreviewRef.current.visible = false
+            spherePreviewRef.current.visible = true
+            const sphereScale = (radius + 0.5) * 2 * (tool === Tab.Add ? 1.0 : 1.02)
+            spherePreviewRef.current.scale.set(sphereScale, sphereScale, sphereScale)
+          } else {
+            cubePreviewRef.current.visible = true
+            spherePreviewRef.current.visible = false
+            cubePreviewRef.current.scale.set(scaleVal, scaleVal, scaleVal)
+          }
 
-          previewRef.current.visible = true
+          previewGroupRef.current.visible = true
           return
         }
       }
     }
 
-    previewRef.current.visible = false
+    previewGroupRef.current.visible = false
   }
 
   useEffect(() => {
@@ -163,7 +180,7 @@ export const FreeCameraControls = ({
   const handleEditorAction = (e: MouseEvent) => {
     if (e.button !== 0) return // Left click only
 
-    const { tool, selectedBlock } = useEditorStore.getState()
+    const { tool, selectedBlock, shape, shapeSize } = useEditorStore.getState()
     const isRotate = tool === Tab.RotateX || tool === Tab.RotateY || tool === Tab.RotateZ
     if (tool !== Tab.Add && tool !== Tab.Remove && !isRotate) return
 
@@ -178,7 +195,7 @@ export const FreeCameraControls = ({
 
     const hit = intersects.find((item) => {
       const obj = item.object
-      if (obj === previewRef.current) return false
+      if (obj === cubePreviewRef.current || obj === spherePreviewRef.current || obj === previewGroupRef.current) return false
       return (obj as THREE.InstancedMesh).isInstancedMesh
     })
 
@@ -197,38 +214,33 @@ export const FreeCameraControls = ({
     }
 
     const halfSize = mapSize / 2
+    let blockPos = point.clone()
+    
+    if (tool === Tab.Add) {
+       blockPos.addScaledVector(normal, 0.5)
+    } else {
+       blockPos.addScaledVector(normal, -0.5)
+    }
 
-    if (tool === Tab.Remove) {
-      const blockPos = point.clone().addScaledVector(normal, -0.5)
-      const x = Math.floor(blockPos.x + halfSize)
-      const y = Math.floor(blockPos.y)
-      const z = Math.floor(blockPos.z + halfSize)
+    const centerX = Math.floor(blockPos.x + halfSize)
+    const centerY = Math.floor(blockPos.y)
+    const centerZ = Math.floor(blockPos.z + halfSize)
 
-      if (x >= 0 && x < mapSize && y >= 0 && y < 64 && z >= 0 && z < mapSize) {
+    const blocksToUpdate = getAffectedBlocks(centerX, centerY, centerZ, shape, shapeSize, mapSize)
+
+    for (const pos of blocksToUpdate) {
+      const { x, y, z } = pos
+      if (tool === Tab.Remove) {
         const block = localMap.getGlobalBlock(x, y, z)
         if (block !== Block.Air && block !== Block.Bedrock) {
           onUpdateBlock(x, y, z, null)
         }
-      }
-    } else if (tool === Tab.Add) {
-      const placePos = point.clone().addScaledVector(normal, 0.5)
-      const x = Math.floor(placePos.x + halfSize)
-      const y = Math.floor(placePos.y)
-      const z = Math.floor(placePos.z + halfSize)
-
-      if (x >= 0 && x < mapSize && y >= 0 && y < 64 && z >= 0 && z < mapSize) {
+      } else if (tool === Tab.Add) {
         const block = localMap.getGlobalBlock(x, y, z)
         if (block === Block.Air || block === Block.Water) {
           onUpdateBlock(x, y, z, selectedBlock)
         }
-      }
-    } else if (tool === Tab.RotateX || tool === Tab.RotateY || tool === Tab.RotateZ) {
-      const blockPos = point.clone().addScaledVector(normal, -0.5)
-      const x = Math.floor(blockPos.x + halfSize)
-      const y = Math.floor(blockPos.y)
-      const z = Math.floor(blockPos.z + halfSize)
-
-      if (x >= 0 && x < mapSize && y >= 0 && y < 64 && z >= 0 && z < mapSize) {
+      } else if (tool === Tab.RotateX || tool === Tab.RotateY || tool === Tab.RotateZ) {
         const block = localMap.getGlobalBlock(x, y, z)
         if (block !== Block.Air && block !== Block.Bedrock) {
           const currentRotation = localMap.getGlobalBlockRotation(x, y, z)
@@ -274,14 +286,26 @@ export const FreeCameraControls = ({
       }
     }
 
+    const handleWheel = (e: WheelEvent) => {
+      if (!active || !controlsRef.current?.isLocked) return
+      const { shapeSize, setShapeSize } = useEditorStore.getState()
+      if (e.deltaY < 0) {
+        setShapeSize(Math.min(5, shapeSize + 1))
+      } else {
+        setShapeSize(Math.max(1, shapeSize - 1))
+      }
+    }
+
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
     window.addEventListener('mousedown', handleMouseDown)
+    window.addEventListener('wheel', handleWheel)
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
       window.removeEventListener('mousedown', handleMouseDown)
+      window.removeEventListener('wheel', handleWheel)
     }
   }, [gl.domElement, active, localMap, onUpdateBlock])
 
@@ -386,10 +410,16 @@ export const FreeCameraControls = ({
   return active ? (
     <>
       <PointerLockControls ref={(node) => { controlsRef.current = node }} selector="#canvas-container" />
-      <mesh ref={previewRef} visible={false}>
-        <boxGeometry args={[1.01, 1.01, 1.01]} />
-        <meshBasicMaterial color="#fbbf24" transparent opacity={0.4} depthWrite={false} />
-      </mesh>
+      <group ref={previewGroupRef} visible={false}>
+        <mesh ref={cubePreviewRef}>
+          <boxGeometry args={[1.01, 1.01, 1.01]} />
+          <meshBasicMaterial color="#fbbf24" transparent opacity={0.4} depthWrite={false} wireframe={false} />
+        </mesh>
+        <mesh ref={spherePreviewRef} visible={false}>
+          <sphereGeometry args={[0.5, 16, 16]} />
+          <meshBasicMaterial color="#fbbf24" transparent opacity={0.4} depthWrite={false} wireframe={false} />
+        </mesh>
+      </group>
     </>
   ) : null
 }
