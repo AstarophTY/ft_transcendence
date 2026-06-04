@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "WorldBlock" ADD COLUMN "rotation" INTEGER NOT NULL DEFAULT 0;

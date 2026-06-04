@@ -8,6 +8,7 @@ import { FriendsModule } from './friends/friends.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { UsersModule } from './users/users.module';
+import { WorldModule } from './world/world.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { UsersModule } from './users/users.module';
     CampusModule,
     FriendsModule,
     AdminModule,
+    WorldModule,
   ],
 })
 export class AppModule {}

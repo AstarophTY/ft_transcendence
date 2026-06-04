@@ -20,7 +20,7 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
 
   useSelectablePlanetAnimation({ planetRef, blendRef, hovered, index, totalCount })
 
-  const factor = 16
+  const factor = 32
   const previewVoxels = useMemo(() => map.getPreview(factor), [map])
   const scale = 1 / factor
   const half = 0.5
@@ -32,6 +32,22 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
   }, [previewVoxels])
 
   const getHeight = (voxelHeight: number) => Math.max(0, voxelHeight - minHeight) * scale
+
+  // Average color of the whole planet, used to tint the base cube so the flat
+  // areas (where no height face is drawn) take the terrain color instead of grey.
+  const baseColor = useMemo(() => {
+    if (previewVoxels.length === 0) return '#9ca3af'
+    let r = 0, g = 0, b = 0
+    for (const voxel of previewVoxels) {
+      const n = parseInt(voxel.color.slice(1), 16)
+      r += (n >> 16) & 255
+      g += (n >> 8) & 255
+      b += n & 255
+    }
+    const count = previewVoxels.length
+    const channel = (v: number) => Math.round(v / count).toString(16).padStart(2, '0')
+    return `#${channel(r)}${channel(g)}${channel(b)}`
+  }, [previewVoxels])
 
   return (
     <group ref={planetRef}>
@@ -56,7 +72,7 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
         }}
       >
         <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="#9ca3af" />
+        <meshStandardMaterial color={baseColor} />
       </mesh>
 
       <PlanetPreviewFaces

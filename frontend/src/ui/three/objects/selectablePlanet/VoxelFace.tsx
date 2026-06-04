@@ -1,5 +1,4 @@
 
-import { Block } from '@/types/Block'
 import type { PreviewVoxel } from '@/types/maps/PreviewVoxel.ts'
 
 type Orientation = 'top' | 'right' | 'front'
@@ -21,7 +20,7 @@ const VoxelFace = ({ orientation, previewVoxels, scale, half, inset, getHeight, 
   return (
     <group position={groupPosition}>
       {previewVoxels.map((voxel, index) => {
-        const color = voxel.block === Block.Stone ? '#9ca3af' : '#fbbf24'
+        const color = voxel.color
         const voxelHeight = getHeight(voxel.y)
         if (voxelHeight <= 0) return null
 
