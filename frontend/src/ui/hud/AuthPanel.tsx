@@ -346,7 +346,7 @@ function TakeOffButton() {
     <Button
       variant="secondary"
       size="icon"
-      className="pointer-events-auto absolute right-5 top-5 transition-transform hover:-translate-y-1 hover:scale-110 active:translate-y-[-100vh] active:duration-1000"
+      className="pointer-events-auto absolute right-5 top-5 transition-transform hover:-translate-y-1 hover:scale-110"
       onClick={() => setSceneMode('selection')}
     >
       <Rocket className="size-5" />
