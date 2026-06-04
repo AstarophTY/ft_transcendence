@@ -314,7 +314,7 @@ function UserMenu() {
               <UserBadge user={user} onlyAvatar />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-32">
+          <DropdownMenuContent className="w-32 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <DropdownMenuGroup>
               <DropdownMenuItem onSelect={() => togglePanel()}>{t('friends.title')} {incoming.length > 0 && (incoming.length)}</DropdownMenuItem>
               <DropdownMenuItem onSelect={() => openSettings(true)}>{t('settings.title')}</DropdownMenuItem>
@@ -352,9 +352,9 @@ function TakeOffButton() {
 
   return (
     <Button
-      variant="secondary"
+      variant="outline"
       size="icon"
-      className="pointer-events-auto absolute left-3 top-3 md:left-5 md:top-5 transition-transform hover:-translate-y-1 hover:scale-110"
+      className="pointer-events-auto absolute left-3 top-3 md:left-5 md:top-5 transition-transform hover:-translate-y-1 hover:scale-110 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-md"
       onClick={handleTakeoff}
     >
       <Rocket className="size-5" />

@@ -24,7 +24,7 @@ export default function PlanetQuickSelect() {
 
   return (
     <div className='absolute bottom-2 left-0 w-full flex justify-center'>
-			<Card className='px-4 py-3 flex-row gap-3'>
+			<Card className='px-4 py-3 flex flex-row gap-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border shadow-lg'>
       {worlds.map((world, index) => {
         const isActive = index === activeIndex
         return (

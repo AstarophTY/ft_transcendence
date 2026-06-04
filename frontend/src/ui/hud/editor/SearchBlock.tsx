@@ -277,7 +277,7 @@ export function SearchBlock() {
         dragControls={dragControls}
         dragListener={false}
         dragMomentum={false}
-        className="flex flex-col h-full w-full space-y-4 p-4 pointer-events-auto bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 rounded-xl border shadow-lg"
+        className="flex flex-col h-full w-full space-y-4 p-4 pointer-events-auto bg-background/60 backdrop-blur-md supports-[backdrop-filter]:bg-background/40 rounded-xl border border-border/40 shadow-lg"
       >
         <div className="flex flex-col space-y-2">
           <div 
@@ -294,10 +294,10 @@ export function SearchBlock() {
               placeholder="Search blocks..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1"
+              className="flex-1 bg-background/20 backdrop-blur-xs border-border/30 focus-visible:ring-1 focus-visible:ring-primary/50"
             />
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-[120px] capitalize">
+              <SelectTrigger className="w-[120px] capitalize bg-background/20 backdrop-blur-xs border-border/30 focus:ring-1 focus:ring-primary/50">
                 <SelectValue placeholder="Color" />
               </SelectTrigger>
               <SelectContent>
@@ -316,7 +316,7 @@ export function SearchBlock() {
             {displayedBlocks.map((block) => (
               <Card
                 key={block.id}
-                className={`flex flex-col cursor-pointer transition-all hover:scale-105 active:scale-95 overflow-hidden ${
+                className={`flex flex-col cursor-pointer transition-all hover:scale-105 active:scale-95 overflow-hidden bg-background/30 backdrop-blur-xs border border-border/30 hover:bg-background/45 ${
                   selectedBlock === block.id
                     ? 'ring-2 ring-primary border-primary'
                     : 'hover:border-primary/50'
