@@ -75,7 +75,7 @@ export class WorldService {
    * Persist a batch of block edits. A block set back to its generated state is
    * still stored as a diff entry; broken blocks are stored as Air (0).
    */
-  async saveBlocks(campusId: string, blocks: WorldBlockDto[]): Promise<void> {
+  async saveBlocks(campusId: string, blocks: WorldBlockDto[], userId: string): Promise<void> {
     if (blocks.length === 0) return;
     const world = await this.ensureWorld(campusId);
     await this.prisma.$transaction(
@@ -90,10 +90,11 @@ export class WorldService {
             x: b.x,
             y: b.y,
             z: b.z,
+            userIds: [userId],
             block: b.block,
             rotation,
           },
-          update: { block: b.block, rotation },
+          update: { block: b.block, rotation // TODO },
         });
       }),
     );

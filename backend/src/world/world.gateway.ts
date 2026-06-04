@@ -213,7 +213,7 @@ export class WorldGateway
       //  await this.world.saveUserBlocks(client.data.userId, blocks);
       //} else 
       if (campusId) {
-        await this.world.saveBlocks(campusId, blocks);
+        await this.world.saveBlocks(campusId, blocks, client.data.userId);
       }
     } catch {
       /* a failed persist should not break the live relay */
