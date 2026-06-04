@@ -124,7 +124,8 @@ const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
                   userId: target.username,
                   avatar: target.avatar,
                   email: null,
-                  role: 'USER'
+                  role: 'USER',
+                  campusId: null
                 }}/>
           </Html>
         </Billboard>

@@ -9,6 +9,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { AuthUser } from '../auth/interfaces/auth.interfaces';
 import { SaveBlocksDto } from './dto/save-blocks.dto';
 import { WorldService } from './world.service';
 
@@ -21,6 +23,12 @@ export class WorldController {
   @Get()
   list() {
     return this.world.listWorlds();
+  }
+
+  /** Get personal world of the current user. */
+  @Get('me')
+  getMe(@CurrentUser() user: AuthUser) {
+    return this.world.getUserWorld(user.userId);
   }
 
   /** A campus world: its generation profile plus every persisted block edit. */
@@ -37,5 +45,15 @@ export class WorldController {
     @Body() dto: SaveBlocksDto,
   ): Promise<void> {
     return this.world.saveBlocks(campusId, dto.blocks);
+  }
+
+  /** Persist a batch of block edits on the user's personal world. */
+  @Post('me/blocks')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  saveMe(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: SaveBlocksDto,
+  ): Promise<void> {
+    return this.world.saveUserBlocks(user.userId, dto.blocks);
   }
 }

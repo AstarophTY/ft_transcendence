@@ -4,6 +4,7 @@ export interface AccessTokenPayload {
   username: string
   avatar: string | null
   role: 'USER' | 'ADMIN'
+  campusId: string | null
   jti: string
   iat: number
   exp: number

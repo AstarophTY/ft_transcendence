@@ -265,7 +265,8 @@ function AuthDialog() {
               userId: "test",
               avatar: "",
               email: null,
-              role: 'USER'
+              role: 'USER',
+              campusId: null
             }}/>
         </Button>
       </DialogTrigger>

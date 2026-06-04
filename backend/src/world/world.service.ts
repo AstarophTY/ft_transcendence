@@ -73,25 +73,7 @@ export class WorldService {
   async saveBlocks(campusId: string, blocks: WorldBlockDto[]): Promise<void> {
     if (blocks.length === 0) return;
     const world = await this.ensureWorld(campusId);
-    await this.prisma.$transaction(
-      blocks.map((b) => {
-        const rotation = b.rotation ?? 0;
-        return this.prisma.worldBlock.upsert({
-          where: {
-            worldId_x_y_z: { worldId: world.id, x: b.x, y: b.y, z: b.z },
-          },
-          create: {
-            worldId: world.id,
-            x: b.x,
-            y: b.y,
-            z: b.z,
-            block: b.block,
-            rotation,
-          },
-          update: { block: b.block, rotation },
-        });
-      }),
-    );
+    await this.saveToWorld(world.id, blocks);
   }
 
   /** Create a world (with a fresh random profile) for a campus that has none. */
@@ -103,7 +85,9 @@ export class WorldService {
 
   /** Return the campus world, creating it on the fly if it does not exist yet. */
   private async ensureWorld(campusId: string): Promise<World> {
-    const world = await this.prisma.world.findUnique({ where: { campusId } });
+    const world = await this.prisma.world.findUnique({
+      where: { campusId_userId: { campusId, userId: null } },
+    });
     if (world) return world;
 
     const campus: Campus | null = await this.prisma.campus.findUnique({
@@ -111,5 +95,73 @@ export class WorldService {
     });
     if (!campus) throw new NotFoundException('Campus not found');
     return this.createWorld(campusId);
+  }
+
+  /** Get personal world profile plus block edits. */
+  async getUserWorld(userId: string) {
+    const world = await this.ensureUserWorld(userId);
+    const blocks = await this.prisma.worldBlock.findMany({
+      where: { worldId: world.id },
+      select: { x: true, y: true, z: true, block: true, rotation: true },
+    });
+    return {
+      userId,
+      seed: world.seed,
+      widthInChunks: world.widthInChunks,
+      depthInChunks: world.depthInChunks,
+      scale: world.scale,
+      octaves: world.octaves,
+      persistence: world.persistence,
+      relief: world.relief,
+      baseHeight: world.baseHeight,
+      variationRange: world.variationRange,
+      blocks,
+    };
+  }
+
+  /** Persist block edits on a user's world. */
+  async saveUserBlocks(userId: string, blocks: WorldBlockDto[]): Promise<void> {
+    if (blocks.length === 0) return;
+    const world = await this.ensureUserWorld(userId);
+    await this.saveToWorld(world.id, blocks);
+  }
+
+  private async ensureUserWorld(userId: string): Promise<World> {
+    const world = await this.prisma.world.findUnique({
+      where: { campusId_userId: { campusId: null, userId } },
+    });
+    if (world) return world;
+
+    return this.prisma.world.create({
+      data: {
+        userId,
+        ...generateWorldProfile(`user-${userId}`),
+      },
+    });
+  }
+
+  private async saveToWorld(
+    worldId: string,
+    blocks: WorldBlockDto[],
+  ): Promise<void> {
+    await this.prisma.$transaction(
+      blocks.map((b) => {
+        const rotation = b.rotation ?? 0;
+        return this.prisma.worldBlock.upsert({
+          where: {
+            worldId_x_y_z: { worldId, x: b.x, y: b.y, z: b.z },
+          },
+          create: {
+            worldId,
+            x: b.x,
+            y: b.y,
+            z: b.z,
+            block: b.block,
+            rotation,
+          },
+          update: { block: b.block, rotation },
+        });
+      }),
+    );
   }
 }

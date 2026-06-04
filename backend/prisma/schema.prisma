@@ -44,6 +44,8 @@ model User {
 
   sentFriendRequests     Friendship[] @relation("FriendRequester")
   receivedFriendRequests Friendship[] @relation("FriendAddressee")
+
+  world World?
 }
 
 model RefreshToken {
@@ -127,9 +129,12 @@ model Campus {
 /// from this generation profile, so only the player edits are persisted (in
 /// WorldBlock) on top of it.
 model World {
-  id       String @id @default(uuid())
-  campusId String @unique
-  campus   Campus @relation(fields: [campusId], references: [id], onDelete: Cascade)
+  id       String  @id @default(uuid())
+  campusId String? @unique
+  campus   Campus? @relation(fields: [campusId], references: [id], onDelete: Cascade)
+
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   /// Terrain generation profile (mirrors the frontend DemoPlanetProfile).
   seed           String
