@@ -1,7 +1,8 @@
 import { 
-  Hammer,
   ArrowUpToLine,
-  ArrowDownToLine
+  ArrowDownToLine,
+  Eye,
+  Video
 } from 'lucide-react'
 import { useEditorStore } from '@/store/editorStore'
 import { usePlanetStore } from '@/store/planetStore'
@@ -11,6 +12,7 @@ import { useRef, useState } from 'react'
 
 export default function MobileVirtualControls() {
   const inEditor = useEditorStore((s) => s.in_editor)
+  const activeEditor = useEditorStore((s) => s.activeEditor)
   const theme = usePlanetStore((s) => s.theme)
   const isTouch = useIsTouchDevice()
   const leftMoved = useRef(false)
@@ -143,11 +145,25 @@ export default function MobileVirtualControls() {
 
   return (
     <div className="fixed inset-0 pointer-events-none z-40 select-none">
+      {/* Full-screen tap zone for block placement/interaction */}
+      <div 
+        className="absolute inset-0 pointer-events-auto z-0 touch-none"
+        onPointerDown={(e) => {
+          if (e.button !== 0) return
+          dispatchKey('Enter', true)
+        }}
+        onPointerUp={(e) => {
+          if (e.button !== 0) return
+          dispatchKey('Enter', false)
+        }}
+        onPointerCancel={() => dispatchKey('Enter', false)}
+      />
+
       {/* Left side: Movement Joystick */}
       <div 
-        className="absolute pointer-events-auto flex items-end gap-2
-                   portrait:left-4 portrait:bottom-16
-                   landscape:left-4 landscape:bottom-4"
+        className="absolute pointer-events-auto flex items-end gap-2 z-10
+                   portrait:left-8 portrait:bottom-20
+                   landscape:left-20 landscape:bottom-10"
       >
         <div className={`p-2 rounded-full backdrop-blur-md border shadow-lg transition-all duration-150 ${
           leftActive 
@@ -169,20 +185,20 @@ export default function MobileVirtualControls() {
         {inEditor && (
           <div className="flex flex-col gap-1 p-1 rounded-xl bg-background/50 backdrop-blur-md border border-border/30 shadow-lg">
             <button
-              onTouchStart={() => dispatchKey('Space', true)}
-              onTouchEnd={() => dispatchKey('Space', false)}
-              onMouseDown={() => dispatchKey('Space', true)}
-              onMouseUp={() => dispatchKey('Space', false)}
+              onPointerDown={() => dispatchKey('Space', true)}
+              onPointerUp={() => dispatchKey('Space', false)}
+              onPointerCancel={() => dispatchKey('Space', false)}
+              onPointerLeave={() => dispatchKey('Space', false)}
               className="flex h-10 w-10 items-center justify-center rounded-lg bg-background/40 border border-border/30 text-foreground active:bg-primary/40 active:scale-95 select-none touch-none"
               aria-label="Move Up"
             >
               <ArrowUpToLine className="size-5" />
             </button>
             <button
-              onTouchStart={() => dispatchKey('ShiftLeft', true)}
-              onTouchEnd={() => dispatchKey('ShiftLeft', false)}
-              onMouseDown={() => dispatchKey('ShiftLeft', true)}
-              onMouseUp={() => dispatchKey('ShiftLeft', false)}
+              onPointerDown={() => dispatchKey('ShiftLeft', true)}
+              onPointerUp={() => dispatchKey('ShiftLeft', false)}
+              onPointerCancel={() => dispatchKey('ShiftLeft', false)}
+              onPointerLeave={() => dispatchKey('ShiftLeft', false)}
               className="flex h-10 w-10 items-center justify-center rounded-lg bg-background/40 border border-border/30 text-foreground active:bg-primary/40 active:scale-95 select-none touch-none"
               aria-label="Move Down"
             >
@@ -192,25 +208,29 @@ export default function MobileVirtualControls() {
         )}
       </div>
 
-      {/* Right side: Camera Rotation Joystick & Action Button */}
+      {/* Right side: Camera Rotation Joystick & Action Button (with Freecam Toggle stacked above) */}
       <div 
-        className="absolute pointer-events-auto flex items-end gap-3
-                   portrait:right-4 portrait:bottom-16
-                   landscape:right-4 landscape:bottom-4"
+        className="absolute pointer-events-auto flex flex-col items-end gap-3 z-10
+                   portrait:right-8 portrait:bottom-20
+                   landscape:right-10 landscape:bottom-10"
       >
-        {/* Action Button (Enter) to build/remove blocks in Editor Mode */}
-        {inEditor && (
-          <button
-            onTouchStart={() => dispatchKey('Enter', true)}
-            onTouchEnd={() => dispatchKey('Enter', false)}
-            onMouseDown={() => dispatchKey('Enter', true)}
-            onMouseUp={() => dispatchKey('Enter', false)}
-            className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/75 backdrop-blur-md border border-primary/40 text-primary-foreground shadow-lg active:bg-primary active:scale-90 select-none touch-none"
-            aria-label="Build or Interact"
-          >
-            <Hammer className="size-7" />
-          </button>
-        )}
+        {/* Freecam Mode Toggle Button */}
+        <button
+          onClick={() => activeEditor(!inEditor)}
+          className="flex h-10 px-3.5 items-center justify-center gap-1.5 rounded-xl bg-background/60 backdrop-blur-md border border-border/30 text-foreground font-semibold text-xs shadow-lg active:scale-95 active:bg-background/80 transition-all select-none pointer-events-auto"
+        >
+          {inEditor ? (
+            <>
+              <Eye className="size-4 text-primary" />
+              <span>Exit Freecam</span>
+            </>
+          ) : (
+            <>
+              <Video className="size-4" />
+              <span>Freecam</span>
+            </>
+          )}
+        </button>
 
         <div className={`p-2 rounded-full backdrop-blur-md border shadow-lg transition-all duration-150 ${
           rightActive 

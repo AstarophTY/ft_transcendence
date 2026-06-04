@@ -180,15 +180,12 @@ const WorldScene = () => {
   const renderDistance = usePlanetStore((state) => state.renderDistance)
   const playerRef = useRef<THREE.Group | null>(null)
 
-  const [currentMode, setCurrentMode] = useState<'freecam' | 'player'>('player')
+  const inEditor = useEditorStore((state) => state.in_editor)
   const activeEditor = useEditorStore((state) => state.activeEditor)
+  const currentMode = inEditor ? 'freecam' : 'player'
 
   useHotkeys('c', () => {
-    setCurrentMode((prev) => {
-      const nextMode = prev === 'freecam' ? 'player' : 'freecam'
-      activeEditor(nextMode === 'freecam')
-      return nextMode
-    })
+    activeEditor(!inEditor)
   })
 
   // Generation profile of the selected campus world.

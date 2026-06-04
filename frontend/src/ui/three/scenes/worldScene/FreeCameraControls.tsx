@@ -11,6 +11,7 @@ import { Tab, Shape } from '@/types/Editor'
 import { Block } from '@/types/Block'
 import { LocalMap } from '@/types/maps/LocalMap'
 import { Chunk } from '@/types/maps/Chunk'
+import { useIsTouchDevice } from '@/hooks/use-mobile.tsx'
 
 interface FreeCameraControlsProps {
   localMap: LocalMap
@@ -59,6 +60,7 @@ export const FreeCameraControls = ({
   onUpdateBlock,
 }: FreeCameraControlsProps) => {
   const { camera, gl, scene } = useThree()
+  const isTouch = useIsTouchDevice()
   const controlsRef = useRef<PointerLockControlsImpl | null>(null)
   const keysRef = useRef<Record<string, boolean>>({})
   const previewGroupRef = useRef<THREE.Group>(null)
@@ -70,7 +72,7 @@ export const FreeCameraControls = ({
 
     const { tool, shape, shapeSize } = useEditorStore.getState()
     const isRotate = tool === Tab.RotateX || tool === Tab.RotateY || tool === Tab.RotateZ
-    if ((tool !== Tab.Add && tool !== Tab.Remove && !isRotate) || !controlsRef.current?.isLocked) {
+    if ((tool !== Tab.Add && tool !== Tab.Remove && !isRotate) || (!isTouch && !controlsRef.current?.isLocked)) {
       previewGroupRef.current.visible = false
       return
     }
@@ -335,11 +337,18 @@ export const FreeCameraControls = ({
       if (keysRef.current.ArrowRight || keysRef.current.KeyE) {
         camera.rotation.y -= rotSpeed * delta
       }
-      if (keysRef.current.ArrowUp || keysRef.current.KeyR) {
+      if (keysRef.current.ArrowUp) {
+        camera.rotation.x -= rotSpeed * delta
+        camera.rotation.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, camera.rotation.x))
+      } else if (keysRef.current.KeyR) {
         camera.rotation.x += rotSpeed * delta
         camera.rotation.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, camera.rotation.x))
       }
-      if (keysRef.current.ArrowDown || keysRef.current.KeyF) {
+      
+      if (keysRef.current.ArrowDown) {
+        camera.rotation.x += rotSpeed * delta
+        camera.rotation.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, camera.rotation.x))
+      } else if (keysRef.current.KeyF) {
         camera.rotation.x -= rotSpeed * delta
         camera.rotation.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, camera.rotation.x))
       }
