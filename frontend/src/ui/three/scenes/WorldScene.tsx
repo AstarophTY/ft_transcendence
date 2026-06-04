@@ -261,6 +261,8 @@ const WorldScene = () => {
     const freecam = currentMode === 'freecam'
     const round = (n: number) => Math.round(n * 50) / 50 // ~0.02 step
 
+    camera.getWorldDirection(camDir.current)
+
     const payload: {
       campusId: string
       p: [number, number, number]
@@ -268,15 +270,16 @@ const WorldScene = () => {
       m: 'player' | 'freecam'
       c?: [number, number, number]
       cr?: number
+      cp?: number
     } = {
       campusId,
       p: [round(p.position.x), round(p.position.y), round(p.position.z)],
       r: round(p.rotation.y),
       m: freecam ? 'freecam' : 'player',
+      cp: round(Math.asin(camDir.current.y)),
     }
 
     if (freecam) {
-      camera.getWorldDirection(camDir.current)
       payload.c = [
         round(camera.position.x),
         round(camera.position.y),
@@ -286,7 +289,7 @@ const WorldScene = () => {
     }
 
     // A signature that captures everything peers care about (incl. mode switch).
-    const key = `${payload.m}|${payload.p.join(',')}|${payload.r}|${payload.c?.join(',') ?? ''}|${payload.cr ?? ''}`
+    const key = `${payload.m}|${payload.p.join(',')}|${payload.r}|${payload.c?.join(',') ?? ''}|${payload.cr ?? ''}|${payload.cp ?? ''}`
     const now = performance.now()
     const last = lastSent.current
     if (key === last.key || now - last.t < 66) return // ~15 Hz, only on change

@@ -36,6 +36,7 @@ interface PlayerState {
   m: 'player' | 'freecam';
   c?: [number, number, number];
   cr?: number;
+  cp?: number;
 }
 
 /**
@@ -125,13 +126,14 @@ export class WorldGateway
       m?: unknown;
       c?: unknown;
       cr?: unknown;
+      cp?: unknown;
     },
   ): void {
     const campusId = body?.campusId;
     const room = campusId ? this.room(campusId) : null;
     if (!campusId || !room || !client.rooms.has(room)) return;
 
-    const state = this.sanitizeTransform(body.p, body.r, body.m, body.c, body.cr);
+    const state = this.sanitizeTransform(body.p, body.r, body.m, body.c, body.cr, body.cp);
     if (!state) return;
 
     let roomPlayers = this.players.get(campusId);
@@ -197,12 +199,17 @@ export class WorldGateway
     m: unknown,
     c: unknown,
     cr: unknown,
+    cp: unknown,
   ): PlayerState | null {
     const pos = this.toVec3(p);
     if (!pos || typeof r !== 'number' || !Number.isFinite(r)) return null;
 
     const mode = m === 'freecam' ? 'freecam' : 'player';
     const state: PlayerState = { p: pos, r, m: mode };
+
+    if (typeof cp === 'number' && Number.isFinite(cp)) {
+      state.cp = cp;
+    }
 
     // The camera marker is only relevant (and trusted) in freecam.
     if (mode === 'freecam') {

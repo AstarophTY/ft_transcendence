@@ -18,6 +18,7 @@ interface RemoteTransform {
   yaw: number
   camPos: THREE.Vector3
   camYaw: number
+  camPitch: number
   mode: PlayerMode
 }
 
@@ -28,6 +29,7 @@ type MovePayload = {
   m: PlayerMode
   c?: [number, number, number]
   cr?: number
+  cp?: number
 }
 
 /** Shortest-path angular interpolation so the avatar never spins the long way. */
@@ -88,17 +90,19 @@ const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
     if (!bodyGroup || !camGroup) return
 
     if (!spawned.current) {
-      // Snap to the first known transforms so nothing slides in from origin.
       bodyGroup.position.copy(target.pos)
       bodyGroup.rotation.y = target.yaw
+      camGroup.rotation.order = 'YXZ'
       camGroup.position.copy(target.camPos)
       camGroup.rotation.y = target.camYaw
+      camGroup.rotation.x = -target.camPitch
       spawned.current = true
     } else {
       bodyGroup.position.lerp(target.pos, 0.25)
       bodyGroup.rotation.y = lerpAngle(bodyGroup.rotation.y, target.yaw, 0.25)
       camGroup.position.lerp(target.camPos, 0.25)
       camGroup.rotation.y = lerpAngle(camGroup.rotation.y, target.camYaw, 0.25)
+      camGroup.rotation.x = lerpAngle(camGroup.rotation.x, -target.camPitch, 0.25)
     }
 
     camGroup.visible = target.mode === 'freecam'
@@ -131,10 +135,11 @@ const RemotePlayers = ({ campusId }: { campusId: string }) => {
     const socket = connectWorldSocket(token)
     const store = targets.current
 
-    const upsert = ({ id, p, r, m, c, cr }: MovePayload) => {
+    const upsert = ({ id, p, r, m, c, cr, cp }: MovePayload) => {
       const mode: PlayerMode = m === 'freecam' ? 'freecam' : 'player'
       const camPos = c ?? p // fall back to the body when no camera is sent
       const camYaw = cr ?? r
+      const camPitch = cp ?? 0
       const existing = store.get(id)
       if (existing) {
         existing.pos.set(p[0], p[1], p[2])
@@ -142,12 +147,14 @@ const RemotePlayers = ({ campusId }: { campusId: string }) => {
         existing.mode = mode
         existing.camPos.set(camPos[0], camPos[1], camPos[2])
         existing.camYaw = camYaw
+        existing.camPitch = camPitch
       } else {
         store.set(id, {
           pos: new THREE.Vector3(p[0], p[1], p[2]),
           yaw: r,
           camPos: new THREE.Vector3(camPos[0], camPos[1], camPos[2]),
           camYaw,
+          camPitch,
           mode,
         })
         setIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
