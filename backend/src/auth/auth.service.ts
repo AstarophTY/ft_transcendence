@@ -137,7 +137,6 @@ export class AuthService {
     profile: FortyTwoProfile,
   ): Promise<void> {
     if (profile.campus) {
-      // Unknown campuses are not created here: a request is opened for staff.
       await this.campus.syncFortyTwoCampus(user.id, profile.campus);
     }
     await this.fortyTwo.resyncCoins(user.id);

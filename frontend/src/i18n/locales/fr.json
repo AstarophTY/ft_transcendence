@@ -191,13 +191,6 @@
       "local": "Comptes locaux"
     },
     "campus": {
-      "empty": "Aucune demande de campus en attente.",
-      "requestedBy": "Demandé par {{user}}",
-      "approve": "Accepter",
-      "decline": "Refuser",
-      "approved": "Campus « {{label}} » accepté",
-      "declined": "Demande pour « {{label}} » refusée",
-      "requestsSection": "Demandes en attente",
       "manageSection": "Tous les campus",
       "delete": "Supprimer le campus",
       "deleted": "Campus « {{label}} » supprimé",

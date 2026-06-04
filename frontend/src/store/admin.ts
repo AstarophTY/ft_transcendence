@@ -14,14 +14,10 @@ import {
   type SignupPoint,
 } from '@/lib/admin'
 import {
-  approveCampusRequest,
-  declineCampusRequest,
   deleteCampus,
-  listCampusRequests,
   listManagedCampuses,
   removeCampusMember,
   updateCampus,
-  type CampusRequest,
   type CampusWithMembers,
 } from '@/lib/campus'
 import type { UserRole } from '@/lib/api'
@@ -33,7 +29,6 @@ interface AdminState {
   stats: AdminStats | null
   signups: SignupPoint[]
   users: AdminUser[]
-  campusRequests: CampusRequest[]
   campuses: CampusWithMembers[]
   loading: boolean
   editing: AdminUser | null
@@ -45,8 +40,6 @@ interface AdminState {
   removeUser: (user: AdminUser) => Promise<void>
   saveUser: (id: string, body: AdminUserUpdate) => Promise<boolean>
   resetPassword: (id: string, newPassword: string) => Promise<boolean>
-  approveCampus: (request: CampusRequest) => Promise<void>
-  declineCampus: (request: CampusRequest) => Promise<void>
   saveCampus: (id: string, body: { label?: string; coins?: number }) => Promise<boolean>
   removeCampus: (campus: CampusWithMembers) => Promise<void>
   detachMember: (campusId: string, userId: string) => Promise<void>
@@ -57,7 +50,6 @@ export const useAdmin = create<AdminState>((set, get) => ({
   stats: null,
   signups: [],
   users: [],
-  campusRequests: [],
   campuses: [],
   loading: false,
   editing: null,
@@ -72,15 +64,14 @@ export const useAdmin = create<AdminState>((set, get) => ({
   load: async () => {
     set({ loading: true })
     try {
-      const [stats, signups, users, campusRequests, campuses] =
+      const [stats, signups, users, campuses] =
         await Promise.all([
           getAdminStats(),
           getSignups(),
           listAdminUsers(),
-          listCampusRequests(),
           listManagedCampuses(),
         ])
-      set({ stats, signups, users, campusRequests, campuses, loading: false })
+      set({ stats, signups, users, campuses, loading: false })
     } catch (error) {
       set({ loading: false })
       toast.error(toMessage(error))
@@ -126,26 +117,6 @@ export const useAdmin = create<AdminState>((set, get) => ({
     } catch (error) {
       toast.error(toMessage(error))
       return false
-    }
-  },
-
-  approveCampus: async (request) => {
-    try {
-      await approveCampusRequest(request.id)
-      toast.success(i18n.t('admin.campus.approved', { label: request.label }))
-      await get().load()
-    } catch (error) {
-      toast.error(toMessage(error))
-    }
-  },
-
-  declineCampus: async (request) => {
-    try {
-      await declineCampusRequest(request.id)
-      toast.success(i18n.t('admin.campus.declined', { label: request.label }))
-      await get().load()
-    } catch (error) {
-      toast.error(toMessage(error))
     }
   },
 

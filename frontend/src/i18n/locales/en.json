@@ -191,13 +191,6 @@
       "local": "Local accounts"
     },
     "campus": {
-      "empty": "No campus requests pending.",
-      "requestedBy": "Requested by {{user}}",
-      "approve": "Approve",
-      "decline": "Decline",
-      "approved": "Campus \"{{label}}\" approved",
-      "declined": "Request for \"{{label}}\" declined",
-      "requestsSection": "Pending requests",
       "manageSection": "All campuses",
       "delete": "Delete campus",
       "deleted": "Campus \"{{label}}\" deleted",
