@@ -397,6 +397,7 @@ useEffect(() => {
 
     // Can't place a paid block when the campus has no coins left.
     const economy = useWorldEconomy.getState()
+    console.log("Coins:", economy.coins)
     if (isPlacement && isPaidBlock(blockValue) && economy.coins <= 0) {
       toast.error(i18n.t('world.noCoins', { defaultValue: 'Your campus is out of coins' }))
       return

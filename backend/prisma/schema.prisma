@@ -18,13 +18,15 @@ model User {
   role          Role    @default(USER)
   isVerified    Boolean @default(false)
 
-  displayName          String?
-  bio                  String?
-  campusId             String?
-  campus               Campus?    @relation("CampusUsers", fields: [campusId], references: [id])
-  coins                Int        @default(0)
-  logtimeHours         Float      @default(0)
-  monthLogtimeHours    Float      @default(0)
+  displayName       String?
+  bio               String?
+  campusId          String?
+  campus            Campus?    @relation("CampusUsers", fields: [campusId], references: [id])
+  coins             Int        @default(0)
+  /// Coins spent placing paid blocks; subtracted from the logtime-earned total.
+  coinsSpent        Int        @default(0)
+  logtimeHours      Float      @default(0)
+  monthLogtimeHours Float      @default(0)
   fortyTwoAccessToken  String?
   fortyTwoRefreshToken String?
   language          String?

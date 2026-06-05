@@ -44,6 +44,7 @@ export const SELF_USER_SELECT = {
     },
   },
   coins: true,
+  coinsSpent: true,
   logtimeHours: true,
   monthLogtimeHours: true,
   language: true,

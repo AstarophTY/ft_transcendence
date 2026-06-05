@@ -44,10 +44,12 @@ export const useAvatar = () => {
   const eyesGltf = useGLTF(EYES_MODEL_PATH)
 
   const body = useMemo(() => cloneWithOwnMaterials(scene), [scene])
-  const eyes = useMemo(
-    () => cloneWithOwnMaterials(eyesGltf.scene),
-    [eyesGltf.scene],
-  )
+  const eyes = useMemo(() => {
+    const model = cloneWithOwnMaterials(eyesGltf.scene)
+    // The eyes model faces the opposite way to the body, so flip it to align.
+    model.rotation.y = Math.PI
+    return model
+  }, [eyesGltf.scene])
 
   return { body, eyes }
 }

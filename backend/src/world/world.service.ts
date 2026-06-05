@@ -150,12 +150,13 @@ export class WorldService {
 
   /**
    * Apply a batch of edits with the campus-coin economy:
-   * - placing a paid block costs 1 coin (rejected when the campus has none);
-   * - breaking a previously placed paid block refunds 1 coin;
+   * - placing a paid block costs 1 campus coin (rejected when the campus has 0);
+   * - breaking a previously placed paid block refunds 1 campus coin;
    * - free (world-construction) blocks are unaffected.
    *
-   * Returns the edits that were actually applied, the positions rejected for
-   * lack of coins, and the campus's new coin balance.
+   * The build budget is the campus's coins (the value admins set in the panel).
+   * Returns the applied edits, the positions rejected for lack of coins, and the
+   * campus's new coin balance.
    */
   async applyEdits(
     campusId: string,

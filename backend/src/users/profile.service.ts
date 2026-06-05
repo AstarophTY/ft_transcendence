@@ -11,6 +11,7 @@ import { FortyTwoService } from '../auth/forty-two.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SELF_USER_SELECT, SelfProfile, SelfUser } from './users.select';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { coinBalance } from './coins';
 
 /** Username may only be changed once every 30 days. */
 export const USERNAME_COOLDOWN_DAYS = 30;
@@ -37,7 +38,15 @@ export class ProfileService {
       Number(this.config.get<string>('COINS_PER_HOUR', '1')) || 1;
     // Site logtime: hours elapsed since the account was registered.
     const siteLogtimeHours = (Date.now() - me.createdAt.getTime()) / 3_600_000;
-    return { ...me, coinsPerHour, siteLogtimeHours };
+
+    // Coins come from the account-age logtime minus what was spent on blocks.
+    const coins = coinBalance(me.createdAt, me.coinsSpent, coinsPerHour);
+    if (coins !== me.coins) {
+      await this.prisma.user.update({ where: { id: userId }, data: { coins } });
+      me.coins = coins;
+    }
+
+    return { ...me, coins, coinsPerHour, siteLogtimeHours };
   }
 
   /** Live 42 logtime diagnostics for the signed-in user. */

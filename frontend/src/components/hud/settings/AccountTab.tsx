@@ -6,22 +6,20 @@ import { Input } from '@/components/shadcn/input'
 import { useSettings } from '@/store/settings'
 import Field from './Field'
 
-/** Progress bar toward the next coin, based on the current logtime hour. */
+/** Progress bar toward the next coin, based on the account-age (site) logtime. */
 function CoinsProgress({
   coins,
-  logtimeHours,
-  monthLogtimeHours,
+  siteLogtimeHours,
   coinsPerHour,
 }: {
   coins: number
-  logtimeHours: number
-  monthLogtimeHours: number
+  siteLogtimeHours: number
   coinsPerHour: number
 }) {
   const { t } = useTranslation()
   const rate = coinsPerHour || 1
-  // Fraction of the current coin already earned (0..1).
-  const intoNext = Math.min(1, Math.max(0, logtimeHours * rate - coins))
+  // Fraction of the next coin already earned from the account age (0..1).
+  const intoNext = (siteLogtimeHours * rate) % 1
   const minutesLeft = Math.ceil((1 - intoNext) * (60 / rate))
   const percent = Math.round(intoNext * 100)
 
@@ -48,9 +46,6 @@ function CoinsProgress({
           style={{ width: `${percent}%` }}
         />
       </div>
-      <span className="text-xs text-muted-foreground">
-        {t('profile.monthLogtime', { hours: Math.round(monthLogtimeHours) })}
-      </span>
     </div>
   )
 }
@@ -111,16 +106,11 @@ export default function AccountTab() {
       </Field>
 
       <Field label={t('profile.coinsLabel')}>
-        {me?.fortyTwoLogin ? (
-          <CoinsProgress
-            coins={me.coins}
-            logtimeHours={me.logtimeHours}
-            monthLogtimeHours={me.monthLogtimeHours}
-            coinsPerHour={me.coinsPerHour}
-          />
-        ) : (
-          <Input value={String(me?.coins ?? 0)} disabled />
-        )}
+        <CoinsProgress
+          coins={me?.coins ?? 0}
+          siteLogtimeHours={me?.siteLogtimeHours ?? 0}
+          coinsPerHour={me?.coinsPerHour ?? 1}
+        />
       </Field>
 
       <Field
