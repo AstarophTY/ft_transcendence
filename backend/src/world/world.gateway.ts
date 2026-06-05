@@ -100,14 +100,14 @@ export class WorldGateway
     const z = body?.z;
 
     const world = await this.prisma.world.findUnique({
-      where: { campusId },
+      where: { campusId: campusId },
       select: { id: true },
     });
-
+    
     if (!world)
       return;
 
-    const result = this.prisma.blockLog.findMany({
+    const result = await this.prisma.blockLog.findMany({
       where: {
         worldBlockWorldId: world.id,
         worldBlockX: x,
@@ -117,10 +117,10 @@ export class WorldGateway
       orderBy: {
         date: 'desc',
       },
+      select: { date: true, userId: true },
       take: 5,
     });
-
-    client.emit('word:lookup:res', result);
+    client.emit('world:lookup:res', result);
   }
 
   /** Join a campus world room (leaving any previously joined one). */

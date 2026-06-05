@@ -77,8 +77,6 @@ export class WorldService {
 
     const world = await this.ensureWorld(campusId);
 
-    process.stdout.write(`Writing blocks placed by ${userId}`);
-
     await this.prisma.$transaction(
       blocks.map((b) => {
         const rotation = b.rotation ?? 0;
