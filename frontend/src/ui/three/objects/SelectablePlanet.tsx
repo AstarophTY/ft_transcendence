@@ -125,7 +125,12 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
       <Satellite onClick={(e) => {
           e.stopPropagation();
           const storeState = usePlanetStore.getState();
-          storeState.setSceneMode('zooming');
+          if (storeState.activeIndex === index) {
+            storeState.setSceneMode('zooming');
+          } else {
+            storeState.setTargetOffset(index / (totalCount - 1));
+            storeState.setActiveIndex(index + 0.5); // set offset of .5 for satellites
+          }
         }}
       />
     }

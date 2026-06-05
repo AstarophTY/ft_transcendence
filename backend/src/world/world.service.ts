@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Campus, World } from '@prisma/client';
+import { Campus, User, World } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { WorldBlockDto } from './dto/save-blocks.dto';
 import { generateWorldProfile } from './world.profile';
@@ -166,14 +166,21 @@ export class WorldService {
   }
 
   /** Return the campus world, creating it on the fly if it does not exist yet. */
-  private async ensureWorld(campusId: string): Promise<World> {
-    const world = await this.prisma.world.findUnique({ where: { campusId } });
+  private async ensureWorld(worldId: string, is_personal_planet: boolean = false): Promise<World> {
+    const world = await this.prisma.world.findUnique({ where: { campusId: worldId } });
     if (world) return world;
 
-    const campus: Campus | null = await this.prisma.campus.findUnique({
-      where: { id: campusId },
-    });
-    if (!campus) throw new NotFoundException('Campus not found');
-    return this.createWorld(campusId);
+    if (!is_personal_planet) {
+      const campus: Campus | null = await this.prisma.campus.findUnique({
+        where: { id: worldId },
+      });
+      if (!campus) throw new NotFoundException('Campus not found');
+    } else {
+      const user: User | null = await this.prisma.user.findUnique({
+        where: { id: worldId },
+      });
+      if (!user) throw new NotFoundException('User not found');
+    }
+    return this.createWorld(worldId, is_personal_planet);
   }
 }
