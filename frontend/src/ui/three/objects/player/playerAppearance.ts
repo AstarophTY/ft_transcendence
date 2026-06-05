@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-import { getMe } from '@/lib/account'
+import { getMe } from '@/lib/api/account.ts'
 import { DEFAULT_SKIN_COLOR } from '@/config/playerAppearance'
 
 interface PlayerAppearanceState {

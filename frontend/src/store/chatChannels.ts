@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { getSocket } from '@/lib/socket'
+import { getSocket } from '@/lib/sockets/socket'
 
 export interface ChatMessage {
   id: string

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 
 import { Chunk } from '@/types/maps/Chunk.ts'
-import { IslandMap } from '@/perlin/terrain/IslandMap'
+import { IslandMap } from '@/generation/terrain/IslandMap'
 
 import type { DemoPlanetProfile } from '@/types/Three'
 

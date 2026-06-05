@@ -62,13 +62,16 @@ const VoxelFace = ({ orientation, previewVoxels, scale, half, inset, getHeight }
 
     mesh.instanceMatrix.needsUpdate = true
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
-  }, [validVoxels, orientation, scale, half, inset])
+  }, [validVoxels, orientation, scale, half, inset, getHeight])
 
   if (validVoxels.length === 0) return null
 
   return (
     <group position={groupPosition}>
-      <instancedMesh ref={instancedMeshRef} args={[null as any, null as any, validVoxels.length]}>
+      <instancedMesh
+        ref={instancedMeshRef}
+        args={[null as unknown as THREE.BufferGeometry, null as unknown as THREE.Material, validVoxels.length]}
+      >
         <boxGeometry args={[1, 1, 1]} />
         <meshStandardMaterial />
       </instancedMesh>

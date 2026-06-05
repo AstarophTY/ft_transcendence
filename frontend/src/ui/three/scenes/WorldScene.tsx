@@ -1,15 +1,17 @@
+/* eslint-disable react/no-unknown-property */
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { Loader2 } from 'lucide-react'
 
 import { Chunk } from '@/types/maps/Chunk.ts'
+import type { DemoPlanetProfile } from '@/types/Three'
 import { usePlanetStore } from '@/store/planetStore.ts'
 import { useEditorStore } from '@/store/editorStore'
-import { getWorld, type WorldBlock } from '@/lib/world'
-import { connectWorldSocket, getWorldSocket } from '@/lib/worldSocket'
+import { getWorld, type WorldBlock } from '@/lib/api/world'
+import { connectWorldSocket, getWorldSocket } from '@/lib/sockets/worldSocket'
 import { tokenStore } from '@/lib/api'
 import { toast } from 'sonner'
 import i18n from '@/i18n'
@@ -24,10 +26,10 @@ import { FreeCameraControls } from './worldScene/FreeCameraControls'
 import { Block } from '@/types/Block'
 import { BlockMetadata } from '@/config/Block'
 import { LocalMap } from '@/types/maps/LocalMap'
-import { IslandMap, BiomeType, getBiomeBlock } from '@/perlin'
-import { useLookupStore } from '@/store/lookupStore'
+import { IslandMap, BiomeType, getBiomeBlock } from '@/generation'
+import { useLookupStore, LookupRecord } from '@/store/lookupStore.ts'
 
-const generateLocalMap = (profile: any, mapSize: number) => {
+const generateLocalMap = (profile: DemoPlanetProfile, mapSize: number) => {
   const widthInChunks = mapSize / Chunk.WIDTH
   const depthInChunks = mapSize / Chunk.WIDTH
   const localMap = new LocalMap(widthInChunks, depthInChunks)
@@ -184,17 +186,14 @@ const WorldScene = () => {
   const renderDistance = usePlanetStore((state) => state.renderDistance)
   const playerRef = useRef<THREE.Group | null>(null)
 
-  const [currentMode, setCurrentMode] = useState<'freecam' | 'player'>('player')
+  const inEditor = useEditorStore((state) => state.in_editor)
   const activeEditor = useEditorStore((state) => state.activeEditor)
+  const currentMode = inEditor ? 'freecam' : 'player'
   const lastLookupTime = useRef<number>(0)
   const LOOKUP_COOLDOWN = 200
 
   useHotkeys('c', () => {
-    setCurrentMode((prev) => {
-      const nextMode = prev === 'freecam' ? 'player' : 'freecam'
-      activeEditor(nextMode === 'freecam')
-      return nextMode
-    })
+    activeEditor(!inEditor)
   })
 
   // Generation profile of the selected campus world.
@@ -275,7 +274,7 @@ useEffect(() => {
       setMapVersion((v) => v + 1)
     }
 
-    const onLookupResponse = (data: { date: string; userId: string, userName: string, userAvatar: string, placedBlock: number }[]) => {
+    const onLookupResponse = (data: LookupRecord[]) => {
       useLookupStore.getState().setResults(data)
     }
 
@@ -459,7 +458,13 @@ useEffect(() => {
         geometry: THREE.BufferGeometry; 
         material: THREE.Material | THREE.Material[]; 
       }
-    > = {} as any
+    > = {} as unknown as Record<
+      Exclude<Block, Block.Air>,
+      { 
+        geometry: THREE.BufferGeometry; 
+        material: THREE.Material | THREE.Material[]; 
+      }
+    >
 
     const geometry = new THREE.BoxGeometry(2, 2, 2)
     const textureLoader = new THREE.TextureLoader()
@@ -508,7 +513,7 @@ useEffect(() => {
             mat.map = faceTex
 
             // Reset color to white by default when texture is loaded, to prevent oversaturation
-            mat.color.set('#ffffff' as any)
+            mat.color.set(new THREE.Color('#ffffff'))
 
             mat.needsUpdate = true
           })

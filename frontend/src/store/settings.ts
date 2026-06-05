@@ -8,7 +8,7 @@ import {
   uploadAvatar,
   type ProfileUpdate,
   type SelfUser,
-} from '@/lib/account'
+} from '@/lib/api/account'
 import { useAuth } from '@/store/auth'
 import { toMessage } from '@/lib/apiError'
 import i18n from '@/i18n'

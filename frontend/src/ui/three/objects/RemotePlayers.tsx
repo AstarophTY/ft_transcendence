@@ -2,7 +2,7 @@ import { useFrame } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 
-import { connectWorldSocket } from '@/lib/worldSocket'
+import { connectWorldSocket } from '@/lib/sockets/worldSocket'
 import { tokenStore } from '@/lib/api'
 import { DEFAULT_SKIN_COLOR } from '@/config/playerAppearance'
 import { useAvatar, tintAvatar } from './player/useAvatar'

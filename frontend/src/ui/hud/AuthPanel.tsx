@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, Loader2, Lock, LogIn, Mail, Rocket, User, UserPlus, X } from 'lucide-react'
 
-import { Button } from '@/components/shadcn/button'
+import { Button } from '@/ui/shadcn/button'
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/shadcn/dialog'
+} from '@/ui/shadcn/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,13 +18,13 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/shadcn/dropdown-menu"
-import { Input } from '@/components/shadcn/input'
-import { Label } from '@/components/shadcn/label'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shadcn/tabs'
-import UserBadge from '@/components/hud/UserBadge'
-import SettingsDialog from '@/components/hud/settings/SettingsDialog'
-import AdminDialog from '@/components/hud/admin/AdminDialog'
+} from "@/ui/shadcn/dropdown-menu"
+import { Input } from '@/ui/shadcn/input'
+import { Label } from '@/ui/shadcn/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/shadcn/tabs'
+import UserBadge from '@/ui/hud/UserBadge.tsx'
+import SettingsDialog from '@/ui/hud/settings/SettingsDialog'
+import AdminDialog from '@/ui/hud/admin/AdminDialog'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/store/auth'
 import { useFriends } from '@/store/friends'
@@ -259,7 +259,7 @@ function AuthDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary" className="absolute pointer-events-auto flex left-5 top-5">
+        <Button variant="ghost" className="absolute pointer-events-auto flex right-3 top-3 md:right-5 md:top-5 size-12 p-0 rounded-full justify-center items-center hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 border-none shadow-none">
           <UserBadge user={{
               username: t('auth.signIn'),
               userId: "test",
@@ -267,7 +267,7 @@ function AuthDialog() {
               email: null,
               role: 'USER',
               campusId: null
-            }}/>
+            }} onlyAvatar />
         </Button>
       </DialogTrigger>
       <DialogContent className="pointer-events-auto">
@@ -308,14 +308,14 @@ function UserMenu() {
 
   return (
     <>
-      <div className="pointer-events-auto absolute left-5 top-5">
+      <div className="pointer-events-auto absolute right-3 top-3 md:right-5 md:top-5">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="secondary" className="flex p-5">
-              <UserBadge user={user} />
+            <Button variant="ghost" className="flex size-12 p-0 rounded-full justify-center items-center hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 border-none shadow-none">
+              <UserBadge user={user} onlyAvatar />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-32">
+          <DropdownMenuContent className="w-32 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <DropdownMenuGroup>
               <DropdownMenuItem onSelect={() => togglePanel()}>{t('friends.title')} {incoming.length > 0 && (incoming.length)}</DropdownMenuItem>
               <DropdownMenuItem onSelect={() => openSettings(true)}>{t('settings.title')}</DropdownMenuItem>
@@ -342,8 +342,9 @@ function TakeOffButton() {
   const sceneMode = usePlanetStore((s) => s.sceneMode)
   const setSceneMode = usePlanetStore((s) => s.setSceneMode)
   const activeEditor = useEditorStore((s) => s.activeEditor)
+  const inEditor = useEditorStore((s) => s.in_editor)
 
-  if (sceneMode !== 'world') return null
+  if (sceneMode !== 'world' || inEditor) return null
 
   const handleTakeoff = () => {
     activeEditor(false)
@@ -352,9 +353,9 @@ function TakeOffButton() {
 
   return (
     <Button
-      variant="secondary"
+      variant="outline"
       size="icon"
-      className="pointer-events-auto absolute right-5 top-5 transition-transform hover:-translate-y-1 hover:scale-110"
+      className="pointer-events-auto absolute left-3 top-3 md:left-5 md:top-5 transition-transform hover:-translate-y-1 hover:scale-110 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-md"
       onClick={handleTakeoff}
     >
       <Rocket className="size-5" />

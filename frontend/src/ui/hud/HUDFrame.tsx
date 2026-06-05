@@ -1,7 +1,8 @@
-import SocialPanel from "@/components/hud/SocialPanel";
-import PlanetQuickSelect from "@/components/hud/PlanetQuickSelect";
-import EditorMode from "@/components/hud/editor/EditorMode";
+import SocialPanel from "@/ui/hud/SocialPanel.tsx";
+import PlanetQuickSelect from "@/ui/hud/PlanetQuickSelect.tsx";
+import EditorMode from "@/ui/hud/editor/EditorMode";
 import AuthPanel from "@/ui/hud/AuthPanel"
+import MobileVirtualControls from "@/ui/hud/MobileVirtualControls"
 import { usePlanetStore } from '@/store/planetStore'
 import { useEditorStore } from '@/store/editorStore'
 
@@ -14,6 +15,7 @@ export default function HUDFrame() {
         <SocialPanel />
         <AuthPanel />
         {editorMode ? <EditorMode /> : <></>}
+        {sceneMode === 'world' && <MobileVirtualControls />}
       </>
   )
 }

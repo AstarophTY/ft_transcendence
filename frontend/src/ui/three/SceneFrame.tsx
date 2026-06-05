@@ -1,17 +1,22 @@
+/* eslint-disable react/no-unknown-property */
 import { Environment, Sky } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 
 import WorldScene from './scenes/WorldScene.tsx'
 import PlanetSelectionScene from './scenes/PlanetSelectionScene'
 import { usePlanetStore } from '@/store/planetStore'
+import { useIsTouchDevice } from '@/hooks/use-mobile.tsx'
+import { WebGLErrorBoundary } from './ErrorBoundary.tsx'
 
 const SceneFrame = () => {
   const sceneMode = usePlanetStore(state => state.sceneMode)
+  const isTouch = useIsTouchDevice()
 
   return (
     <>
-      <div id="canvas-container" className="absolute inset-0 z-0 h-full w-full">
-        <Canvas className="h-full w-full" camera={{ position: [0, 1.5, 4], fov: 45 }} shadows>
+      <div id="canvas-container" className={`absolute inset-0 z-0 h-full w-full ${isTouch ? 'pointer-events-none' : ''}`}>
+        <WebGLErrorBoundary>
+          <Canvas className="h-full w-full" camera={{ position: [0, 1.5, 4], fov: 45 }} shadows>
           <Sky sunPosition={[100, 20, 100]} />
           <Environment background={false} preset={undefined}>
             <Sky sunPosition={[100, 20, 100]} />
@@ -41,6 +46,7 @@ const SceneFrame = () => {
             </>
           )}
         </Canvas>
+        </WebGLErrorBoundary>
       </div>
     </>
   )

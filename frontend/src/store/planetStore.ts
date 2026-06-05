@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-import type { CampusWorld } from '@/lib/world'
+import type { CampusWorld } from '@/lib/api/world'
 
 interface PlanetStore {
   /** One world per campus, loaded from the backend. */
@@ -18,6 +18,8 @@ interface PlanetStore {
   setSceneMode: (mode: 'selection' | 'zooming' | 'world') => void
   renderDistance: number
   setRenderDistance: (dist: number) => void
+  theme: 'light' | 'dark'
+  setTheme: (theme: 'light' | 'dark') => void
 }
 
 const getInitialRenderDistance = () => {
@@ -68,5 +70,11 @@ export const usePlanetStore = create<PlanetStore>((set, get) => ({
   setRenderDistance: (dist) => {
     localStorage.setItem('renderDistance', dist.toString())
     set({ renderDistance: dist })
+  },
+  theme: localStorage.getItem('theme') === 'light' ? 'light' : 'dark',
+  setTheme: (theme) => {
+    document.documentElement.classList.toggle('dark', theme === 'dark')
+    localStorage.setItem('theme', theme)
+    set({ theme })
   },
 }))

@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { useEffect, useMemo } from 'react'
 
 import { usePlanetStore } from '@/store/planetStore.ts'
-import { listWorlds } from '@/lib/world'
+import { listWorlds } from '@/lib/api/world'
 
 import { WHEEL_SENSITIVITY } from './planetSelection/constants'
 import { createDemoPlanetMap } from './planetSelection/createDemoPlanetMap'
