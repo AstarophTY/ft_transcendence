@@ -11,6 +11,8 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { SaveBlocksDto } from './dto/save-blocks.dto';
 import { WorldService } from './world.service';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { AuthUser } from '../auth/interfaces/auth.interfaces';
 
 @Controller('world')
 @UseGuards(JwtAuthGuard)
@@ -35,7 +37,8 @@ export class WorldController {
   save(
     @Param('campusId') campusId: string,
     @Body() dto: SaveBlocksDto,
+    @CurrentUser() user: AuthUser,
   ): Promise<void> {
-    return this.world.saveBlocks(campusId, dto.blocks);
+    return this.world.saveBlocks(campusId, dto.blocks, user.userId);
   }
 }

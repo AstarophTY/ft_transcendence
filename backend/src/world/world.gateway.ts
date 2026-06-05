@@ -13,6 +13,7 @@ import { authenticateSocket } from '../friends/socket-auth';
 import { RedisService } from '../redis/redis.service';
 import { WorldBlockDto } from './dto/save-blocks.dto';
 import { WorldService } from './world.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 /** World bounds used to reject out-of-range edits (see worldScene constants). */
 const MAP_WIDTH = 512;
@@ -61,6 +62,7 @@ export class WorldGateway
   private readonly players = new Map<string, Map<string, PlayerState>>();
 
   constructor(
+    private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly redis: RedisService,
     private readonly config: ConfigService,
@@ -85,6 +87,40 @@ export class WorldGateway
 
   handleDisconnect(client: Socket): void {
     this.leaveCampus(client);
+  }
+
+  @SubscribeMessage('world:lookup')
+  async handleBlockLookup(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: { campusId?: string; x?: number; y?: number; z?: number; },
+  ): Promise<void> {
+    const campusId = body?.campusId;
+    const x = body?.x;
+    const y = body?.y;
+    const z = body?.z;
+
+    const world = await this.prisma.world.findUnique({
+      where: { campusId },
+      select: { id: true },
+    });
+
+    if (!world)
+      return;
+
+    const result = this.prisma.blockLog.findMany({
+      where: {
+        worldBlockWorldId: world.id,
+        worldBlockX: x,
+        worldBlockY: y,
+        worldBlockZ: z,
+      },
+      orderBy: {
+        date: 'desc',
+      },
+      take: 5,
+    });
+
+    client.emit('word:lookup:res', result);
   }
 
   /** Join a campus world room (leaving any previously joined one). */
@@ -213,7 +249,7 @@ export class WorldGateway
       //  await this.world.saveUserBlocks(client.data.userId, blocks);
       //} else 
       if (campusId) {
-        await this.world.saveBlocks(campusId, blocks);
+        await this.world.saveBlocks(campusId, blocks, client.data.userId);
       }
     } catch {
       /* a failed persist should not break the live relay */

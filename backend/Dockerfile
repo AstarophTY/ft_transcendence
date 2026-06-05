@@ -17,6 +17,7 @@ RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY prisma ./prisma
+
 RUN mkdir -p uploads
 EXPOSE 3000
 CMD ["node", "dist/main"]
