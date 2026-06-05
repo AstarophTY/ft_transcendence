@@ -12,6 +12,8 @@ import ProfileTab from './ProfileTab.tsx'
 import AccountTab from './AccountTab.tsx'
 import SecurityTab from './SecurityTab.tsx'
 import PreferencesTab from './PreferencesTab.tsx'
+import { useIsMobile } from '@/hooks/use-mobile.tsx'
+import { cn } from '@/lib/utils.ts'
 
 const ALL_TABS = [
   { id: 'profile', Comp: ProfileTab },
@@ -23,6 +25,7 @@ const ALL_TABS = [
 export default function SettingsDialog() {
   const { t } = useTranslation()
   const { open, setOpen, me, loading } = useSettings()
+  const isMobile = useIsMobile()
 
   // 42 accounts have no local password — hide the Security tab.
   const is42 = Boolean(me?.fortyTwoLogin)
@@ -30,7 +33,10 @@ export default function SettingsDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className={cn(
+        "max-w-lg",
+        isMobile && "fixed inset-0 w-screen h-screen max-w-none translate-x-0 translate-y-0 top-0 left-0 rounded-none border-none flex flex-col overflow-y-auto pt-14 p-6 animate-none"
+      )}>
         <DialogHeader>
           <DialogTitle>{t('settings.title')}</DialogTitle>
         </DialogHeader>
@@ -40,19 +46,26 @@ export default function SettingsDialog() {
             <Loader2 className="size-5 animate-spin" />
           </div>
         ) : (
-          <Tabs defaultValue="profile" className="w-full">
+          <Tabs defaultValue="profile" className="w-full flex flex-col flex-1">
             <TabsList
-              className="grid w-full"
-              style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
+              className={cn(
+                "grid w-full",
+                isMobile && "flex flex-row overflow-x-auto scrollbar-none justify-start p-1 shrink-0"
+              )}
+              style={isMobile ? undefined : { gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
             >
               {tabs.map(({ id }) => (
-                <TabsTrigger key={id} value={id}>
+                <TabsTrigger 
+                  key={id} 
+                  value={id} 
+                  className={cn(isMobile && "shrink-0 px-4")}
+                >
                   {t(`settings.tabs.${id}`)}
                 </TabsTrigger>
               ))}
             </TabsList>
             {tabs.map(({ id, Comp }) => (
-              <TabsContent key={id} value={id} className="mt-4">
+              <TabsContent key={id} value={id} className="mt-4 flex-1">
                 <Comp />
               </TabsContent>
             ))}

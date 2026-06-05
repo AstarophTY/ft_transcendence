@@ -1,5 +1,5 @@
 import { useFrame } from '@react-three/fiber'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, ElementType } from 'react'
 import * as THREE from 'three'
 
 import { connectWorldSocket } from '@/lib/sockets/worldSocket'
@@ -9,6 +9,7 @@ import { useAvatar, tintAvatar } from './player/useAvatar'
 
 type PlayerMode = 'player' | 'freecam'
 const MODEL_OFFSET = Math.PI
+const Primitive = 'primitive' as unknown as ElementType
 
 /** Last received transform of a remote player; mutated in place for lerping. */
 interface RemoteTransform {
@@ -124,11 +125,11 @@ const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
   return (
     <>
       <group ref={bodyRef}>
-        <primitive object={body} scale={0.5} />
-        <primitive object={eyes} scale={0.5} />
+        <Primitive object={body} scale={0.5} />
+        <Primitive object={eyes} scale={0.5} />
       </group>
       <group ref={camRef}>
-        <primitive object={cameraModel} />
+        <Primitive object={cameraModel} />
       </group>
     </>
   )
