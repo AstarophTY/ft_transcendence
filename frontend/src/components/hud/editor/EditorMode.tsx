@@ -23,6 +23,7 @@ export default function EditorMode() {
   useHotkeys('4', () => changeTool(Tab.RotateX))
   useHotkeys('5', () => changeTool(Tab.RotateY))
   useHotkeys('6', () => changeTool(Tab.RotateZ))
+  useHotkeys('7', () => changeTool(Tab.Lookup))
   useHotkeys('escape', () => changeTool(Tab.None))
 
   return (
