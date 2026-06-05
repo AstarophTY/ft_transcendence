@@ -1,9 +1,11 @@
 import Cross from "@/components/hud/editor/Cross"
 import ToolBar from "@/components/hud/editor/ToolBar"
 import { SearchBlock } from "@/components/hud/editor/SearchBlock"
+import { LookupBlock } from "@/components/hud/editor/LookupBlock"
 import { Tab, Shape } from "@/types/Editor"
 import { useEditorStore } from '@/store/editorStore'
 import { useHotkeys } from 'react-hotkeys-hook'
+import { useLookupStore } from '@/store/lookupStore'
 
 export default function EditorMode() {
   const currentTool = useEditorStore((state) => state.tool)
@@ -24,13 +26,17 @@ export default function EditorMode() {
   useHotkeys('5', () => changeTool(Tab.RotateY))
   useHotkeys('6', () => changeTool(Tab.RotateZ))
   useHotkeys('7', () => changeTool(Tab.Lookup))
-  useHotkeys('escape', () => changeTool(Tab.None))
+  useHotkeys('escape', () => {
+    changeTool(Tab.None)
+    useLookupStore.getState().closeLookup()
+  })
 
   return (
       <>
         <ToolBar updateCurrenTool={changeTool} currentTool={currentTool} updateCurrentShape={changeShape} currentShape={currentShape}/>
         <Cross />
         {currentTool === Tab.Add && (<SearchBlock />)}
+        <LookupBlock />
     </>
   )
 }
