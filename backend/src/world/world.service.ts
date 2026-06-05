@@ -77,11 +77,11 @@ export class WorldService {
 
     const world = await this.ensureWorld(campusId);
 
-    await this.prisma.$transaction(
-      blocks.map((b) => {
+    await this.prisma.$transaction(async (tx) => {
+      for (const b of blocks) {
         const rotation = b.rotation ?? 0;
 
-        return this.prisma.worldBlock.upsert({
+        await tx.worldBlock.upsert({
           where: {
             worldId_x_y_z: {
               worldId: world.id,
@@ -97,34 +97,54 @@ export class WorldService {
             z: b.z,
             block: b.block,
             rotation,
-
             block_log: {
-              create: [
-                {
-                  userId,
-                  date: new Date(),
-                  placedBlock: b.block
-                },
-              ],
+              create: {
+                userId,
+                date: new Date(),
+                placedBlock: b.block,
+              },
             },
           },
           update: {
             block: b.block,
             rotation,
-
             block_log: {
-              create: [
-                {
-                  userId,
-                  date: new Date(),
-                  placedBlock: b.block
-                },
-              ],
+              create: {
+                userId,
+                date: new Date(),
+                placedBlock: b.block,
+              },
             },
           },
         });
-      }),
-    );
+
+        const oldLogs = await tx.blockLog.findMany({
+          where: {
+            worldBlockWorldId: world.id,
+            worldBlockX: b.x,
+            worldBlockY: b.y,
+            worldBlockZ: b.z,
+          },
+          orderBy: {
+            date: 'desc',
+          },
+          skip: 5,
+          select: {
+            id: true,
+          },
+        });
+
+        if (oldLogs.length > 0) {
+          await tx.blockLog.deleteMany({
+            where: {
+              id: {
+                in: oldLogs.map(log => log.id),
+              },
+            },
+          });
+        }
+      }
+    });
   }
 
   /** Create a world (with a fresh random profile) for a campus that has none. */
