@@ -125,8 +125,6 @@ export class WorldGateway
       return k.userId;
     });
 
-    client.emit('world:lookup:res:test', userIds);
-
     const users = await this.prisma.user.findMany({
       where: {
         id: {
