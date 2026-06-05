@@ -19,6 +19,7 @@ export interface AuthUser {
   username: string
   avatar: string | null
   role: 'USER' | 'ADMIN'
+  campusId: string | null
 }
 
 interface AuthState {
@@ -44,6 +45,7 @@ function userFromToken(accessToken: string): AuthUser | null {
     username: payload.username,
     avatar: payload.avatar,
     role: payload.role,
+    campusId: payload.campusId,
   }
 }
 

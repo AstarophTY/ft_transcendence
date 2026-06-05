@@ -7,12 +7,14 @@ import {
   OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
+  WebSocketServer,
 } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { authenticateSocket } from '../friends/socket-auth';
 import { RedisService } from '../redis/redis.service';
 import { WorldBlockDto } from './dto/save-blocks.dto';
 import { WorldService } from './world.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 /** World bounds used to reject out-of-range edits (see worldScene constants). */
 const MAP_WIDTH = 512;
@@ -23,6 +25,7 @@ const MAX_BATCH = 4096;
 
 interface EditPayload {
   campusId?: string;
+  personalWorld?: boolean;
   blocks?: unknown;
 }
 
@@ -39,6 +42,8 @@ interface PlayerState {
   c?: [number, number, number];
   cr?: number;
   cp?: number;
+  /** Avatar tint (hex color). */
+  skin?: string;
 }
 
 /**
@@ -56,10 +61,13 @@ interface PlayerState {
 export class WorldGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
+  @WebSocketServer() server!: Server;
+
   /** Last known transform of every connected player, per campus room. */
   private readonly players = new Map<string, Map<string, PlayerState>>();
 
   constructor(
+    private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly redis: RedisService,
     private readonly config: ConfigService,
@@ -86,16 +94,73 @@ export class WorldGateway
     this.leaveCampus(client);
   }
 
+  @SubscribeMessage('world:lookup')
+  async handleBlockLookup(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: { campusId?: string; x?: number; y?: number; z?: number },
+  ): Promise<void> {
+    const campusId = body?.campusId;
+    const x = body?.x;
+    const y = body?.y;
+    const z = body?.z;
+
+    const world = await this.prisma.world.findUnique({
+      where: { campusId },
+      select: { id: true },
+    });
+    if (!world) return;
+
+    const blocks = await this.prisma.blockLog.findMany({
+      where: {
+        worldBlockWorldId: world.id,
+        worldBlockX: x,
+        worldBlockY: y,
+        worldBlockZ: z,
+      },
+      orderBy: { date: 'desc' },
+      select: { date: true, userId: true },
+      take: 5,
+    });
+
+    const userIds = blocks.map((k) => k.userId);
+    const users = await this.prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, avatar: true, fortyTwoLogin: true },
+    });
+
+    const result = blocks.map((k) => {
+      const user = users.find((u) => u.id === k.userId);
+      return {
+        date: k.date,
+        userId: k.userId,
+        userAvatar: user?.avatar,
+        userName: user?.fortyTwoLogin,
+      };
+    });
+
+    client.emit('world:lookup:res', result);
+  }
+
   /** Join a campus world room (leaving any previously joined one). */
   @SubscribeMessage('world:join')
-  handleJoin(
+  async handleJoin(
     @ConnectedSocket() client: Socket,
-    @MessageBody() body: { campusId?: string },
-  ): void {
+    @MessageBody() body: { campusId?: string; personalWorld?: boolean },
+  ): Promise<void> {
     const campusId = body?.campusId;
-    if (!campusId) return;
+    const personalWorld = body?.personalWorld;
 
     this.leaveCampus(client);
+
+    if (personalWorld) {
+      const room = `world:personal:${client.data.userId}`;
+      void client.join(room);
+      client.data.personalWorld = true;
+      return;
+    }
+
+    if (!campusId) return;
+
     void client.join(this.room(campusId));
     client.data.campusId = campusId;
 
@@ -107,6 +172,10 @@ export class WorldGateway
         .map(([id, state]) => ({ id, ...state }));
       if (others.length > 0) client.emit('world:players', others);
     }
+
+    // Send the campus build budget so the client knows what it can place.
+    const coins = await this.world.getCampusCoins(campusId);
+    if (coins !== null) client.emit('world:coins', { campusId, coins });
   }
 
   /** Leave a campus world room. */
@@ -125,29 +194,52 @@ export class WorldGateway
     @MessageBody()
     body: {
       campusId?: string;
+      personalWorld?: boolean;
       p?: unknown;
       r?: unknown;
       m?: unknown;
       c?: unknown;
       cr?: unknown;
       cp?: unknown;
+      skin?: unknown;
     },
   ): void {
     const campusId = body?.campusId;
-    const room = campusId ? this.room(campusId) : null;
-    if (!campusId || !room || !client.rooms.has(room)) return;
+    const personalWorld = body?.personalWorld;
+
+    const room = personalWorld
+      ? `world:personal:${client.data.userId}`
+      : campusId
+        ? this.room(campusId)
+        : null;
+
+    if (!room || !client.rooms.has(room)) return;
 
     const username = (client.data.username as string) || 'Unknown';
     const avatar = (client.data.avatar as string | null) || null;
-    const state = this.sanitizeTransform(username, avatar, body.p, body.r, body.m, body.c, body.cr, body.cp);
+    const state = this.sanitizeTransform(
+      username,
+      avatar,
+      body.p,
+      body.r,
+      body.m,
+      body.c,
+      body.cr,
+      body.cp,
+    );
     if (!state) return;
-
-    let roomPlayers = this.players.get(campusId);
-    if (!roomPlayers) {
-      roomPlayers = new Map();
-      this.players.set(campusId, roomPlayers);
+    if (typeof body.skin === 'string' && body.skin.length <= 9) {
+      state.skin = body.skin;
     }
-    roomPlayers.set(client.id, state);
+
+    if (campusId) {
+      let roomPlayers = this.players.get(campusId);
+      if (!roomPlayers) {
+        roomPlayers = new Map();
+        this.players.set(campusId, roomPlayers);
+      }
+      roomPlayers.set(client.id, state);
+    }
 
     client.to(room).emit('player:move', { id: client.id, ...state });
   }
@@ -163,19 +255,43 @@ export class WorldGateway
     @MessageBody() body: EditPayload,
   ): Promise<void> {
     const campusId = body?.campusId;
-    const room = campusId ? this.room(campusId) : null;
-    if (!campusId || !room || !client.rooms.has(room)) return;
+    const personalWorld = body?.personalWorld;
+
+    const room = personalWorld
+      ? `world:personal:${client.data.userId}`
+      : campusId
+        ? this.room(campusId)
+        : null;
+
+    if (!room || !client.rooms.has(room)) return;
 
     const blocks = this.sanitize(body.blocks);
     if (blocks.length === 0) return;
 
-    client.to(room).emit('world:edit', { blocks });
-
     try {
-      await this.world.saveBlocks(campusId, blocks);
+      if (campusId) {
+        // Apply the campus-coin economy, then relay only the accepted edits.
+        const { applied, rejected, coins } = await this.world.applyEdits(campusId, blocks);
+        if (applied.length > 0) {
+          client.to(room).emit('world:edit', { blocks: applied });
+        }
+        if (rejected.length > 0) {
+          client.emit('world:revert', { positions: rejected });
+        }
+        client.emit('world:coins', { campusId, coins });
+        client.to(room).emit('world:coins', { campusId, coins });
+      } else {
+        // personalWorld — no economy, just relay
+        client.to(room).emit('world:edit', { blocks });
+      }
     } catch {
-      /* a failed persist should not break the live relay */
+      /* a failed economy/persist should not break the live session */
     }
+  }
+
+  /** Push an updated coin balance to every client on the campus island. */
+  broadcastCampusCoins(campusId: string, coins: number): void {
+    this.server?.to(this.room(campusId)).emit('world:coins', { campusId, coins });
   }
 
   private room(campusId: string): string {
@@ -185,6 +301,15 @@ export class WorldGateway
   /** Remove the client from its current campus and tell the others it left. */
   private leaveCampus(client: Socket): void {
     const campusId = client.data.campusId as string | undefined;
+    const personalWorld = client.data.personalWorld as boolean | undefined;
+
+    if (personalWorld) {
+      const room = `world:personal:${client.data.userId}`;
+      void client.leave(room);
+      delete client.data.personalWorld;
+      return;
+    }
+
     if (!campusId) return;
     delete client.data.campusId;
 

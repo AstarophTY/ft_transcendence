@@ -8,6 +8,8 @@ import { BlockMetadata } from "@/config/Block.ts"
 import { Block } from "@/types/Block.ts"
 import { ChevronDown } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile.tsx"
+import { LookupBlock } from "@/ui/hud/editor/LookupBlock.tsx"
+import { useLookupStore } from '@/store/lookupStore.ts'
 
 export default function EditorMode() {
   const currentTool = useEditorStore((state) => state.tool)
@@ -32,7 +34,11 @@ export default function EditorMode() {
   useHotkeys('4', () => changeTool(Tab.RotateX))
   useHotkeys('5', () => changeTool(Tab.RotateY))
   useHotkeys('6', () => changeTool(Tab.RotateZ))
-  useHotkeys('escape', () => changeTool(Tab.None))
+  useHotkeys('7', () => changeTool(Tab.Lookup))
+  useHotkeys('escape', () => {
+    changeTool(Tab.None)
+    useLookupStore.getState().closeLookup()
+  })
 
   const blockMeta = BlockMetadata[selectedBlock as Exclude<Block, Block.Air>]
   const selectedBlockName = blockMeta?.name || 'unknown'
@@ -64,6 +70,7 @@ export default function EditorMode() {
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </button>
         )}
+        <LookupBlock />
     </>
   )
 }

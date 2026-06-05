@@ -1,4 +1,4 @@
-import { LayersPlus, LayersMinus, Rotate3D, Box, Circle } from 'lucide-react'
+import { LayersPlus, LayersMinus, Rotate3D, Box, Circle, ScanSearch } from 'lucide-react'
 import { Button } from '@/ui/shadcn/button.tsx'
 import { ToolBarProps } from "@/types/Editor.ts"
 import { Tab, Shape } from "@/types/Editor.ts"
@@ -72,6 +72,13 @@ export default function ToolBar({ updateCurrenTool, currentTool, updateCurrentSh
           <span className={`absolute bottom-0.5 right-1 text-[9px] font-extrabold select-none ${currentTool === Tab.RotateZ ? 'text-primary-foreground' : 'text-muted-foreground'}`}>Z</span>
         </Button>
         <ShortcutKey k="6" />
+      </div>
+
+      <div className="flex items-center lg:gap-3">
+        <Button variant="ghost" size="icon" className={getButtonClass(currentTool === Tab.Lookup)} onClick={() => updateCurrenTool(Tab.Lookup)}>
+          <ScanSearch className="h-4 w-4" />
+        </Button>
+        <ShortcutKey k="7" />
       </div>
     </div>
   )

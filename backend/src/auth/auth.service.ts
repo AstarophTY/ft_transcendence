@@ -159,6 +159,7 @@ export class AuthService {
           username: user.username,
           avatar: user.avatar,
           role: user.role,
+          campusId: user.campusId,
           jti,
         },
         {

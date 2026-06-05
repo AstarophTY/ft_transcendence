@@ -23,12 +23,16 @@ model User {
   campusId          String?
   campus            Campus?    @relation("CampusUsers", fields: [campusId], references: [id])
   coins             Int        @default(0)
+  /// Coins spent placing paid blocks; subtracted from the logtime-earned total.
+  coinsSpent        Int        @default(0)
   logtimeHours      Float      @default(0)
   monthLogtimeHours Float      @default(0)
   fortyTwoAccessToken  String?
   fortyTwoRefreshToken String?
   language          String?
   theme             String?
+  /// Player avatar tint (hex color), shown on the 3D character.
+  skinColor         String?
   status            UserStatus @default(ONLINE)
   statusMessage     String?
   usernameChangedAt DateTime?
@@ -147,19 +151,37 @@ model World {
   updatedAt DateTime     @updatedAt
 }
 
+model BlockLog {
+  id          Int      @id @default(autoincrement())
+  date        DateTime @default(now())
+  userId      String
+  placedBlock Int      @default(0)
+
+  worldBlockWorldId String?
+  worldBlockX       Int?
+  worldBlockY       Int?
+  worldBlockZ       Int?
+
+  worldBlock WorldBlock? @relation(fields: [worldBlockWorldId, worldBlockX, worldBlockY, worldBlockZ], references: [worldId, x, y, z], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([worldBlockWorldId, worldBlockX, worldBlockY, worldBlockZ, placedBlock])
+}
+
 /// A single block edited by a player, stored as a diff over the generated
 /// terrain. A broken block is stored with `block = 0` (Air), so destroyed ground
 /// is persisted too.
 model WorldBlock {
-  worldId String
-  world   World  @relation(fields: [worldId], references: [id], onDelete: Cascade)
-  x       Int
-  y       Int
-  z       Int
+  worldId   String
+  world     World      @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  x         Int
+  y         Int
+  z         Int
   /// Block enum value (0 = Air for a broken block).
-  block   Int
+  block     Int
+  block_log BlockLog[]
   /// Encoded block orientation (2 bits per X/Y/Z axis); 0 = unrotated.
-  rotation Int    @default(0)
+  rotation  Int        @default(0)
 
   @@id([worldId, x, y, z])
   @@index([worldId])

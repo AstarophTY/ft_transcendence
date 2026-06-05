@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSettings } from '@/store/settings.ts'
 import { SUPPORTED_LANGUAGES } from '@/i18n'
@@ -8,8 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/ui/shadcn/select.tsx'
+import { ColorPicker } from '@/ui/shadcn/color-picker.tsx'
 import Field from './Field.tsx'
 import { usePlanetStore } from '@/store/planetStore.ts'
+import { usePlayerAppearance } from '@/ui/three/objects/player/playerAppearance'
+import { DEFAULT_SKIN_COLOR } from '@/config/playerAppearance'
 
 const THEMES = ['light', 'dark'] as const
 
@@ -18,6 +22,28 @@ export default function PreferencesTab() {
   const { me, saveProfile } = useSettings()
   const storedTheme = localStorage.getItem('theme')
   const { renderDistance, setRenderDistance } = usePlanetStore()
+  const setSkinColor = usePlayerAppearance((s) => s.setSkinColor)
+
+  // Skin color is applied live to the 3D avatar and saved when this tab closes.
+  const initialSkin = me?.skinColor ?? DEFAULT_SKIN_COLOR
+  const [skin, setSkin] = useState(initialSkin)
+  const skinRef = useRef(skin)
+  skinRef.current = skin
+
+  const onSkinChange = (color: string) => {
+    setSkin(color)
+    setSkinColor(color)
+  }
+
+  useEffect(() => {
+    // Persist the chosen skin once, when this tab/dialog closes (unmount).
+    return () => {
+      if (skinRef.current !== initialSkin) {
+        void saveProfile({ skinColor: skinRef.current })
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const onLanguage = (language: string) => {
     void i18n.changeLanguage(language)
@@ -31,6 +57,10 @@ export default function PreferencesTab() {
 
   return (
     <div className="flex flex-col gap-4">
+      <Field label={t('settings.prefs.skin', { defaultValue: 'Avatar color' })}>
+        <ColorPicker value={skin} onChange={onSkinChange} />
+      </Field>
+
       <Field label={t('settings.prefs.language')}>
         <Select value={me?.language ?? i18n.language} onValueChange={onLanguage}>
           <SelectTrigger>

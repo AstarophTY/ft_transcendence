@@ -1,6 +1,7 @@
 export enum Tab {
   Search = "search",
   Add = "add",
+  Lookup = "lookup",
   Remove = "remove",
   RotateX = "rotate_x",
   RotateY = "rotate_y",

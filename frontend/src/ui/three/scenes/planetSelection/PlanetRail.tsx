@@ -15,9 +15,17 @@ const PlanetRail = ({ planetMaps }: { planetMaps: PlanetMap[] }) => {
   useFrame((_, delta) => {
     if (!railRef.current) return
 
-    const { targetOffset } = usePlanetStore.getState()
+    const { targetOffset, activeIndex } = usePlanetStore.getState()
     const targetX = (0.5 - targetOffset) * totalSpan
-    railRef.current.position.x = THREE.MathUtils.lerp(railRef.current.position.x, targetX, delta * 6)
+    railRef.current.position.x = THREE.MathUtils.lerp(railRef.current.position.x, targetX, delta * 8)
+
+    railRef.current.children.forEach((child, index) => {
+      const dist = Math.abs(index - activeIndex)
+      const targetZ = -dist * 1.5
+      const targetY = -Math.pow(dist, 1.2) * 0.3
+      child.position.z = THREE.MathUtils.lerp(child.position.z, targetZ, delta * 6)
+      child.position.y = THREE.MathUtils.lerp(child.position.y, targetY, delta * 6)
+    })
   })
 
   return (

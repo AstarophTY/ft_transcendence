@@ -26,7 +26,7 @@ export class ProfileService {
 
   /** Self profile plus the coin rate, so the UI can show progress to the next coin. */
   async getMe(userId: string): Promise<SelfProfile | null> {
-    // Pull fresh 42 logtime (throttled) so the balance moves without re-login.
+    // Pull fresh 42 logtime (throttled, 1h) so the balance moves without re-login.
     await this.fortyTwo.resyncCoins(userId);
     const me = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -35,7 +35,9 @@ export class ProfileService {
     if (!me) return null;
     const coinsPerHour =
       Number(this.config.get<string>('COINS_PER_HOUR', '1')) || 1;
-    return { ...me, coinsPerHour };
+    const siteLogtimeHours = (Date.now() - me.createdAt.getTime()) / 3_600_000;
+
+    return { ...me, coinsPerHour, siteLogtimeHours };
   }
 
   /** Live 42 logtime diagnostics for the signed-in user. */
