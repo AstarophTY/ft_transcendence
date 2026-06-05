@@ -17,6 +17,7 @@ interface FreeCameraControlsProps {
   active: boolean
   playerRef: React.RefObject<THREE.Group>
   onUpdateBlock: (x: number, y: number, z: number, block: Block | null, rotation?: number) => void
+  onLookupBlock: (x :number, y: number, z: number) => void
 }
 
 const getAffectedBlocks = (
@@ -56,6 +57,7 @@ export const FreeCameraControls = ({
   active,
   playerRef,
   onUpdateBlock,
+  onLookupBlock
 }: FreeCameraControlsProps) => {
   const { camera, gl, scene } = useThree()
   const controlsRef = useRef<PointerLockControlsImpl | null>(null)
@@ -68,8 +70,7 @@ export const FreeCameraControls = ({
     if (!previewGroupRef.current || !cubePreviewRef.current || !spherePreviewRef.current) return
 
     const { tool, shape, shapeSize } = useEditorStore.getState()
-    const isRotate = tool === Tab.RotateX || tool === Tab.RotateY || tool === Tab.RotateZ
-    if ((tool !== Tab.Add && tool !== Tab.Remove && !isRotate) || !controlsRef.current?.isLocked) {
+    if (!(Object.values(Tab).includes(tool as Tab)) || !controlsRef.current?.isLocked) {
       previewGroupRef.current.visible = false
       return
     }
@@ -135,6 +136,8 @@ export const FreeCameraControls = ({
             color = '#10b981' // Rotate Y: green
           } else if (tool === Tab.RotateZ) {
             color = '#3b82f6' // Rotate Z: blue
+          } else if (tool === Tab.Lookup) {
+            color = '#00d9ff'
           }
           
           const matCube = cubePreviewRef.current.material as THREE.MeshBasicMaterial
@@ -142,7 +145,10 @@ export const FreeCameraControls = ({
           matCube.color.set(color)
           matSphere.color.set(color)
           
-          const radius = shapeSize - 1
+          let radius = shapeSize - 1
+          if (tool == Tab.Lookup) {
+            radius = 0
+          }
           const scaleVal = (radius * 2 + 1) * (tool === Tab.Add ? 1.0 : 1.02)
           
           if (shape === Shape.Sphere && radius > 0) {
@@ -181,8 +187,7 @@ export const FreeCameraControls = ({
     if (e.button !== 0 && e.button !== 1) return // Left click or middle click only
 
     const { tool, selectedBlock, shape, shapeSize, setSelectedBlock } = useEditorStore.getState()
-    const isRotate = tool === Tab.RotateX || tool === Tab.RotateY || tool === Tab.RotateZ
-    if (e.button === 0 && tool !== Tab.Add && tool !== Tab.Remove && !isRotate) return
+    if (e.button === 0 && !(Object.values(Tab).includes(tool as Tab))) return
 
     const raycaster = new THREE.Raycaster()
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera)
@@ -248,6 +253,8 @@ export const FreeCameraControls = ({
         if (block === Block.Air || block === Block.Water) {
           onUpdateBlock(x, y, z, selectedBlock)
         }
+      } else if (tool === Tab.Lookup) {
+        onLookupBlock(x, y, z)
       } else if (tool === Tab.RotateX || tool === Tab.RotateY || tool === Tab.RotateZ) {
         const block = localMap.getGlobalBlock(x, y, z)
         if (block !== Block.Air && block !== Block.Bedrock) {
@@ -315,7 +322,7 @@ export const FreeCameraControls = ({
       window.removeEventListener('mousedown', handleMouseDown)
       window.removeEventListener('wheel', handleWheel)
     }
-  }, [gl.domElement, active, localMap, onUpdateBlock])
+  }, [gl.domElement, active, localMap, onUpdateBlock, onLookupBlock])
 
   useFrame((_, delta) => {
     if (!active) return

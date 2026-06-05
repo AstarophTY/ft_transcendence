@@ -180,6 +180,8 @@ const WorldScene = () => {
 
   const [currentMode, setCurrentMode] = useState<'freecam' | 'player'>('player')
   const activeEditor = useEditorStore((state) => state.activeEditor)
+  const lastLookupTime = useRef<number>(0)
+  const LOOKUP_COOLDOWN = 200
 
   useHotkeys('c', () => {
     setCurrentMode((prev) => {
@@ -232,7 +234,7 @@ const WorldScene = () => {
 
   // Live sync: join this campus's room and apply edits from the other players
   // standing on the same island.
-  useEffect(() => {
+useEffect(() => {
     if (!activeCampusId) return
     const token = tokenStore.access
     if (!token) return
@@ -246,11 +248,18 @@ const WorldScene = () => {
       for (const b of blocks) applyWorldBlock(map, b)
       setMapVersion((v) => v + 1)
     }
+
+    const onLookupResponse = (data: { x: number; y: number; z: number; info: any }) => {
+      console.log(data)
+    }
+
     socket.on('world:edit', onRemoteEdit)
+    socket.on('world:lookup:res', onLookupResponse)
 
     return () => {
       socket.emit('world:leave', { campusId: activeCampusId })
       socket.off('world:edit', onRemoteEdit)
+      socket.off('world:lookup:res', onLookupResponse)
     }
   }, [activeCampusId])
 
@@ -342,6 +351,26 @@ const WorldScene = () => {
     // Coalesce bursts into ~100ms batches, but keep flushing while editing
     // continuously so peers stay in sync (don't reset a pending timer).
     if (!flushTimer.current) flushTimer.current = setTimeout(flushBlocks, 100)
+  }
+
+  const handleLookupBlock = (x: number, y: number, z: number) => {
+    if (!localMap) return
+    const now = performance.now()
+    if (now - lastLookupTime.current < LOOKUP_COOLDOWN) {
+      return
+    }
+
+    const socket = getWorldSocket()
+    if (!socket || !activeCampusId) return
+
+    lastLookupTime.current = now
+
+    socket.emit('world:lookup', {
+      campusId: activeCampusId,
+      x,
+      y,
+      z
+    })
   }
 
   const blockAssets = useMemo(() => {
@@ -470,6 +499,7 @@ const WorldScene = () => {
         mapSize={MAP_SIZE_BLOCKS}
         active={currentMode === 'freecam'}
         playerRef={playerRef}
+        onLookupBlock={handleLookupBlock}
         onUpdateBlock={handleUpdateBlock}
       />
       <Player

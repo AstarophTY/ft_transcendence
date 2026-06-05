@@ -1,4 +1,4 @@
-import { LayersPlus, LayersMinus, Rotate3D, Box, Circle } from 'lucide-react'
+import { LayersPlus, LayersMinus, Rotate3D, Box, Circle, ScanSearch } from 'lucide-react'
 import { Button } from '@/components/shadcn/button'
 import { Card } from '@/components/shadcn/card'
 import { ToolBarProps } from "@/types/Editor"
@@ -59,6 +59,12 @@ export default function ToolBar({ updateCurrenTool, currentTool, updateCurrentSh
             <span className={`absolute bottom-0.5 right-1 text-[9px] font-extrabold select-none ${currentTool === Tab.RotateZ ? 'text-primary-foreground' : 'text-muted-foreground'}`}>Z</span>
           </Button>
           <ShortcutKey k="6" />
+        </div>
+        <div className="flex items-center gap-3">
+          <Button variant={currentTool === Tab.Lookup ? 'default' : 'outline'} size='icon' onClick={() => updateCurrenTool(Tab.Lookup)} className="relative">
+            <ScanSearch className="h-4 w-4" />
+          </Button>
+          <ShortcutKey k="7" />
         </div>
       </Card>
     </div>
