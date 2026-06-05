@@ -9,6 +9,8 @@ import { useFriends } from '@/store/friends'
 import { useAuth } from '@/store/auth.ts'
 import Avatar from './Avatar.tsx'
 import MessageList from './MessageList.tsx'
+import { useIsMobile } from '@/hooks/use-mobile.tsx'
+import { cn } from '@/lib/utils.ts'
 
 interface ChatViewProps {
   dragControls?: DragControls
@@ -20,6 +22,7 @@ export default function ChatView({ dragControls }: ChatViewProps) {
   const { activeFriend, messages, messagesLoading, online, closeChat, send } =
     useFriends()
   const [draft, setDraft] = useState('')
+  const isMobile = useIsMobile()
 
   if (!activeFriend) return null
 
@@ -39,10 +42,13 @@ export default function ChatView({ dragControls }: ChatViewProps) {
       className="flex h-full flex-col"
     >
       <header 
-        className="flex items-center gap-2 border-b p-3 cursor-grab active:cursor-grabbing"
-        onPointerDown={(e) => dragControls?.start(e)}
+        className={cn(
+          "flex items-center gap-2 border-b p-3 select-none",
+          !isMobile && "cursor-grab active:cursor-grabbing"
+        )}
+        onPointerDown={(e) => !isMobile && dragControls?.start(e)}
       >
-        <GripHorizontal className="h-5 w-5 text-muted-foreground mr-1" />
+        {!isMobile && <GripHorizontal className="h-5 w-5 text-muted-foreground mr-1" />}
         <Button
           variant="ghost"
           size="icon"

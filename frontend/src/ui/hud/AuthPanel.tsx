@@ -259,7 +259,7 @@ function AuthDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="absolute pointer-events-auto flex right-3 top-3 md:right-5 md:top-5 size-12 p-0 rounded-full justify-center items-center hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 border-none shadow-none">
+        <Button variant="ghost" className="absolute pointer-events-auto z-50 flex right-3 top-3 md:right-5 md:top-5 size-12 p-0 rounded-full justify-center items-center hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 border-none shadow-none">
           <UserBadge user={{
               username: t('auth.signIn'),
               userId: "test",
@@ -308,14 +308,19 @@ function UserMenu() {
 
   return (
     <>
-      <div className="pointer-events-auto absolute right-3 top-3 md:right-5 md:top-5">
+      <div className="pointer-events-auto absolute z-50 right-3 top-3 md:right-5 md:top-5">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex size-12 p-0 rounded-full justify-center items-center hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 border-none shadow-none">
               <UserBadge user={user} onlyAvatar />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-32 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <DropdownMenuContent 
+            side="left" 
+            align="start" 
+            sideOffset={8}
+            className="w-36 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+          >
             <DropdownMenuGroup>
               <DropdownMenuItem onSelect={() => togglePanel()}>{t('friends.title')} {incoming.length > 0 && (incoming.length)}</DropdownMenuItem>
               <DropdownMenuItem onSelect={() => openSettings(true)}>{t('settings.title')}</DropdownMenuItem>
@@ -355,7 +360,7 @@ function TakeOffButton() {
     <Button
       variant="outline"
       size="icon"
-      className="pointer-events-auto absolute left-3 top-3 md:left-5 md:top-5 transition-transform hover:-translate-y-1 hover:scale-110 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-md"
+      className="pointer-events-auto absolute z-50 left-3 top-3 md:left-5 md:top-5 transition-transform hover:-translate-y-1 hover:scale-110 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-md"
       onClick={handleTakeoff}
     >
       <Rocket className="size-5" />

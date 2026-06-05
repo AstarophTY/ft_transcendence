@@ -10,6 +10,7 @@ import ChatTab from '@/ui/hud/chat/ChatTab.tsx'
 import FriendsList from './FriendsList.tsx'
 import FriendRequests from './FriendRequests.tsx'
 import AddFriend from './AddFriend.tsx'
+import { useIsMobile } from '@/hooks/use-mobile.tsx'
 
 interface FriendsPanelProps {
   dragControls?: DragControls
@@ -19,6 +20,7 @@ export default function FriendsPanel({ dragControls }: FriendsPanelProps) {
   const { t } = useTranslation()
   const { incoming, setPanelOpen } = useFriends()
   const [activeTab, setActiveTab] = useState<Tab>('friends')
+  const isMobile = useIsMobile()
 
   const tabs = [
     { id: 'friends' as Tab, icon: Users,         label: t('friends.tabs.friends') },
@@ -36,11 +38,14 @@ export default function FriendsPanel({ dragControls }: FriendsPanelProps) {
       className="flex h-full flex-col"
     >
       <header 
-        className="flex items-center justify-between border-b p-4 cursor-grab active:cursor-grabbing"
-        onPointerDown={(e) => dragControls?.start(e)}
+        className={cn(
+          "flex items-center justify-between border-b p-4 select-none",
+          !isMobile && "cursor-grab active:cursor-grabbing"
+        )}
+        onPointerDown={(e) => !isMobile && dragControls?.start(e)}
       >
         <div className="flex items-center gap-2">
-          <GripHorizontal className="h-5 w-5 text-muted-foreground" />
+          {!isMobile && <GripHorizontal className="h-5 w-5 text-muted-foreground" />}
           <h2 className="font-semibold select-none">{t('friends.title')}</h2>
         </div>
         <button
@@ -48,7 +53,7 @@ export default function FriendsPanel({ dragControls }: FriendsPanelProps) {
             e.stopPropagation()
             setPanelOpen(false)
           }}
-          className="text-muted-foreground transition-colors hover:text-foreground"
+          className="text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
         >
           <X className="size-5" />
         </button>
