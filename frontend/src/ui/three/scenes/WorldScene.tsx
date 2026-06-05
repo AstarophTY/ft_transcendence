@@ -250,6 +250,22 @@ useEffect(() => {
     if (!token) return
     const socket = connectWorldSocket(token)
 
+    // Reset economy so stale balance from a previous campus doesn't block placement.
+    useWorldEconomy.getState().reset()
+
+    // Register world:coins listener BEFORE emitting world:join, so we never
+    // miss the server's immediate response on a cached/already-connected socket.
+    const onCoins = ({
+      campusId,
+      coins,
+    }: {
+      campusId: string
+      coins: number
+    }) => {
+      if (campusId === activeCampusId) useWorldEconomy.getState().setCoins(coins)
+    }
+    socket.on('world:coins', onCoins)
+
     socket.emit('world:join', { campusId: activeCampusId })
 
     const onRemoteEdit = ({ blocks }: { blocks: WorldBlock[] }) => {
@@ -265,18 +281,6 @@ useEffect(() => {
 
     socket.on('world:edit', onRemoteEdit)
     socket.on('world:lookup:res', onLookupResponse)
-
-    // Campus build budget for this island.
-    const onCoins = ({
-      campusId,
-      coins,
-    }: {
-      campusId: string
-      coins: number
-    }) => {
-      if (campusId === activeCampusId) useWorldEconomy.getState().setCoins(coins)
-    }
-    socket.on('world:coins', onCoins)
 
     // The server refused a placement (no coins): roll it back to its prior state.
     const onRevert = ({
@@ -396,9 +400,9 @@ useEffect(() => {
     const isPlacement = !isRotation && block !== null && blockValue !== Block.Air
 
     // Can't place a paid block when the campus has no coins left.
+    // null means we haven't received the balance yet — let the server validate.
     const economy = useWorldEconomy.getState()
-    console.log("Coins:", economy.coins)
-    if (isPlacement && isPaidBlock(blockValue) && economy.coins <= 0) {
+    if (isPlacement && isPaidBlock(blockValue) && economy.coins !== null && economy.coins <= 0) {
       toast.error(i18n.t('world.noCoins', { defaultValue: 'Your campus is out of coins' }))
       return
     }

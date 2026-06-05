@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ShieldCheck, CalendarDays, MapPin, Coins, Clock } from 'lucide-react'
+import { ShieldCheck, CalendarDays, MapPin, Clock } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -138,10 +138,6 @@ export default function FriendProfile({
               <div className="flex items-center gap-2">
                 <CalendarDays className="size-4 shrink-0" />
                 <span>{t('friends.profile.joined', { date: joined })}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Coins className="size-4 shrink-0 text-yellow-500" />
-                <span>{t('profile.coins', { count: profile.coins })}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="size-4 shrink-0" />
