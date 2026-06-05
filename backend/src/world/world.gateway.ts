@@ -120,7 +120,7 @@ export class WorldGateway
       take: 5,
     });
 
-    client.emit('word:lookup:res', result);
+    client.emit('world:lookup:res', result);
   }
 
   /** Join a campus world room (leaving any previously joined one). */
