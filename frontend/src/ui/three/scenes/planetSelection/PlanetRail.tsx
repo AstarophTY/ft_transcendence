@@ -1,12 +1,14 @@
 import { useFrame } from '@react-three/fiber'
 import type { PlanetMap } from '@/types/maps/PlanetMap.ts'
-import { useRef } from 'react'
+import { useRef, ElementType } from 'react'
 import * as THREE from 'three'
 
 import { usePlanetStore } from '@/store/planetStore.ts'
 
 import SelectablePlanet from '../../objects/SelectablePlanet'
 import { PLANET_SPACING } from './constants'
+
+const Group = 'group' as unknown as ElementType
 
 const PlanetRail = ({ planetMaps }: { planetMaps: PlanetMap[] }) => {
   const railRef = useRef<THREE.Group>(null)
@@ -29,16 +31,16 @@ const PlanetRail = ({ planetMaps }: { planetMaps: PlanetMap[] }) => {
   })
 
   return (
-    <group ref={railRef}>
+    <Group ref={railRef}>
       {planetMaps.map((planetMap, index) => (
-        <group
+        <Group
           key={index}
           position={[(index - (planetMaps.length - 1) / 2) * PLANET_SPACING, 0, 0]}
         >
           <SelectablePlanet map={planetMap} index={index} totalCount={planetMaps.length} />
-        </group>
+        </Group>
       ))}
-    </group>
+    </Group>
   )
 }
 

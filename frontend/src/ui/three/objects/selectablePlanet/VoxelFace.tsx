@@ -1,6 +1,10 @@
 import * as THREE from 'three'
-import { useLayoutEffect, useMemo, useRef } from 'react'
+import { useLayoutEffect, useMemo, useRef, ElementType } from 'react'
 import type { PreviewVoxel } from '@/types/maps/PreviewVoxel.ts'
+
+const Group = 'group' as unknown as ElementType
+const InstancedMesh = 'instancedMesh' as unknown as ElementType
+const BoxGeometry = 'boxGeometry' as unknown as ElementType
 
 type Orientation = 'top' | 'right' | 'front'
 
@@ -67,15 +71,15 @@ const VoxelFace = ({ orientation, previewVoxels, scale, half, inset, getHeight }
   if (validVoxels.length === 0) return null
 
   return (
-    <group position={groupPosition}>
-      <instancedMesh
+    <Group position={groupPosition}>
+      <InstancedMesh
         ref={instancedMeshRef}
         args={[null as unknown as THREE.BufferGeometry, null as unknown as THREE.Material, validVoxels.length]}
       >
-        <boxGeometry args={[1, 1, 1]} />
+        <BoxGeometry args={[1, 1, 1]} />
         <meshStandardMaterial />
-      </instancedMesh>
-    </group>
+      </InstancedMesh>
+    </Group>
   )
 }
 

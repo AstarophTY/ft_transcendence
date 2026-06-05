@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, ElementType } from 'react'
 import { ThreeEvent, useFrame } from '@react-three/fiber'
 import { Billboard, Html } from '@react-three/drei'
 import * as THREE from 'three'
@@ -10,6 +10,8 @@ import { useAuth } from '@/store/auth'
 import PlanetPreviewFaces from './selectablePlanet/PlanetPreviewFaces'
 import { useSelectablePlanetAnimation } from './selectablePlanet/useSelectablePlanetAnimation'
 
+const BoxGeometry = 'boxGeometry' as unknown as ElementType
+
 interface SelectablePlanetProps {
   map: PlanetMap
   index: number
@@ -18,7 +20,8 @@ interface SelectablePlanetProps {
 
 function Satellite({ onClick }: { onClick: (event: ThreeEvent<MouseEvent>) => void }) {
   const satelliteRef = useRef<THREE.Mesh>(null);
-  const [_, setHovered] = useState(false);
+  const materialRef = useRef<THREE.MeshStandardMaterial>(null);
+  const [hovered, setHovered] = useState(false);
 
   useFrame((state) => {
     if (!satelliteRef.current) return
@@ -33,6 +36,13 @@ function Satellite({ onClick }: { onClick: (event: ThreeEvent<MouseEvent>) => vo
     satelliteRef.current.rotation.y += 0.01
   })
 
+  useEffect(() => {
+    if (materialRef.current) {
+      materialRef.current.emissive.set('#fbbf24');
+      materialRef.current.emissiveIntensity = hovered ? 1.0 : 0.5;
+    }
+  }, [hovered]);
+
   return (
     <mesh ref={satelliteRef} onClick={onClick} onPointerOver={() => {
       document.body.style.cursor = 'pointer';
@@ -42,8 +52,8 @@ function Satellite({ onClick }: { onClick: (event: ThreeEvent<MouseEvent>) => vo
       document.body.style.cursor = 'auto';
       setHovered(false);
     }}>
-      <boxGeometry args={[0.2, 0.2, 0.2]} />
-      <meshStandardMaterial color="#fbbf24" emissive="#fbbf24" emissiveIntensity={0.5} />
+      <BoxGeometry args={[0.2, 0.2, 0.2]} />
+      <meshStandardMaterial ref={materialRef} color="#fbbf24" />
     </mesh>    
   )
 }
@@ -114,7 +124,7 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
           }
         }}
       >
-        <boxGeometry args={[1, 1, 1]} />
+        <BoxGeometry args={[1, 1, 1]} />
         <meshStandardMaterial color={baseColor} />
       </mesh>
 

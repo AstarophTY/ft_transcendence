@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unknown-property */
 import { PointerLockControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import React, { useEffect, useRef } from 'react'
@@ -65,9 +64,29 @@ export const FreeCameraControls = ({
   const isTouch = useIsTouchDevice()
   const controlsRef = useRef<PointerLockControlsImpl | null>(null)
   const keysRef = useRef<Record<string, boolean>>({})
+const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
+const SphereGeometry = 'sphereGeometry' as unknown as React.ElementType
+
   const previewGroupRef = useRef<THREE.Group>(null)
   const cubePreviewRef = useRef<THREE.Mesh>(null)
   const spherePreviewRef = useRef<THREE.Mesh>(null)
+  const cubeMaterialRef = useRef<THREE.MeshBasicMaterial>(null)
+  const sphereMaterialRef = useRef<THREE.MeshBasicMaterial>(null)
+
+  useEffect(() => {
+    if (previewGroupRef.current) previewGroupRef.current.visible = false
+    if (spherePreviewRef.current) spherePreviewRef.current.visible = false
+    if (cubeMaterialRef.current) {
+      cubeMaterialRef.current.transparent = true
+      cubeMaterialRef.current.depthWrite = false
+      cubeMaterialRef.current.wireframe = false
+    }
+    if (sphereMaterialRef.current) {
+      sphereMaterialRef.current.transparent = true
+      sphereMaterialRef.current.depthWrite = false
+      sphereMaterialRef.current.wireframe = false
+    }
+  }, [])
 
   const updatePreview = () => {
     if (!previewGroupRef.current || !cubePreviewRef.current || !spherePreviewRef.current) return
@@ -404,10 +423,8 @@ export const FreeCameraControls = ({
       if (adjustedY >= Chunk.HEIGHT) return true // skies
 
       const block = localMap.getGlobalBlock(globalX, adjustedY, globalZ)
-      if (block !== Block.Air && block !== Block.Water) {
-        return false
-      }
-      return true
+      return !(block !== Block.Air && block !== Block.Water);
+
     }
 
     // Collision handling: check each axis separately for sliding
@@ -462,14 +479,14 @@ export const FreeCameraControls = ({
   return active ? (
     <>
       <PointerLockControls ref={(node) => { controlsRef.current = node }} selector="#canvas-container" />
-      <group ref={previewGroupRef} visible={false}>
+      <group ref={previewGroupRef}>
         <mesh ref={cubePreviewRef}>
-          <boxGeometry args={[1.01, 1.01, 1.01]} />
-          <meshBasicMaterial color="#fbbf24" transparent opacity={0.4} depthWrite={false} wireframe={false} />
+          <BoxGeometry args={[1.01, 1.01, 1.01]} />
+          <meshBasicMaterial ref={cubeMaterialRef} color="#fbbf24" opacity={0.4} />
         </mesh>
-        <mesh ref={spherePreviewRef} visible={false}>
-          <sphereGeometry args={[0.5, 16, 16]} />
-          <meshBasicMaterial color="#fbbf24" transparent opacity={0.4} depthWrite={false} wireframe={false} />
+        <mesh ref={spherePreviewRef}>
+          <SphereGeometry args={[0.5, 16, 16]} />
+          <meshBasicMaterial ref={sphereMaterialRef} color="#fbbf24" opacity={0.4} />
         </mesh>
       </group>
     </>

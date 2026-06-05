@@ -1,6 +1,7 @@
-/* eslint-disable react/no-unknown-property */
+import { useEffect, useRef, ElementType } from 'react'
 import { Environment, Sky } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
+import * as THREE from 'three'
 
 import WorldScene from './scenes/WorldScene.tsx'
 import PlanetSelectionScene from './scenes/PlanetSelectionScene'
@@ -8,9 +9,28 @@ import { usePlanetStore } from '@/store/planetStore'
 import { useIsTouchDevice } from '@/hooks/use-mobile.tsx'
 import { WebGLErrorBoundary } from './ErrorBoundary.tsx'
 
+const AmbientLight = 'ambientLight' as unknown as ElementType
+const HemisphereLight = 'hemisphereLight' as unknown as ElementType
+const DirectionalLight = 'directionalLight' as unknown as ElementType
+
 const SceneFrame = () => {
   const sceneMode = usePlanetStore(state => state.sceneMode)
   const isTouch = useIsTouchDevice()
+  const lightRef = useRef<THREE.DirectionalLight>(null)
+
+  useEffect(() => {
+    const light = lightRef.current
+    if (light) {
+      const cam = light.shadow.camera
+      cam.left = -120
+      cam.right = 120
+      cam.top = 120
+      cam.bottom = -120
+      cam.near = 0.1
+      cam.far = 500
+      cam.updateProjectionMatrix()
+    }
+  }, [sceneMode])
 
   return (
     <>
@@ -21,8 +41,8 @@ const SceneFrame = () => {
           <Environment background={false} preset={undefined}>
             <Sky sunPosition={[100, 20, 100]} />
           </Environment>
-          <ambientLight intensity={0.3} />
-          <hemisphereLight
+          <AmbientLight intensity={0.3} />
+          <HemisphereLight
             args={['#ffffff', '#444444', 0.5]}
             position={[0, 50, 0]}
           />
@@ -30,17 +50,12 @@ const SceneFrame = () => {
             <WorldScene />
           ) : (
             <>
-              <directionalLight
+              <DirectionalLight
+                ref={lightRef}
                 position={[150, 250, 150]}
                 intensity={1.2}
                 castShadow
                 shadow-mapSize={[2048, 2048]}
-                shadow-camera-left={-120}
-                shadow-camera-right={120}
-                shadow-camera-top={120}
-                shadow-camera-bottom={-120}
-                shadow-camera-near={0.1}
-                shadow-camera-far={500}
               />
               <PlanetSelectionScene />
             </>

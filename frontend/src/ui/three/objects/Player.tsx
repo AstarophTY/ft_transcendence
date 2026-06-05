@@ -1,6 +1,6 @@
 import { PointerLockControls } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, ElementType } from 'react'
 import * as THREE from 'three'
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
 
@@ -15,6 +15,8 @@ import { usePlayerAppearance } from './player/playerAppearance'
 
 import type { PlayerProps } from '@/types/Three'
 import { Chunk } from '@/types/maps/Chunk'
+
+const Primitive = 'primitive' as unknown as ElementType
 
 const Player = ({ localMap, active, playerRef }: PlayerProps) => {
   const { camera, gl } = useThree()
@@ -54,8 +56,8 @@ const Player = ({ localMap, active, playerRef }: PlayerProps) => {
 
   return (
     <group ref={playerRef}>
-      <primitive object={scene} scale={0.5} />
-      <primitive object={eyes} scale={0.5} />
+      <Primitive object={scene} scale={0.5} />
+      <Primitive object={eyes} scale={0.5} />
       {active && <PointerLockControls ref={controlsRef} selector="#canvas-container" />}
     </group>
   )

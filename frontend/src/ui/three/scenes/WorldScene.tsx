@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unknown-property */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
@@ -124,6 +123,8 @@ const applyWorldBlock = (map: LocalMap, b: WorldBlock) => {
   if (b.rotation) map.setGlobalBlockRotation(b.x, b.y, b.z, b.rotation)
 }
 
+const DirectionalLight = 'directionalLight' as unknown as React.ElementType
+
 interface WorldShadowLightProps {
   playerRef: React.RefObject<THREE.Group | null>
   currentMode: 'freecam' | 'player'
@@ -133,6 +134,22 @@ const WorldShadowLight = ({ playerRef, currentMode }: WorldShadowLightProps) => 
   const { camera } = useThree()
   const lightRef = useRef<THREE.DirectionalLight | null>(null)
   const targetRef = useRef<THREE.Object3D | null>(null)
+
+  useEffect(() => {
+    const light = lightRef.current
+    if (light) {
+      light.shadow.bias = -0.0005
+      light.shadow.normalBias = 0.05
+      const cam = light.shadow.camera
+      cam.left = -120
+      cam.right = 120
+      cam.top = 120
+      cam.bottom = -120
+      cam.near = 0.1
+      cam.far = 500
+      cam.updateProjectionMatrix()
+    }
+  }, [])
 
   useFrame(() => {
     if (!lightRef.current || !targetRef.current) return
@@ -161,19 +178,11 @@ const WorldShadowLight = ({ playerRef, currentMode }: WorldShadowLightProps) => 
   return (
     <>
       <object3D ref={targetRef} />
-      <directionalLight
+      <DirectionalLight
         ref={lightRef}
         intensity={1.2}
         castShadow
-        shadow-bias={-0.0005}
-        shadow-normalBias={0.05}
         shadow-mapSize={[2048, 2048]}
-        shadow-camera-left={-120}
-        shadow-camera-right={120}
-        shadow-camera-top={120}
-        shadow-camera-bottom={-120}
-        shadow-camera-near={0.1}
-        shadow-camera-far={500}
       />
     </>
   )
