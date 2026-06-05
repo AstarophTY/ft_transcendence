@@ -6,7 +6,8 @@ import { ScrollArea } from '@/ui/shadcn/scroll-area.tsx';
 import { BlocksList } from '@/config/Block.ts';
 import { useEditorStore } from '@/store/editorStore.ts';
 import { motion, useDragControls } from 'motion/react';
-import { GripHorizontal } from 'lucide-react';
+import { GripHorizontal, X } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile.tsx';
 import {
   Select,
   SelectContent,
@@ -226,8 +227,9 @@ export function BlockPreview({ name, color }: { name: string; color: string }) {
 export function SearchBlock() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const { selectedBlock, setSelectedBlock } = useEditorStore();
+  const { selectedBlock, setSelectedBlock, setCatalogOpen } = useEditorStore();
   const dragControls = useDragControls();
+  const isMobile = useIsMobile();
 
   const categories = useMemo(() => {
     const cats = new Set(BlocksList.map((b) => b.category));
@@ -271,23 +273,59 @@ export function SearchBlock() {
   }, [displayedBlocks]);
 
   return (
-    <div className="absolute top-16 right-16 w-[400px] h-[500px] z-50">
+    <div className="
+      /* Desktop (Default) */
+      absolute top-16 right-16 w-[400px] h-[500px] z-50
+      
+      /* Mobile Portrait */
+      max-md:fixed max-md:bottom-0 max-md:inset-x-0 max-md:top-auto max-md:right-auto max-md:w-full max-md:h-[60vh]
+      
+      /* Mobile/Tablet Landscape */
+      max-lg:landscape:fixed max-lg:landscape:top-0 max-lg:landscape:bottom-0 max-lg:landscape:right-0 max-lg:landscape:left-auto max-lg:landscape:w-[320px] max-lg:landscape:h-full
+    ">
       <motion.div 
-        drag
+        drag={!isMobile}
         dragControls={dragControls}
         dragListener={false}
         dragMomentum={false}
-        className="flex flex-col h-full w-full space-y-4 p-4 pointer-events-auto bg-background/60 backdrop-blur-md supports-[backdrop-filter]:bg-background/40 rounded-xl border border-border/40 shadow-lg"
+        className="
+          flex flex-col h-full w-full space-y-4 p-4 pointer-events-auto 
+          bg-background/60 backdrop-blur-md supports-[backdrop-filter]:bg-background/40 
+          shadow-lg
+          
+          /* Desktop */
+          rounded-xl border border-border/40
+          
+          /* Mobile Portrait */
+          max-md:rounded-t-2xl max-md:rounded-b-none max-md:border-t max-md:border-x-0 max-md:border-b-0
+          
+          /* Mobile Landscape */
+          max-lg:landscape:rounded-l-2xl max-lg:landscape:rounded-r-none max-lg:landscape:border-l max-lg:landscape:border-y-0 max-lg:landscape:border-r-0
+        "
       >
+        {/* Visual Handle for bottom sheet - Only visible on Mobile Portrait */}
+        <div className="hidden max-md:portrait:block w-12 h-1 bg-muted-foreground/30 rounded-full mx-auto -mt-1 mb-2" />
+
         <div className="flex flex-col space-y-2">
           <div 
-            className="flex items-center justify-between cursor-grab active:cursor-grabbing pb-1"
-            onPointerDown={(e) => dragControls.start(e)}
+            className={`flex items-center justify-between pb-1 ${isMobile ? '' : 'cursor-grab active:cursor-grabbing'}`}
+            onPointerDown={(e) => !isMobile && dragControls.start(e)}
           >
             <div className="flex items-center gap-2">
-              <GripHorizontal className="h-5 w-5 text-muted-foreground" />
+              {!isMobile && <GripHorizontal className="h-5 w-5 text-muted-foreground" />}
               <h2 className="text-lg font-bold select-none">Block Catalog</h2>
             </div>
+            
+            {/* Close button */}
+            {isMobile && (
+              <button 
+                onClick={() => setCatalogOpen(false)}
+                className="p-1 rounded-md hover:bg-muted/20 active:scale-95 transition-all text-muted-foreground hover:text-foreground cursor-pointer"
+                aria-label="Close Catalog"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            )}
           </div>
           <div className="flex gap-2">
             <Input
@@ -321,7 +359,12 @@ export function SearchBlock() {
                     ? 'ring-2 ring-primary border-primary'
                     : 'hover:border-primary/50'
                 }`}
-                onClick={() => setSelectedBlock(block.id)}
+                onClick={() => {
+                  setSelectedBlock(block.id);
+                  if (isMobile) {
+                    setCatalogOpen(false);
+                  }
+                }}
               >
                 <div 
                   className="h-20 w-full flex items-center justify-center border-b bg-muted/10 relative"

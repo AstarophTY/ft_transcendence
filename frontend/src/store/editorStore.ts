@@ -13,6 +13,8 @@ interface EditorStore {
   setShape: (shape: Shape) => void
   shapeSize: number
   setShapeSize: (shapeSize: number) => void
+  catalogOpen: boolean
+  setCatalogOpen: (open: boolean) => void
 }
 
 export const useEditorStore = create<EditorStore>((set) => ({
@@ -21,9 +23,14 @@ export const useEditorStore = create<EditorStore>((set) => ({
   selectedBlock: Block.Dirt,
   setSelectedBlock: (block) => set({ selectedBlock: block }),
   tool: Tab.None,
-  setTool: (tool) => set({ tool: tool }),
+  setTool: (tool) => set((state) => ({ 
+    tool: tool, 
+    catalogOpen: tool === Tab.Add ? true : state.catalogOpen 
+  })),
   shape: Shape.Cube,
   setShape: (shape) => set({shape: shape}),
   shapeSize: 1,
-  setShapeSize: (shape_size) => set({shapeSize: shape_size})
+  setShapeSize: (shape_size) => set({shapeSize: shape_size}),
+  catalogOpen: false,
+  setCatalogOpen: (open) => set({ catalogOpen: open })
 }))
