@@ -20,6 +20,7 @@ import { Block } from '@/types/Block'
 import { BlockMetadata } from '@/config/Block'
 import { LocalMap } from '@/types/maps/LocalMap'
 import { IslandMap, BiomeType, getBiomeBlock } from '@/perlin'
+import { useLookupStore } from '@/store/lookupStore'
 
 const generateLocalMap = (profile: any, mapSize: number) => {
   const widthInChunks = mapSize / Chunk.WIDTH
@@ -249,8 +250,8 @@ useEffect(() => {
       setMapVersion((v) => v + 1)
     }
 
-    const onLookupResponse = (data: { x: number; y: number; z: number; info: any }) => {
-      console.log(data)
+    const onLookupResponse = (data: { date: string; userId: string }[]) => {
+      useLookupStore.getState().setResults(data)
     }
 
     socket.on('world:edit', onRemoteEdit)
@@ -360,11 +361,12 @@ useEffect(() => {
       return
     }
 
+    useLookupStore.getState().openLookup()
+
     const socket = getWorldSocket()
     if (!socket || !activeCampusId) return
 
     lastLookupTime.current = now
-
     socket.emit('world:lookup', {
       campusId: activeCampusId,
       x,
