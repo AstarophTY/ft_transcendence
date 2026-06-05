@@ -9,15 +9,16 @@ import SelectablePlanet from '../../objects/SelectablePlanet'
 import { PLANET_SPACING } from './constants'
 
 const PlanetRail = ({ planetMaps }: { planetMaps: PlanetMap[] }) => {
-  const railRef = useRef<THREE.Group>(null)
-  const totalSpan = (planetMaps.length - 1) * PLANET_SPACING
+  const railRef = useRef<THREE.Group>(null);
+  const totalSpan = (planetMaps.length - 1) * PLANET_SPACING;
 
   useFrame((_, delta) => {
-    if (!railRef.current) return
+    if (!railRef.current)
+      return;
 
-    const { targetOffset } = usePlanetStore.getState()
-    const targetX = (0.5 - targetOffset) * totalSpan
-    railRef.current.position.x = THREE.MathUtils.lerp(railRef.current.position.x, targetX, delta * 6)
+    const { targetOffset } = usePlanetStore.getState();
+    const targetX = (0.5 - targetOffset) * totalSpan;
+    railRef.current.position.x = THREE.MathUtils.lerp(railRef.current.position.x, targetX, delta * 6);
   })
 
   return (
