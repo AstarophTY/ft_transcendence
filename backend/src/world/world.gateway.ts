@@ -120,7 +120,6 @@ export class WorldGateway
       select: { date: true, userId: true },
       take: 5,
     });
-
     client.emit('world:lookup:res', result);
   }
 
