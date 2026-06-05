@@ -118,7 +118,7 @@ export class WorldGateway
         worldBlockZ: z,
       },
       orderBy: { date: 'desc' },
-      select: { date: true, userId: true },
+      select: { date: true, userId: true, placedBlock: true },
       take: 5,
     });
 
@@ -128,13 +128,16 @@ export class WorldGateway
       select: { id: true, avatar: true, fortyTwoLogin: true },
     });
 
-    const result = blocks.map((k) => {
+    const result = blocks.map((k, index) => {
       const user = users.find((u) => u.id === k.userId);
+      const previousBlock = blocks[index + 1] ? blocks[index + 1].placedBlock : 0;
       return {
         date: k.date,
         userId: k.userId,
         userAvatar: user?.avatar,
         userName: user?.fortyTwoLogin,
+        placedBlock: k.placedBlock,
+        previousBlock,
       };
     });
 
@@ -271,7 +274,8 @@ export class WorldGateway
     try {
       if (campusId) {
         // Apply the campus-coin economy, then relay only the accepted edits.
-        const { applied, rejected, coins } = await this.world.applyEdits(campusId, blocks);
+        const userId = client.data.userId as string;
+        const { applied, rejected, coins } = await this.world.applyEdits(campusId, blocks, userId);
         if (applied.length > 0) {
           client.to(room).emit('world:edit', { blocks: applied });
         }

@@ -6,6 +6,7 @@ export interface LookupRecord {
   userAvatar: string,
   userId: string,
   placedBlock: number
+  previousBlock: number
 }
 
 interface LookupState {

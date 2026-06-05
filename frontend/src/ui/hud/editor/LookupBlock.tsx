@@ -95,14 +95,40 @@ export function LookupBlock() {
                       </div>
                     </div>
                     
-                    <div className="flex items-center justify-center h-12 w-12 rounded-md border shadow-sm shrink-0 overflow-hidden relative" title={blockMeta ? blockMeta.name : "Air"}>
-                      {blockMeta ? (
-                        <div className="absolute inset-0 flex items-center justify-center scale-75">
-                          <BlockPreview name={blockMeta.name} color={blockMeta.color} />
-                        </div>
-                      ) : (
-                        <span className="text-xs font-medium text-muted-foreground">Air</span>
-                      )}
+                    <div className="flex items-center gap-1.5 shrink-0 bg-background/40 p-1 rounded-lg border border-border/40 shadow-inner">
+                      {/* Previous block state */}
+                      <div 
+                        className="flex items-center justify-center h-10 w-10 rounded-md border border-dashed border-muted-foreground/30 shadow-sm overflow-hidden relative bg-muted/10" 
+                        title={`Before: ${record.previousBlock && BlockMetadata[record.previousBlock as keyof typeof BlockMetadata] ? BlockMetadata[record.previousBlock as keyof typeof BlockMetadata].name : "Air"}`}
+                      >
+                        {record.previousBlock && BlockMetadata[record.previousBlock as keyof typeof BlockMetadata] ? (
+                          <div className="absolute inset-0 flex items-center justify-center scale-75">
+                            <BlockPreview 
+                              name={BlockMetadata[record.previousBlock as keyof typeof BlockMetadata].name} 
+                              color={BlockMetadata[record.previousBlock as keyof typeof BlockMetadata].color} 
+                            />
+                          </div>
+                        ) : (
+                          <span className="text-[10px] font-semibold text-muted-foreground/50 select-none">Air</span>
+                        )}
+                      </div>
+                      
+                      {/* Transition arrow */}
+                      <span className="text-muted-foreground/50 text-xs font-bold px-0.5 select-none">➔</span>
+                      
+                      {/* New placed block state */}
+                      <div 
+                        className="flex items-center justify-center h-10 w-10 rounded-md border border-border shadow-sm overflow-hidden relative bg-background" 
+                        title={`After: ${blockMeta ? blockMeta.name : "Air"}`}
+                      >
+                        {blockMeta ? (
+                          <div className="absolute inset-0 flex items-center justify-center scale-75">
+                            <BlockPreview name={blockMeta.name} color={blockMeta.color} />
+                          </div>
+                        ) : (
+                          <span className="text-[10px] font-semibold text-muted-foreground/50 select-none">Air</span>
+                        )}
+                      </div>
                     </div>
                   </Card>
                 )

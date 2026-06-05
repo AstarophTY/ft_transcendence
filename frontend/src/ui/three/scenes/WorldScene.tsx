@@ -27,7 +27,7 @@ import { Block } from '@/types/Block'
 import { BlockMetadata } from '@/config/Block'
 import { LocalMap } from '@/types/maps/LocalMap'
 import { IslandMap, BiomeType, getBiomeBlock } from '@/generation'
-import { useLookupStore } from '@/store/lookupStore.ts'
+import { useLookupStore, LookupRecord } from '@/store/lookupStore.ts'
 
 const generateLocalMap = (profile: DemoPlanetProfile, mapSize: number) => {
   const widthInChunks = mapSize / Chunk.WIDTH
@@ -274,7 +274,7 @@ useEffect(() => {
       setMapVersion((v) => v + 1)
     }
 
-    const onLookupResponse = (data: { date: string; userId: string, userName: string, userAvatar: string, placedBlock: number }[]) => {
+    const onLookupResponse = (data: LookupRecord[]) => {
       useLookupStore.getState().setResults(data)
     }
 

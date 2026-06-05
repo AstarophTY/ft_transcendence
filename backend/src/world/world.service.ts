@@ -161,6 +161,7 @@ export class WorldService {
   async applyEdits(
     campusId: string,
     blocks: WorldBlockDto[],
+    userId: string,
   ): Promise<{
     applied: WorldBlockDto[];
     rejected: { x: number; y: number; z: number }[];
@@ -206,9 +207,10 @@ export class WorldService {
       prev.set(key, b.block);
     }
 
-    await this.prisma.$transaction([
-      ...applied.map((b) =>
-        this.prisma.worldBlock.upsert({
+    await this.prisma.$transaction(async (tx) => {
+      for (const b of applied) {
+        const rotation = b.rotation ?? 0;
+        await tx.worldBlock.upsert({
           where: {
             worldId_x_y_z: { worldId: world.id, x: b.x, y: b.y, z: b.z },
           },
@@ -218,16 +220,54 @@ export class WorldService {
             y: b.y,
             z: b.z,
             block: b.block,
-            rotation: b.rotation ?? 0,
+            rotation,
+            block_log: {
+              create: {
+                userId,
+                date: new Date(),
+                placedBlock: b.block,
+              },
+            },
           },
-          update: { block: b.block, rotation: b.rotation ?? 0 },
-        }),
-      ),
-      this.prisma.campus.update({
+          update: {
+            block: b.block,
+            rotation,
+            block_log: {
+              create: {
+                userId,
+                date: new Date(),
+                placedBlock: b.block,
+              },
+            },
+          },
+        });
+
+        const oldLogs = await tx.blockLog.findMany({
+          where: {
+            worldBlockWorldId: world.id,
+            worldBlockX: b.x,
+            worldBlockY: b.y,
+            worldBlockZ: b.z,
+          },
+          orderBy: { date: 'desc' },
+          skip: 5,
+          select: { id: true },
+        });
+
+        if (oldLogs.length > 0) {
+          await tx.blockLog.deleteMany({
+            where: {
+              id: { in: oldLogs.map((log) => log.id) },
+            },
+          });
+        }
+      }
+
+      await tx.campus.update({
         where: { id: campusId },
         data: { coins },
-      }),
-    ]);
+      });
+    });
 
     return { applied, rejected, coins };
   }
