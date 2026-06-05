@@ -33,4 +33,7 @@ export class UpdateProfileDto {
 
   @IsOptional() @IsString() @MaxLength(80)
   statusMessage?: string;
+
+  @IsOptional() @IsString() @MaxLength(9)
+  skinColor?: string;
 }

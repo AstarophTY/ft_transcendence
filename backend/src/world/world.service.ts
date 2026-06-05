@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Campus, World } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { WorldBlockDto } from './dto/save-blocks.dto';
+import { AIR, isPaidBlock } from './world.blocks';
 import { generateWorldProfile } from './world.profile';
 
 /**
@@ -145,6 +146,98 @@ export class WorldService {
         }
       }
     });
+  }
+
+  /**
+   * Apply a batch of edits with the campus-coin economy:
+   * - placing a paid block costs 1 coin (rejected when the campus has none);
+   * - breaking a previously placed paid block refunds 1 coin;
+   * - free (world-construction) blocks are unaffected.
+   *
+   * Returns the edits that were actually applied, the positions rejected for
+   * lack of coins, and the campus's new coin balance.
+   */
+  async applyEdits(
+    campusId: string,
+    blocks: WorldBlockDto[],
+  ): Promise<{
+    applied: WorldBlockDto[];
+    rejected: { x: number; y: number; z: number }[];
+    coins: number;
+  }> {
+    const world = await this.ensureWorld(campusId);
+    const campus = await this.prisma.campus.findUnique({
+      where: { id: campusId },
+      select: { coins: true },
+    });
+    if (!campus) throw new NotFoundException('Campus not found');
+
+    // Previous (persisted) block at each edited position; absent = base terrain.
+    const existing = await this.prisma.worldBlock.findMany({
+      where: {
+        worldId: world.id,
+        OR: blocks.map((b) => ({ x: b.x, y: b.y, z: b.z })),
+      },
+      select: { x: true, y: true, z: true, block: true },
+    });
+    const prev = new Map<string, number>(
+      existing.map((e) => [`${e.x},${e.y},${e.z}`, e.block]),
+    );
+
+    let coins = campus.coins;
+    const applied: WorldBlockDto[] = [];
+    const rejected: { x: number; y: number; z: number }[] = [];
+
+    for (const b of blocks) {
+      const key = `${b.x},${b.y},${b.z}`;
+      if (isPaidBlock(b.block)) {
+        if (coins <= 0) {
+          rejected.push({ x: b.x, y: b.y, z: b.z });
+          continue;
+        }
+        coins -= 1;
+      } else if (b.block === AIR) {
+        // Breaking: refund only when a placed paid block is removed.
+        const before = prev.get(key);
+        if (before !== undefined && isPaidBlock(before)) coins += 1;
+      }
+      applied.push(b);
+      prev.set(key, b.block);
+    }
+
+    await this.prisma.$transaction([
+      ...applied.map((b) =>
+        this.prisma.worldBlock.upsert({
+          where: {
+            worldId_x_y_z: { worldId: world.id, x: b.x, y: b.y, z: b.z },
+          },
+          create: {
+            worldId: world.id,
+            x: b.x,
+            y: b.y,
+            z: b.z,
+            block: b.block,
+            rotation: b.rotation ?? 0,
+          },
+          update: { block: b.block, rotation: b.rotation ?? 0 },
+        }),
+      ),
+      this.prisma.campus.update({
+        where: { id: campusId },
+        data: { coins },
+      }),
+    ]);
+
+    return { applied, rejected, coins };
+  }
+
+  /** The campus build budget (coins), or null if the campus does not exist. */
+  async getCampusCoins(campusId: string): Promise<number | null> {
+    const campus = await this.prisma.campus.findUnique({
+      where: { id: campusId },
+      select: { coins: true },
+    });
+    return campus?.coins ?? null;
   }
 
   /** Create a world (with a fresh random profile) for a campus that has none. */

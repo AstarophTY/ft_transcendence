@@ -27,11 +27,13 @@ model User {
   monthLogtimeHours    Float      @default(0)
   fortyTwoAccessToken  String?
   fortyTwoRefreshToken String?
-  language             String?
-  theme                String?
-  status               UserStatus @default(ONLINE)
-  statusMessage        String?
-  usernameChangedAt    DateTime?
+  language          String?
+  theme             String?
+  /// Player avatar tint (hex color), shown on the 3D character.
+  skinColor         String?
+  status            UserStatus @default(ONLINE)
+  statusMessage     String?
+  usernameChangedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

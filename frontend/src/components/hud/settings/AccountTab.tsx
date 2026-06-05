@@ -123,6 +123,18 @@ export default function AccountTab() {
         )}
       </Field>
 
+      <Field
+        label={t('settings.account.siteLogtime', { defaultValue: 'Logtime' })}
+        hint={t('settings.account.siteLogtimeHint', {
+          defaultValue: 'Time since you joined the site',
+        })}
+      >
+        <Input
+          value={`${Math.floor(me?.siteLogtimeHours ?? 0)} h`}
+          disabled
+        />
+      </Field>
+
       {me?.fortyTwoLogin && (
         <Field label={t('settings.account.fortyTwo')}>
           <Input value={me.fortyTwoLogin} disabled />

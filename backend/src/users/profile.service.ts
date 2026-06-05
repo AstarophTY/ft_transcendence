@@ -35,7 +35,9 @@ export class ProfileService {
     if (!me) return null;
     const coinsPerHour =
       Number(this.config.get<string>('COINS_PER_HOUR', '1')) || 1;
-    return { ...me, coinsPerHour };
+    // Site logtime: hours elapsed since the account was registered.
+    const siteLogtimeHours = (Date.now() - me.createdAt.getTime()) / 3_600_000;
+    return { ...me, coinsPerHour, siteLogtimeHours };
   }
 
   /** Live 42 logtime diagnostics for the signed-in user. */

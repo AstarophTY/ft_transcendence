@@ -11,6 +11,11 @@ import { useEditorStore } from '@/store/editorStore'
 import { getWorld, type WorldBlock } from '@/lib/world'
 import { connectWorldSocket, getWorldSocket } from '@/lib/worldSocket'
 import { tokenStore } from '@/lib/api'
+import { toast } from 'sonner'
+import i18n from '@/i18n'
+import { usePlayerAppearance } from '../objects/player/playerAppearance'
+import { useWorldEconomy } from '@/store/worldEconomy'
+import { isPaidBlock } from '@/config/worldBlocks'
 import Player from '../objects/Player'
 import RemotePlayers from '../objects/RemotePlayers'
 import { ChunkRenderer } from './worldScene/ChunkRenderer'
@@ -202,6 +207,10 @@ const WorldScene = () => {
   const [, setMapVersion] = useState(0)
   // Latest map, for the socket listener which is registered once per campus.
   const mapRef = useRef<LocalMap | null>(localMap)
+  // Previous block state per edited position, to roll back rejected placements.
+  const prevStates = useRef<Map<string, { block: Block; rotation: number }>>(
+    new Map(),
+  )
 
   useEffect(() => {
     if (!profile || !activeCampusId) return
@@ -257,10 +266,46 @@ useEffect(() => {
     socket.on('world:edit', onRemoteEdit)
     socket.on('world:lookup:res', onLookupResponse)
 
+    // Campus build budget for this island.
+    const onCoins = ({
+      campusId,
+      coins,
+    }: {
+      campusId: string
+      coins: number
+    }) => {
+      if (campusId === activeCampusId) useWorldEconomy.getState().setCoins(coins)
+    }
+    socket.on('world:coins', onCoins)
+
+    // The server refused a placement (no coins): roll it back to its prior state.
+    const onRevert = ({
+      positions,
+    }: {
+      positions: { x: number; y: number; z: number }[]
+    }) => {
+      const map = mapRef.current
+      if (!map) return
+      for (const pos of positions) {
+        const key = `${pos.x},${pos.y},${pos.z}`
+        const prev = prevStates.current.get(key)
+        if (prev) {
+          map.setGlobalBlock(pos.x, pos.y, pos.z, prev.block)
+          map.setGlobalBlockRotation(pos.x, pos.y, pos.z, prev.rotation)
+          prevStates.current.delete(key)
+        }
+      }
+      setMapVersion((v) => v + 1)
+    }
+    socket.on('world:revert', onRevert)
+
     return () => {
       socket.emit('world:leave', { campusId: activeCampusId })
       socket.off('world:edit', onRemoteEdit)
+
       socket.off('world:lookup:res', onLookupResponse)
+      socket.off('world:coins', onCoins)
+      socket.off('world:revert', onRevert)
     }
   }, [activeCampusId])
 
@@ -278,8 +323,10 @@ useEffect(() => {
     const freecam = currentMode === 'freecam'
     const round = (n: number) => Math.round(n * 50) / 50 // ~0.02 step
 
+
     camera.getWorldDirection(camDir.current)
 
+    const skin = usePlayerAppearance.getState().skinColor
     const payload: {
       campusId?: string
       personalWorld?: boolean
@@ -288,12 +335,16 @@ useEffect(() => {
       m: 'player' | 'freecam'
       c?: [number, number, number]
       cr?: number
+
       cp?: number
+      skin: string
     } = {
       p: [round(p.position.x), round(p.position.y), round(p.position.z)],
       r: round(p.rotation.y),
       m: freecam ? 'freecam' : 'player',
+
       cp: round(Math.asin(camDir.current.y)),
+      skin,
     }
 
     payload.campusId = activeCampusId!;
@@ -307,8 +358,9 @@ useEffect(() => {
       payload.cr = round(Math.atan2(camDir.current.x, camDir.current.z))
     }
 
-    // A signature that captures everything peers care about (incl. mode switch).
-    const key = `${payload.m}|${payload.p.join(',')}|${payload.r}|${payload.c?.join(',') ?? ''}|${payload.cr ?? ''}|${payload.cp ?? ''}`
+
+    // A signature that captures everything peers care about (incl. mode/skin).
+    const key = `${payload.m}|${payload.p.join(',')}|${payload.r}|${payload.c?.join(',') ?? ''}|${payload.cr ?? ''}|${payload.cp ?? ''}|${payload.skin}`
     const now = performance.now()
     const last = lastSent.current
     if (key === last.key || now - last.t < 66) return // ~15 Hz, only on change
@@ -340,13 +392,33 @@ useEffect(() => {
     if (!localMap) return
 
     const blockValue = block ?? Block.Air
+    const isRotation = rotation !== undefined
+    const isPlacement = !isRotation && block !== null && blockValue !== Block.Air
 
-    if (rotation !== undefined) {
+    // Can't place a paid block when the campus has no coins left.
+    const economy = useWorldEconomy.getState()
+    if (isPlacement && isPaidBlock(blockValue) && economy.coins <= 0) {
+      toast.error(i18n.t('world.noCoins', { defaultValue: 'Your campus is out of coins' }))
+      return
+    }
+
+    // Remember the prior state in case the server rejects this placement.
+    const prevBlock = localMap.getGlobalBlock(x, y, z)
+    prevStates.current.set(`${x},${y},${z}`, {
+      block: prevBlock,
+      rotation: localMap.getGlobalBlockRotation(x, y, z),
+    })
+
+    if (isRotation) {
       localMap.setGlobalBlockRotation(x, y, z, rotation)
     } else {
       localMap.setGlobalBlock(x, y, z, blockValue)
     }
     setMapVersion((v) => v + 1)
+
+    // Optimistic coin change; the server's `world:coins` reconciles it.
+    if (isPlacement && isPaidBlock(blockValue)) economy.adjust(-1)
+    else if (block === null && isPaidBlock(prevBlock)) economy.adjust(1)
 
     pendingBlocks.current.push({ x, y, z, block: blockValue, rotation: rotation ?? 0 })
     // Coalesce bursts into ~100ms batches, but keep flushing while editing

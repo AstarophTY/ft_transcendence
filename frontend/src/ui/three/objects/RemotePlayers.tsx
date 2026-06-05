@@ -1,17 +1,14 @@
 import { useFrame } from '@react-three/fiber'
-import { useGLTF, Billboard, Html } from '@react-three/drei'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { SkeletonUtils } from 'three-stdlib'
 
-import UserBadge from '@/components/hud/UserBadge'
 import { connectWorldSocket } from '@/lib/worldSocket'
 import { tokenStore } from '@/lib/api'
-import { useCurvedSceneMaterials } from './player/useCurvedSceneMaterials'
-
-const MODEL_PATH = '/three/assets/capsule/full_bodie/Body_AA_01.glb'
+import { DEFAULT_SKIN_COLOR } from '@/config/playerAppearance'
+import { useAvatar, tintAvatar } from './player/useAvatar'
 
 type PlayerMode = 'player' | 'freecam'
+const MODEL_OFFSET = Math.PI
 
 /** Last received transform of a remote player; mutated in place for lerping. */
 interface RemoteTransform {
@@ -23,6 +20,7 @@ interface RemoteTransform {
   camYaw: number
   camPitch: number
   mode: PlayerMode
+  skin: string
 }
 
 type MovePayload = {
@@ -35,6 +33,7 @@ type MovePayload = {
   c?: [number, number, number]
   cr?: number
   cp?: number
+  skin?: string
 }
 
 /** Shortest-path angular interpolation so the avatar never spins the long way. */
@@ -80,14 +79,13 @@ const createCameraModel = (): THREE.Group => {
  * in freecam an extra translucent camera marker is shown where they are flying.
  */
 const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
-  const { scene } = useGLTF(MODEL_PATH)
-  const body = useMemo(() => SkeletonUtils.clone(scene), [scene])
-  useCurvedSceneMaterials(body)
+  const { body, eyes } = useAvatar()
   const cameraModel = useMemo(() => createCameraModel(), [])
 
   const bodyRef = useRef<THREE.Group>(null)
   const camRef = useRef<THREE.Group>(null)
   const spawned = useRef(false)
+  const appliedSkin = useRef<string>('')
 
   useFrame(() => {
     const bodyGroup = bodyRef.current
@@ -96,7 +94,7 @@ const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
 
     if (!spawned.current) {
       bodyGroup.position.copy(target.pos)
-      bodyGroup.rotation.y = target.yaw
+      bodyGroup.rotation.y = target.yaw + MODEL_OFFSET
       camGroup.rotation.order = 'YXZ'
       camGroup.position.copy(target.camPos)
       camGroup.rotation.y = target.camYaw
@@ -104,10 +102,20 @@ const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
       spawned.current = true
     } else {
       bodyGroup.position.lerp(target.pos, 0.25)
-      bodyGroup.rotation.y = lerpAngle(bodyGroup.rotation.y, target.yaw, 0.25)
+      bodyGroup.rotation.y = lerpAngle(
+        bodyGroup.rotation.y,
+        target.yaw + MODEL_OFFSET,
+        0.25
+      )
       camGroup.position.lerp(target.camPos, 0.25)
       camGroup.rotation.y = lerpAngle(camGroup.rotation.y, target.camYaw, 0.25)
       camGroup.rotation.x = lerpAngle(camGroup.rotation.x, -target.camPitch, 0.25)
+    }
+
+    // Re-tint only when the peer's skin actually changed.
+    if (target.skin !== appliedSkin.current) {
+      tintAvatar(body, target.skin)
+      appliedSkin.current = target.skin
     }
 
     camGroup.visible = target.mode === 'freecam'
@@ -117,18 +125,7 @@ const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
     <>
       <group ref={bodyRef}>
         <primitive object={body} scale={0.5} />
-        <Billboard position={[0, 1.5, 0]}>
-          <Html center transform sprite distanceFactor={6} zIndexRange={[100, 0]}>
-            <UserBadge user={{
-                  username: target.username,
-                  userId: target.username,
-                  avatar: target.avatar,
-                  email: null,
-                  role: 'USER',
-                  campusId: null
-                }}/>
-          </Html>
-        </Billboard>
+        <primitive object={eyes} scale={0.5} />
       </group>
       <group ref={camRef}>
         <primitive object={cameraModel} />
@@ -152,11 +149,12 @@ const RemotePlayers = ({ campusId }: { campusId: string }) => {
     const socket = connectWorldSocket(token)
     const store = targets.current
 
-    const upsert = ({ id, u, a, p, r, m, c, cr, cp }: MovePayload) => {
+    const upsert = ({ id, u, a, p, r, m, c, cr, cp, skin }: MovePayload) => {
       const mode: PlayerMode = m === 'freecam' ? 'freecam' : 'player'
       const camPos = c ?? p // fall back to the body when no camera is sent
       const camYaw = cr ?? r
       const camPitch = cp ?? 0
+      const tint = skin ?? DEFAULT_SKIN_COLOR
       const existing = store.get(id)
       if (existing) {
         if (u) existing.username = u
@@ -167,6 +165,7 @@ const RemotePlayers = ({ campusId }: { campusId: string }) => {
         existing.camPos.set(camPos[0], camPos[1], camPos[2])
         existing.camYaw = camYaw
         existing.camPitch = camPitch
+        existing.skin = tint
       } else {
         store.set(id, {
           avatar: a || '',
@@ -177,6 +176,7 @@ const RemotePlayers = ({ campusId }: { campusId: string }) => {
           camYaw,
           camPitch,
           mode,
+          skin: tint,
         })
         setIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
       }

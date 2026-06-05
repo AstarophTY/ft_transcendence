@@ -19,11 +19,14 @@ export interface SelfUser {
   coinsPerHour: number
   language: string | null
   theme: string | null
+  skinColor: string | null
   status: UserStatus
   statusMessage: string | null
   usernameChangedAt: string | null
   fortyTwoLogin: string | null
   createdAt: string
+  /** Hours elapsed since the account was registered. */
+  siteLogtimeHours: number
 }
 
 /** Freely-editable fields — extend alongside the backend DTO. */
@@ -33,6 +36,7 @@ export interface ProfileUpdate {
   email?: string
   language?: string
   theme?: string
+  skinColor?: string
   status?: UserStatus
   statusMessage?: string
 }
