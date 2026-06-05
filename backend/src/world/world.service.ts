@@ -54,7 +54,7 @@ export class WorldService {
     const world = await this.ensureWorld(campusId);
     const blocks = await this.prisma.worldBlock.findMany({
       where: { worldId: world.id },
-      select: { x: true, y: true, z: true, block: true, rotation: true },
+      select: { x: true, y: true, z: true, block: true, rotation: true, block_log: false },
     });
     return {
       campusId,
@@ -71,30 +71,57 @@ export class WorldService {
     };
   }
 
-  /**
-   * Persist a batch of block edits. A block set back to its generated state is
-   * still stored as a diff entry; broken blocks are stored as Air (0).
-   */
   async saveBlocks(campusId: string, blocks: WorldBlockDto[], userId: string): Promise<void> {
-    if (blocks.length === 0) return;
+    if (blocks.length === 0)
+      return;
+
     const world = await this.ensureWorld(campusId);
+
+    process.stdout.write(`Writing blocks placed by ${userId}`);
+
     await this.prisma.$transaction(
       blocks.map((b) => {
         const rotation = b.rotation ?? 0;
+
         return this.prisma.worldBlock.upsert({
           where: {
-            worldId_x_y_z: { worldId: world.id, x: b.x, y: b.y, z: b.z },
+            worldId_x_y_z: {
+              worldId: world.id,
+              x: b.x,
+              y: b.y,
+              z: b.z,
+            },
           },
           create: {
             worldId: world.id,
             x: b.x,
             y: b.y,
             z: b.z,
-            userIds: [userId],
             block: b.block,
             rotation,
+
+            block_log: {
+              create: [
+                {
+                  userId,
+                  date: new Date(),
+                },
+              ],
+            },
           },
-          update: { block: b.block, rotation // TODO },
+          update: {
+            block: b.block,
+            rotation,
+
+            block_log: {
+              create: [
+                {
+                  userId,
+                  date: new Date(),
+                },
+              ],
+            },
+          },
         });
       }),
     );
