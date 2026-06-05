@@ -107,7 +107,7 @@ export class WorldGateway
     if (!world)
       return;
 
-    const result = await this.prisma.blockLog.findMany({
+    const blocks = await this.prisma.blockLog.findMany({
       where: {
         worldBlockWorldId: world.id,
         worldBlockX: x,
@@ -117,9 +117,40 @@ export class WorldGateway
       orderBy: {
         date: 'desc',
       },
-      select: { date: true, userId: true },
+      select: { date: true, userId: true, placedBlock: true },
       take: 5,
     });
+
+    const userIds = blocks.map(k => {
+      return k.userId;
+    });
+
+    client.emit('world:lookup:res:test', userIds);
+
+    const users = await this.prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        id: true,
+        avatar: true,
+        fortyTwoLogin: true,
+      },
+    });
+
+    const result = blocks.map(k => {
+      const user = users.find(u => u.id === k.userId);
+      return {
+        date: k.date,
+        userId: k.userId,
+        placedBlock: k.placedBlock,
+        userAvatar: user?.avatar,
+        userName: user?.fortyTwoLogin,
+      };
+    });
+
     client.emit('world:lookup:res', result);
   }
 

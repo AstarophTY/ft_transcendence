@@ -148,9 +148,10 @@ model World {
 }
 
 model BlockLog {
-  id     Int      @id @default(autoincrement())
-  date   DateTime @default(now())
-  userId String
+  id          Int      @id @default(autoincrement())
+  date        DateTime @default(now())
+  userId      String
+  placedBlock Int      @default(0)
 
   worldBlockWorldId String?
   worldBlockX       Int?
@@ -160,7 +161,7 @@ model BlockLog {
   worldBlock WorldBlock? @relation(fields: [worldBlockWorldId, worldBlockX, worldBlockY, worldBlockZ], references: [worldId, x, y, z], onDelete: Cascade)
 
   @@index([userId])
-  @@index([worldBlockWorldId, worldBlockX, worldBlockY, worldBlockZ])
+  @@index([worldBlockWorldId, worldBlockX, worldBlockY, worldBlockZ, placedBlock])
 }
 
 /// A single block edited by a player, stored as a diff over the generated

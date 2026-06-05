@@ -103,6 +103,7 @@ export class WorldService {
                 {
                   userId,
                   date: new Date(),
+                  placedBlock: b.block
                 },
               ],
             },
@@ -116,6 +117,7 @@ export class WorldService {
                 {
                   userId,
                   date: new Date(),
+                  placedBlock: b.block
                 },
               ],
             },
