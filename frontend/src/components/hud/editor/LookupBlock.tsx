@@ -4,6 +4,7 @@ import { ScrollArea } from '@/components/shadcn/scroll-area'
 import { Card } from '@/components/shadcn/card'
 import { Button } from '@/components/shadcn/button'
 import { useLookupStore } from '@/store/lookupStore'
+import UserBadge from '@/components/hud/UserBadge'
 
 export function LookupBlock() {
   const { isOpen, isLoading, results, closeLookup } = useLookupStore()
@@ -46,7 +47,14 @@ export function LookupBlock() {
               {results.map((record, i) => (
                 <Card key={i} className="flex flex-col p-3 gap-2 bg-muted/30">
                   <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-primary" />
+                    <UserBadge user={{
+                            username: record.userName,
+                            userId: record.userId,
+                            avatar: record.userAvatar,
+                            email: null,
+                            role: 'USER',
+                            campusId: null
+                        }}/>
                     <span className="font-semibold text-sm">{record.userId}</span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">

@@ -2,6 +2,8 @@ import { create } from 'zustand'
 
 export interface LookupRecord {
   date: string
+  userName: string,
+  userAvatar: string,
   userId: string
 }
 
