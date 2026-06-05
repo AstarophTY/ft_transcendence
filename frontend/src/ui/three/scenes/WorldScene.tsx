@@ -250,7 +250,7 @@ useEffect(() => {
       setMapVersion((v) => v + 1)
     }
 
-    const onLookupResponse = (data: { date: string; userId: string, userName: string, userAvatar: string }[]) => {
+    const onLookupResponse = (data: { date: string; userId: string, userName: string, userAvatar: string, placedBlock: number }[]) => {
       useLookupStore.getState().setResults(data)
     }
 

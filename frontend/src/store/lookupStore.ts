@@ -4,7 +4,8 @@ export interface LookupRecord {
   date: string
   userName: string,
   userAvatar: string,
-  userId: string
+  userId: string,
+  placedBlock: number
 }
 
 interface LookupState {

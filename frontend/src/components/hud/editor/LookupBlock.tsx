@@ -1,10 +1,12 @@
 import { motion, useDragControls } from 'motion/react'
-import { GripHorizontal, X, Loader2, Clock, User } from 'lucide-react'
+import { GripHorizontal, X, Loader2, Clock } from 'lucide-react'
 import { ScrollArea } from '@/components/shadcn/scroll-area'
 import { Card } from '@/components/shadcn/card'
 import { Button } from '@/components/shadcn/button'
 import { useLookupStore } from '@/store/lookupStore'
 import UserBadge from '@/components/hud/UserBadge'
+import { BlockPreview } from '@/components/hud/editor/SearchBlock'
+import { BlockMetadata } from '@/config/Block'
 
 export function LookupBlock() {
   const { isOpen, isLoading, results, closeLookup } = useLookupStore()
@@ -44,25 +46,41 @@ export function LookupBlock() {
             </div>
           ) : results && results.length > 0 ? (
             <div className="flex flex-col gap-3 pr-3">
-              {results.map((record, i) => (
-                <Card key={i} className="flex flex-col p-3 gap-2 bg-muted/30">
-                  <div className="flex items-center gap-2">
-                    <UserBadge user={{
-                            username: record.userName,
-                            userId: record.userId,
-                            avatar: record.userAvatar,
-                            email: null,
-                            role: 'USER',
-                            campusId: null
-                        }}/>
-                    <span className="font-semibold text-sm">{record.userId}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    <span className="text-xs">{new Date(record.date).toLocaleString()}</span>
-                  </div>
-                </Card>
-              ))}
+              {results.map((record, i) => {
+                const blockMeta = record.placedBlock ? BlockMetadata[record.placedBlock as keyof typeof BlockMetadata] : null;
+                
+                return (
+                  <Card key={i} className="flex flex-row items-center justify-between p-3 gap-2 bg-muted/30">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        <UserBadge user={{
+                                username: record.userName,
+                                userId: record.userId,
+                                avatar: record.userAvatar,
+                                email: null,
+                                role: 'USER',
+                                campusId: null
+                            }}/>
+                        <span className="font-semibold text-sm">{record.userName || record.userId}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        <span className="text-xs">{new Date(record.date).toLocaleString()}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-center h-12 w-12 bg-background rounded-md border shadow-sm shrink-0 overflow-hidden relative" title={blockMeta ? blockMeta.name : "Air"}>
+                      {blockMeta ? (
+                        <div className="absolute inset-0 flex items-center justify-center scale-75">
+                          <BlockPreview name={blockMeta.name} color={blockMeta.color} />
+                        </div>
+                      ) : (
+                        <span className="text-xs font-medium text-muted-foreground">Air</span>
+                      )}
+                    </div>
+                  </Card>
+                )
+              })}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center space-y-2">
