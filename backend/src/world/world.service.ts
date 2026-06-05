@@ -148,10 +148,21 @@ export class WorldService {
   }
 
   /** Create a world (with a fresh random profile) for a campus that has none. */
-  createWorld(campusId: string): Promise<World> {
-    return this.prisma.world.create({
-      data: { campusId, ...generateWorldProfile(campusId) },
-    });
+  createWorld(campusId: string, private_planet: boolean = false): Promise<World> {
+    if (private_planet)
+    {
+      return this.prisma.world.create({
+        data: {
+          ...generateWorldProfile(campusId),
+          seed: campusId,
+          widthInChunks: 4
+        },
+      });
+    } else {
+      return this.prisma.world.create({
+        data: { campusId, ...generateWorldProfile(campusId) },
+      });
+    }
   }
 
   /** Return the campus world, creating it on the fly if it does not exist yet. */

@@ -17,6 +17,7 @@ model User {
   avatar        String?
   role          Role    @default(USER)
   isVerified    Boolean @default(false)
+  world         World?
 
   displayName          String?
   bio                  String?
@@ -115,23 +116,26 @@ model ApiKey {
 }
 
 model Campus {
-  id    String @id @default(uuid())
+  id String @id @default(uuid())
+
   label String @unique
-  /// Admin bonus added on top of the members' earned coins for the campus total.
   coins Int    @default(0)
+
   users User[] @relation("CampusUsers")
+
   world World?
 }
 
-/// The shared 3D world of a campus. The base terrain is regenerated on the fly
-/// from this generation profile, so only the player edits are persisted (in
-/// WorldBlock) on top of it.
 model World {
-  id       String @id @default(uuid())
-  campusId String @unique
-  campus   Campus @relation(fields: [campusId], references: [id], onDelete: Cascade)
+  id String @id @default(uuid())
 
-  /// Terrain generation profile (mirrors the frontend DemoPlanetProfile).
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  campusId String? @unique
+  campus   Campus? @relation(fields: [campusId], references: [id], onDelete: Cascade)
+
+  /// Terrain generation profile
   seed           String
   widthInChunks  Int
   depthInChunks  Int
@@ -145,6 +149,9 @@ model World {
   blocks    WorldBlock[]
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([campusId])
 }
 
 model BlockLog {
