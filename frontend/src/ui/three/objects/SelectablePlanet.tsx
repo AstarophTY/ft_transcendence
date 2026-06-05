@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { ThreeEvent, useFrame } from '@react-three/fiber'
+import { Billboard, Html } from '@react-three/drei'
 import * as THREE from 'three'
 
 import type { PlanetMap } from '@/types/maps/PlanetMap.ts'
@@ -54,7 +55,11 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
   
   const user = useAuth((s) => s.user)
   const worlds = usePlanetStore((s) => s.worlds)
+  // const activeIndex = usePlanetStore((s) => s.activeIndex)
+
   const isPlayerCampus = user?.campusId && worlds[index]?.campusId === user.campusId
+  const label = worlds[index]?.label || 'Unknown'
+  // const isActive = activeIndex === index
 
   useSelectablePlanetAnimation({ planetRef, blendRef, hovered, index, totalCount })
 
@@ -120,6 +125,12 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
         inset={inset}
         getHeight={getHeight}
       />
+        <Billboard position={[0, 1.5, 0]}>
+          <Html center transform sprite distanceFactor={6} zIndexRange={[100, 0]}>
+            {label}
+          </Html>
+        </Billboard>
+
 
       {isPlayerCampus &&
       <Satellite onClick={(e) => {
