@@ -32,6 +32,7 @@ export default function SocialPanel() {
           max-lg:landscape:fixed max-lg:landscape:top-0 max-lg:landscape:bottom-0 max-lg:landscape:right-0 max-lg:landscape:left-auto max-lg:landscape:w-[320px] max-lg:landscape:h-full
         ">
           <motion.div
+            key={isMobile ? 'mobile' : 'desktop'}
             drag={!isMobile}
             dragControls={dragControls}
             dragListener={false}

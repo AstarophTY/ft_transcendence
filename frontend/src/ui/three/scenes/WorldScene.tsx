@@ -437,6 +437,12 @@ useEffect(() => {
       return
     }
 
+    const isMobile = window.matchMedia("(max-width: 767px)").matches || 
+                     window.matchMedia("(max-width: 1023px) and (orientation: landscape)").matches
+    if (isMobile) {
+      useEditorStore.getState().setCatalogOpen(false)
+    }
+
     useLookupStore.getState().openLookup()
 
     const socket = getWorldSocket()

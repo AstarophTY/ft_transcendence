@@ -28,6 +28,7 @@ export function LookupBlock() {
       max-lg:landscape:fixed max-lg:landscape:top-0 max-lg:landscape:bottom-0 max-lg:landscape:right-0 max-lg:landscape:left-auto max-lg:landscape:w-[320px] max-lg:landscape:h-full
     ">
       <motion.div 
+        key={isMobile ? 'mobile' : 'desktop'}
         drag={!isMobile}
         dragControls={dragControls}
         dragListener={false}
@@ -133,6 +134,11 @@ export function LookupBlock() {
                   </Card>
                 )
               })}
+            </div>
+          ) : results === null ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center space-y-2">
+              <Clock className="h-8 w-8 text-muted-foreground/50 animate-pulse" />
+              <p className="text-muted-foreground text-sm px-4">Click a block in the 3D scene to view its history.</p>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center space-y-2">
