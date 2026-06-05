@@ -61,7 +61,6 @@ export function LookupBlock() {
                                 role: 'USER',
                                 campusId: null
                             }}/>
-                        <span className="font-semibold text-sm">{record.userName || record.userId}</span>
                       </div>
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Clock className="h-3 w-3" />
@@ -69,7 +68,7 @@ export function LookupBlock() {
                       </div>
                     </div>
                     
-                    <div className="flex items-center justify-center h-12 w-12 bg-background rounded-md border shadow-sm shrink-0 overflow-hidden relative" title={blockMeta ? blockMeta.name : "Air"}>
+                    <div className="flex items-center justify-center h-12 w-12 rounded-md border shadow-sm shrink-0 overflow-hidden relative" title={blockMeta ? blockMeta.name : "Air"}>
                       {blockMeta ? (
                         <div className="absolute inset-0 flex items-center justify-center scale-75">
                           <BlockPreview name={blockMeta.name} color={blockMeta.color} />
