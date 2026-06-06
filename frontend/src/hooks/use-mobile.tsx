@@ -1,19 +1,42 @@
 import * as React from "react"
 
-const MOBILE_BREAKPOINT = 768
-
 export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
 
   React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
+    const mqlPortrait = window.matchMedia("(max-width: 767px)")
+    const mqlLandscape = window.matchMedia("(max-width: 1023px) and (orientation: landscape)")
+
     const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+      setIsMobile(mqlPortrait.matches || mqlLandscape.matches)
     }
-    mql.addEventListener("change", onChange)
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    return () => mql.removeEventListener("change", onChange)
+
+    mqlPortrait.addEventListener("change", onChange)
+    mqlLandscape.addEventListener("change", onChange)
+    
+    setIsMobile(mqlPortrait.matches || mqlLandscape.matches)
+
+    return () => {
+      mqlPortrait.removeEventListener("change", onChange)
+      mqlLandscape.removeEventListener("change", onChange)
+    }
   }, [])
 
   return !!isMobile
+}
+
+export function useIsTouchDevice() {
+  const [isTouch, setIsTouch] = React.useState<boolean>(false)
+
+  React.useEffect(() => {
+    const mql = window.matchMedia("(pointer: coarse)")
+    const onChange = () => {
+      setIsTouch(mql.matches)
+    }
+    mql.addEventListener("change", onChange)
+    setIsTouch(mql.matches)
+    return () => mql.removeEventListener("change", onChange)
+  }, [])
+
+  return isTouch
 }

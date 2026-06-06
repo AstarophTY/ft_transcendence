@@ -1,7 +1,8 @@
+import type React from 'react'
 import type { Group } from 'three'
 
 import type { LocalMap } from './maps/LocalMap'
-import type { WorldBlock } from '@/lib/world'
+import type { WorldBlock } from '@/lib/api/world'
 
 export interface PlayerProps {
   localMap: LocalMap

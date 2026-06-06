@@ -1,6 +1,6 @@
-import { PointerLockControls, useGLTF } from '@react-three/drei'
+import { PointerLockControls } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, ElementType } from 'react'
 import * as THREE from 'three'
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
 
@@ -10,13 +10,21 @@ import { usePlayerMovement } from './player/usePlayerMovement'
 import { usePlayerRotation } from './player/usePlayerRotation'
 import { usePlayerVertical } from './player/usePlayerVertical'
 import { useThirdPersonCamera } from './player/useThirdPersonCamera'
+import { useAvatar, tintAvatar } from './player/useAvatar'
+import { usePlayerAppearance } from './player/playerAppearance'
 
 import type { PlayerProps } from '@/types/Three'
 import { Chunk } from '@/types/maps/Chunk'
 
+const Primitive = 'primitive' as unknown as ElementType
+
 const Player = ({ localMap, active, playerRef }: PlayerProps) => {
   const { camera, gl } = useThree()
-  const { scene } = useGLTF('/three/assets/capsule/full_bodie/Body_AA_01.glb')
+  const skinColor = usePlayerAppearance((s) => s.skinColor)
+  const ensureLoaded = usePlayerAppearance((s) => s.ensureLoaded)
+  useEffect(() => void ensureLoaded(), [ensureLoaded])
+  const { body: scene, eyes } = useAvatar()
+  useEffect(() => tintAvatar(scene, skinColor), [scene, skinColor])
 
   const controlsRef = useRef<PointerLockControlsImpl>(null)
   const keysRef = useRef<Record<string, boolean>>({})
@@ -38,15 +46,18 @@ const Player = ({ localMap, active, playerRef }: PlayerProps) => {
     localMap,
     cameraPos: camera.position,
   })
-  useThirdPersonCamera({ active, camera, playerRef, controlsRef, scene, mapSize, localMap })
+  useThirdPersonCamera({ active, camera, playerRef, controlsRef, keysRef, scene, mapSize, localMap })
 
   useEffect(() => {
-    playerRef.current?.position.set(0, 20, 0)
+    if (playerRef.current) {
+      playerRef.current.position.set(0, 20, 0)
+    }
   }, [playerRef])
 
   return (
     <group ref={playerRef}>
-      <primitive object={scene} scale={0.5} />
+      <Primitive object={scene} scale={0.5} />
+      <Primitive object={eyes} scale={0.5} />
       {active && <PointerLockControls ref={controlsRef} selector="#canvas-container" />}
     </group>
   )

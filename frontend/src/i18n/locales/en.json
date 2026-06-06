@@ -23,6 +23,7 @@
     "continueWith42": "Log in with Forty Two",
     "or": "or",
     "logout": "Log out",
+    "takeoff": "Take off",
     "errorFallback": "Something went wrong, please try again",
     "emailPlaceholder": "you@example.com",
     "usernamePlaceholder": "pongmaster",

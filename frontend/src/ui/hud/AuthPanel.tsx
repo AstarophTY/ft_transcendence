@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, Loader2, Lock, LogIn, Mail, Rocket, User, UserPlus, X } from 'lucide-react'
+import { Check, Loader2, Lock, LogIn, LogOut, Mail, Rocket, User, UserPlus, X, Users, Settings as SettingsIcon, Shield } from 'lucide-react'
 
-import { Button } from '@/components/shadcn/button'
+import { Button } from '@/ui/shadcn/button'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from '@/components/shadcn/dialog'
+} from '@/ui/shadcn/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,13 +17,13 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/shadcn/dropdown-menu"
-import { Input } from '@/components/shadcn/input'
-import { Label } from '@/components/shadcn/label'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shadcn/tabs'
-import UserBadge from '@/components/hud/UserBadge'
-import SettingsDialog from '@/components/hud/settings/SettingsDialog'
-import AdminDialog from '@/components/hud/admin/AdminDialog'
+} from "@/ui/shadcn/dropdown-menu"
+import { Input } from '@/ui/shadcn/input'
+import { Label } from '@/ui/shadcn/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/shadcn/tabs'
+import UserBadge from '@/ui/hud/UserBadge.tsx'
+import SettingsDialog from '@/ui/hud/settings/SettingsDialog'
+import AdminDialog from '@/ui/hud/admin/AdminDialog'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/store/auth'
 import { useFriends } from '@/store/friends'
@@ -253,13 +252,64 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
 
 function AuthDialog() {
   const { t } = useTranslation()
-  const [open, setOpen] = useState(false)
-  const close = () => setOpen(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
+
+  const sceneMode = usePlanetStore((s) => s.sceneMode)
+  const setSceneMode = usePlanetStore((s) => s.setSceneMode)
+  const activeEditor = useEditorStore((s) => s.activeEditor)
+  const inEditor = useEditorStore((s) => s.in_editor)
+
+  const showTakeoff = sceneMode === 'world' && !inEditor
+
+  const handleTakeoff = () => {
+    activeEditor(false)
+    setSceneMode('selection')
+  }
+
+  const triggerButton = (
+    <Button variant="ghost" className="flex size-12 p-0 rounded-full justify-center items-center hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 border-none shadow-none">
+      <UserBadge user={{
+          username: t('auth.signIn'),
+          userId: "test",
+          avatar: "",
+          email: null,
+          role: 'USER',
+          campusId: null
+        }} onlyAvatar />
+    </Button>
+  )
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="secondary" className="absolute pointer-events-auto flex left-5 top-5">
+    <div className="pointer-events-auto absolute z-50 right-3 top-3 md:right-5 md:top-5">
+      {showTakeoff ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            {triggerButton}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent 
+            side="left" 
+            align="start" 
+            sideOffset={8}
+            className="w-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+          >
+            <DropdownMenuGroup>
+              <DropdownMenuItem onSelect={() => setDialogOpen(true)}>
+                <LogIn className="mr-1.5 size-4" />
+                {t('auth.signIn')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={handleTakeoff}>
+                <Rocket className="mr-1.5 size-4" />
+                {t('auth.takeoff')}
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : (
+        <Button 
+          variant="ghost" 
+          onClick={() => setDialogOpen(true)}
+          className="flex size-12 p-0 rounded-full justify-center items-center hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 border-none shadow-none"
+        >
           <UserBadge user={{
               username: t('auth.signIn'),
               userId: "test",
@@ -267,28 +317,31 @@ function AuthDialog() {
               email: null,
               role: 'USER',
               campusId: null
-            }}/>
+            }} onlyAvatar />
         </Button>
-      </DialogTrigger>
-      <DialogContent className="pointer-events-auto">
-        <DialogHeader>
-          <DialogTitle>{t('auth.title')}</DialogTitle>
-          <DialogDescription>{t('auth.description')}</DialogDescription>
-        </DialogHeader>
-        <Tabs defaultValue="login">
-          <TabsList>
-            <TabsTrigger value="login">{t('auth.tabLogin')}</TabsTrigger>
-            <TabsTrigger value="register">{t('auth.tabRegister')}</TabsTrigger>
-          </TabsList>
-          <TabsContent value="login">
-            <LoginForm onSuccess={close} />
-          </TabsContent>
-          <TabsContent value="register">
-            <RegisterForm onSuccess={close} />
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+      )}
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="pointer-events-auto">
+          <DialogHeader>
+            <DialogTitle>{t('auth.title')}</DialogTitle>
+            <DialogDescription>{t('auth.description')}</DialogDescription>
+          </DialogHeader>
+          <Tabs defaultValue="login">
+            <TabsList>
+              <TabsTrigger value="login">{t('auth.tabLogin')}</TabsTrigger>
+              <TabsTrigger value="register">{t('auth.tabRegister')}</TabsTrigger>
+            </TabsList>
+            <TabsContent value="login">
+              <LoginForm onSuccess={() => setDialogOpen(false)} />
+            </TabsContent>
+            <TabsContent value="register">
+              <RegisterForm onSuccess={() => setDialogOpen(false)} />
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
+    </div>
   )
 }
 
@@ -299,6 +352,18 @@ function UserMenu() {
   const openSettings = useSettings((s) => s.setOpen)
   const openAdmin = useAdmin((s) => s.setOpen)
 
+  const sceneMode = usePlanetStore((s) => s.sceneMode)
+  const setSceneMode = usePlanetStore((s) => s.setSceneMode)
+  const activeEditor = useEditorStore((s) => s.activeEditor)
+  const inEditor = useEditorStore((s) => s.in_editor)
+
+  const showTakeoff = sceneMode === 'world' && !inEditor
+
+  const handleTakeoff = () => {
+    activeEditor(false)
+    setSceneMode('selection')
+  }
+
   // Load friends/requests once logged in so the badge is up to date.
   useEffect(() => {
     if (user) void refresh()
@@ -308,24 +373,47 @@ function UserMenu() {
 
   return (
     <>
-      <div className="pointer-events-auto absolute left-5 top-5">
+      <div className="pointer-events-auto absolute z-50 right-3 top-3 md:right-5 md:top-5">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="secondary" className="flex p-5">
-              <UserBadge user={user} />
+            <Button variant="ghost" className="flex size-12 p-0 rounded-full justify-center items-center hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 border-none shadow-none">
+              <UserBadge user={user} onlyAvatar />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-32">
+          <DropdownMenuContent 
+            side="left" 
+            align="start" 
+            sideOffset={8}
+            className="w-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+          >
             <DropdownMenuGroup>
-              <DropdownMenuItem onSelect={() => togglePanel()}>{t('friends.title')} {incoming.length > 0 && (incoming.length)}</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => openSettings(true)}>{t('settings.title')}</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => togglePanel()}>
+                <Users className="mr-1.5 size-4" />
+                {t('friends.title')} {incoming.length > 0 && `(${incoming.length})`}
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => openSettings(true)}>
+                <SettingsIcon className="mr-1.5 size-4" />
+                {t('settings.title')}
+              </DropdownMenuItem>
               {user.role === 'ADMIN' && (
-                <DropdownMenuItem onSelect={() => openAdmin(true)}>{t('admin.title')}</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => openAdmin(true)}>
+                  <Shield className="mr-1.5 size-4" />
+                  {t('admin.title')}
+                </DropdownMenuItem>
+              )}
+              {showTakeoff && (
+                <DropdownMenuItem onSelect={handleTakeoff}>
+                  <Rocket className="mr-1.5 size-4" />
+                  {t('auth.takeoff')}
+                </DropdownMenuItem>
               )}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem variant="destructive" onSelect={() => logout()}>{t('auth.logout')}</DropdownMenuItem>
+              <DropdownMenuItem variant="destructive" onSelect={() => logout()}>
+                <LogOut className="mr-1.5 size-4" />
+                {t('auth.logout')}
+              </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -333,43 +421,16 @@ function UserMenu() {
         <SettingsDialog />
         {user.role === 'ADMIN' && <AdminDialog />}
       </div>
-      <TakeOffButton />
     </>
-  )
-}
-
-function TakeOffButton() {
-  const sceneMode = usePlanetStore((s) => s.sceneMode)
-  const setSceneMode = usePlanetStore((s) => s.setSceneMode)
-  const activeEditor = useEditorStore((s) => s.activeEditor)
-
-  if (sceneMode !== 'world') return null
-
-  const handleTakeoff = () => {
-    activeEditor(false)
-    setSceneMode('selection')
-  }
-
-  return (
-    <Button
-      variant="secondary"
-      size="icon"
-      className="pointer-events-auto absolute right-5 top-5 transition-transform hover:-translate-y-1 hover:scale-110"
-      onClick={handleTakeoff}
-    >
-      <Rocket className="size-5" />
-    </Button>
   )
 }
 
 export default function AuthPanel() {
   const user = useAuth((s) => s.user)
-  const sceneMode = usePlanetStore((s) => s.sceneMode)
 
   return (
     <>
       {user ? <UserMenu /> : <AuthDialog />}
-      {(!user && sceneMode === 'world') && <TakeOffButton />}
     </>
   )
 }

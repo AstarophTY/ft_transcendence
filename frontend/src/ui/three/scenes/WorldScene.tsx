@@ -1,16 +1,22 @@
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { Loader2 } from 'lucide-react'
 
 import { Chunk } from '@/types/maps/Chunk.ts'
+import type { DemoPlanetProfile } from '@/types/Three'
 import { usePlanetStore } from '@/store/planetStore.ts'
 import { useEditorStore } from '@/store/editorStore'
-import { getWorld, type WorldBlock } from '@/lib/world'
-import { connectWorldSocket, getWorldSocket } from '@/lib/worldSocket'
+import { getWorld, type WorldBlock } from '@/lib/api/world'
+import { connectWorldSocket, getWorldSocket } from '@/lib/sockets/worldSocket'
 import { tokenStore } from '@/lib/api'
+import { toast } from 'sonner'
+import i18n from '@/i18n'
+import { usePlayerAppearance } from '../objects/player/playerAppearance'
+import { useWorldEconomy } from '@/store/worldEconomy'
+import { isPaidBlock } from '@/config/worldBlocks'
 import Player from '../objects/Player'
 import RemotePlayers from '../objects/RemotePlayers'
 import { ChunkRenderer } from './worldScene/ChunkRenderer'
@@ -19,10 +25,10 @@ import { FreeCameraControls } from './worldScene/FreeCameraControls'
 import { Block } from '@/types/Block'
 import { BlockMetadata } from '@/config/Block'
 import { LocalMap } from '@/types/maps/LocalMap'
-import { IslandMap, BiomeType, getBiomeBlock } from '@/perlin'
-import { useLookupStore } from '@/store/lookupStore'
+import { IslandMap, BiomeType, getBiomeBlock } from '@/generation'
+import { useLookupStore, LookupRecord } from '@/store/lookupStore.ts'
 
-const generateLocalMap = (profile: any, mapSize: number) => {
+const generateLocalMap = (profile: DemoPlanetProfile, mapSize: number) => {
   const widthInChunks = mapSize / Chunk.WIDTH
   const depthInChunks = mapSize / Chunk.WIDTH
   const localMap = new LocalMap(widthInChunks, depthInChunks)
@@ -117,6 +123,8 @@ const applyWorldBlock = (map: LocalMap, b: WorldBlock) => {
   if (b.rotation) map.setGlobalBlockRotation(b.x, b.y, b.z, b.rotation)
 }
 
+const DirectionalLight = 'directionalLight' as unknown as React.ElementType
+
 interface WorldShadowLightProps {
   playerRef: React.RefObject<THREE.Group | null>
   currentMode: 'freecam' | 'player'
@@ -126,6 +134,22 @@ const WorldShadowLight = ({ playerRef, currentMode }: WorldShadowLightProps) => 
   const { camera } = useThree()
   const lightRef = useRef<THREE.DirectionalLight | null>(null)
   const targetRef = useRef<THREE.Object3D | null>(null)
+
+  useEffect(() => {
+    const light = lightRef.current
+    if (light) {
+      light.shadow.bias = -0.0005
+      light.shadow.normalBias = 0.05
+      const cam = light.shadow.camera
+      cam.left = -120
+      cam.right = 120
+      cam.top = 120
+      cam.bottom = -120
+      cam.near = 0.1
+      cam.far = 500
+      cam.updateProjectionMatrix()
+    }
+  }, [])
 
   useFrame(() => {
     if (!lightRef.current || !targetRef.current) return
@@ -154,19 +178,11 @@ const WorldShadowLight = ({ playerRef, currentMode }: WorldShadowLightProps) => 
   return (
     <>
       <object3D ref={targetRef} />
-      <directionalLight
+      <DirectionalLight
         ref={lightRef}
         intensity={1.2}
         castShadow
-        shadow-bias={-0.0005}
-        shadow-normalBias={0.05}
         shadow-mapSize={[2048, 2048]}
-        shadow-camera-left={-120}
-        shadow-camera-right={120}
-        shadow-camera-top={120}
-        shadow-camera-bottom={-120}
-        shadow-camera-near={0.1}
-        shadow-camera-far={500}
       />
     </>
   )
@@ -179,17 +195,14 @@ const WorldScene = () => {
   const renderDistance = usePlanetStore((state) => state.renderDistance)
   const playerRef = useRef<THREE.Group | null>(null)
 
-  const [currentMode, setCurrentMode] = useState<'freecam' | 'player'>('player')
+  const inEditor = useEditorStore((state) => state.in_editor)
   const activeEditor = useEditorStore((state) => state.activeEditor)
+  const currentMode = inEditor ? 'freecam' : 'player'
   const lastLookupTime = useRef<number>(0)
   const LOOKUP_COOLDOWN = 200
 
   useHotkeys('c', () => {
-    setCurrentMode((prev) => {
-      const nextMode = prev === 'freecam' ? 'player' : 'freecam'
-      activeEditor(nextMode === 'freecam')
-      return nextMode
-    })
+    activeEditor(!inEditor)
   })
 
   // Generation profile of the selected campus world.
@@ -202,6 +215,10 @@ const WorldScene = () => {
   const [, setMapVersion] = useState(0)
   // Latest map, for the socket listener which is registered once per campus.
   const mapRef = useRef<LocalMap | null>(localMap)
+  // Previous block state per edited position, to roll back rejected placements.
+  const prevStates = useRef<Map<string, { block: Block; rotation: number }>>(
+    new Map(),
+  )
 
   useEffect(() => {
     if (!profile || !activeCampusId) return
@@ -241,6 +258,22 @@ useEffect(() => {
     if (!token) return
     const socket = connectWorldSocket(token)
 
+    // Reset economy so stale balance from a previous campus doesn't block placement.
+    useWorldEconomy.getState().reset()
+
+    // Register world:coins listener BEFORE emitting world:join, so we never
+    // miss the server's immediate response on a cached/already-connected socket.
+    const onCoins = ({
+      campusId,
+      coins,
+    }: {
+      campusId: string
+      coins: number
+    }) => {
+      if (campusId === activeCampusId) useWorldEconomy.getState().setCoins(coins)
+    }
+    socket.on('world:coins', onCoins)
+
     socket.emit('world:join', { campusId: activeCampusId })
 
     const onRemoteEdit = ({ blocks }: { blocks: WorldBlock[] }) => {
@@ -250,17 +283,41 @@ useEffect(() => {
       setMapVersion((v) => v + 1)
     }
 
-    const onLookupResponse = (data: { date: string; userId: string, userName: string, userAvatar: string, placedBlock: number }[]) => {
+    const onLookupResponse = (data: LookupRecord[]) => {
       useLookupStore.getState().setResults(data)
     }
 
     socket.on('world:edit', onRemoteEdit)
     socket.on('world:lookup:res', onLookupResponse)
 
+    // The server refused a placement (no coins): roll it back to its prior state.
+    const onRevert = ({
+      positions,
+    }: {
+      positions: { x: number; y: number; z: number }[]
+    }) => {
+      const map = mapRef.current
+      if (!map) return
+      for (const pos of positions) {
+        const key = `${pos.x},${pos.y},${pos.z}`
+        const prev = prevStates.current.get(key)
+        if (prev) {
+          map.setGlobalBlock(pos.x, pos.y, pos.z, prev.block)
+          map.setGlobalBlockRotation(pos.x, pos.y, pos.z, prev.rotation)
+          prevStates.current.delete(key)
+        }
+      }
+      setMapVersion((v) => v + 1)
+    }
+    socket.on('world:revert', onRevert)
+
     return () => {
       socket.emit('world:leave', { campusId: activeCampusId })
       socket.off('world:edit', onRemoteEdit)
+
       socket.off('world:lookup:res', onLookupResponse)
+      socket.off('world:coins', onCoins)
+      socket.off('world:revert', onRevert)
     }
   }, [activeCampusId])
 
@@ -278,8 +335,10 @@ useEffect(() => {
     const freecam = currentMode === 'freecam'
     const round = (n: number) => Math.round(n * 50) / 50 // ~0.02 step
 
+
     camera.getWorldDirection(camDir.current)
 
+    const skin = usePlayerAppearance.getState().skinColor
     const payload: {
       campusId?: string
       personalWorld?: boolean
@@ -288,12 +347,16 @@ useEffect(() => {
       m: 'player' | 'freecam'
       c?: [number, number, number]
       cr?: number
+
       cp?: number
+      skin: string
     } = {
       p: [round(p.position.x), round(p.position.y), round(p.position.z)],
       r: round(p.rotation.y),
       m: freecam ? 'freecam' : 'player',
+
       cp: round(Math.asin(camDir.current.y)),
+      skin,
     }
 
     payload.campusId = activeCampusId!;
@@ -307,8 +370,9 @@ useEffect(() => {
       payload.cr = round(Math.atan2(camDir.current.x, camDir.current.z))
     }
 
-    // A signature that captures everything peers care about (incl. mode switch).
-    const key = `${payload.m}|${payload.p.join(',')}|${payload.r}|${payload.c?.join(',') ?? ''}|${payload.cr ?? ''}|${payload.cp ?? ''}`
+
+    // A signature that captures everything peers care about (incl. mode/skin).
+    const key = `${payload.m}|${payload.p.join(',')}|${payload.r}|${payload.c?.join(',') ?? ''}|${payload.cr ?? ''}|${payload.cp ?? ''}|${payload.skin}`
     const now = performance.now()
     const last = lastSent.current
     if (key === last.key || now - last.t < 66) return // ~15 Hz, only on change
@@ -340,13 +404,34 @@ useEffect(() => {
     if (!localMap) return
 
     const blockValue = block ?? Block.Air
+    const isRotation = rotation !== undefined
+    const isPlacement = !isRotation && block !== null && blockValue !== Block.Air
 
-    if (rotation !== undefined) {
+    // Can't place a paid block when the campus has no coins left.
+    // null means we haven't received the balance yet — let the server validate.
+    const economy = useWorldEconomy.getState()
+    if (isPlacement && isPaidBlock(blockValue) && economy.coins !== null && economy.coins <= 0) {
+      toast.error(i18n.t('world.noCoins', { defaultValue: 'Your campus is out of coins' }))
+      return
+    }
+
+    // Remember the prior state in case the server rejects this placement.
+    const prevBlock = localMap.getGlobalBlock(x, y, z)
+    prevStates.current.set(`${x},${y},${z}`, {
+      block: prevBlock,
+      rotation: localMap.getGlobalBlockRotation(x, y, z),
+    })
+
+    if (isRotation) {
       localMap.setGlobalBlockRotation(x, y, z, rotation)
     } else {
       localMap.setGlobalBlock(x, y, z, blockValue)
     }
     setMapVersion((v) => v + 1)
+
+    // Optimistic coin change; the server's `world:coins` reconciles it.
+    if (isPlacement && isPaidBlock(blockValue)) economy.adjust(-1)
+    else if (block === null && isPaidBlock(prevBlock)) economy.adjust(1)
 
     pendingBlocks.current.push({ x, y, z, block: blockValue, rotation: rotation ?? 0 })
     // Coalesce bursts into ~100ms batches, but keep flushing while editing
@@ -359,6 +444,12 @@ useEffect(() => {
     const now = performance.now()
     if (now - lastLookupTime.current < LOOKUP_COOLDOWN) {
       return
+    }
+
+    const isMobile = window.matchMedia("(max-width: 767px)").matches || 
+                     window.matchMedia("(max-width: 1023px) and (orientation: landscape)").matches
+    if (isMobile) {
+      useEditorStore.getState().setCatalogOpen(false)
     }
 
     useLookupStore.getState().openLookup()
@@ -382,7 +473,13 @@ useEffect(() => {
         geometry: THREE.BufferGeometry; 
         material: THREE.Material | THREE.Material[]; 
       }
-    > = {} as any
+    > = {} as unknown as Record<
+      Exclude<Block, Block.Air>,
+      { 
+        geometry: THREE.BufferGeometry; 
+        material: THREE.Material | THREE.Material[]; 
+      }
+    >
 
     const geometry = new THREE.BoxGeometry(2, 2, 2)
     const textureLoader = new THREE.TextureLoader()
@@ -431,7 +528,7 @@ useEffect(() => {
             mat.map = faceTex
 
             // Reset color to white by default when texture is loaded, to prevent oversaturation
-            mat.color.set('#ffffff' as any)
+            mat.color.set(new THREE.Color('#ffffff'))
 
             mat.needsUpdate = true
           })

@@ -5,7 +5,9 @@ ARG VITE_WS_URL
 ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_WS_URL=$VITE_WS_URL
 COPY package*.json ./
-RUN npm ci
+# The lockfile was generated on Windows and misses lightningcss-linux-x64-musl
+# (npm bug #4828). Delete it so npm resolves the correct platform binaries.
+RUN rm -f package-lock.json && npm install
 COPY . .
 RUN npm run build
 

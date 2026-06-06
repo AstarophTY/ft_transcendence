@@ -33,10 +33,7 @@ export default [
       ...typescript.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
-      'react/no-unknown-property': ['error', { ignore: [
-        'intensity', 'args', 'position', 'castShadow', 'receiveShadow', 
-        'shadow-mapSize', 'object', 'onBeforeCompile', 'frustumCulled'
-      ] }],
+      'react/no-unknown-property': ['error'],
     },
     settings: {
       react: {
