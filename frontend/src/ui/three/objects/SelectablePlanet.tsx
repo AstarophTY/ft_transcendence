@@ -122,6 +122,7 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
           e.stopPropagation()
           const storeState = usePlanetStore.getState();
           if (storeState.activeIndex === index) {
+            storeState.setIsPrivateWorld(false);
             storeState.setSceneMode('zooming');
           } else {
             storeState.setTargetOffset(index / (totalCount - 1))
@@ -151,7 +152,8 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
       <Satellite onClick={(e) => {
           e.stopPropagation();
           const storeState = usePlanetStore.getState();
-          storeState.setSceneMode('zooming');
+            storeState.setIsPrivateWorld(true);
+            storeState.setSceneMode('zooming-private');
         }}
       />
     }

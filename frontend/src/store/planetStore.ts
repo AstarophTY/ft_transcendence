@@ -14,8 +14,10 @@ interface PlanetStore {
   setActiveIndex: (index: number) => void
   /** Campus id of the currently selected world, or null while none is loaded. */
   activeCampusId: string | null
-  sceneMode: 'selection' | 'zooming' | 'world'
-  setSceneMode: (mode: 'selection' | 'zooming' | 'world') => void
+  isPrivateWorld: boolean
+  setIsPrivateWorld: (isPrivate: boolean) => void
+  sceneMode: 'selection' | 'zooming' | 'zooming-private' | 'world'
+  setSceneMode: (mode: 'selection' | 'zooming' | 'zooming-private' | 'world') => void
   renderDistance: number
   setRenderDistance: (dist: number) => void
   theme: 'light' | 'dark'
@@ -51,6 +53,8 @@ export const usePlanetStore = create<PlanetStore>((set, get) => ({
   activeIndex: 0,
   setActiveIndex: (index) =>
     set({ activeIndex: index, activeCampusId: campusIdAt(get().worlds, index) }),
+  isPrivateWorld: false,
+  setIsPrivateWorld: (isPrivate) => set({ isPrivateWorld: isPrivate }),
   targetOffset: 0,
   setTargetOffset: (offset) => set({ targetOffset: offset }),
   activeCampusId: null,
