@@ -23,14 +23,16 @@ interface FreeCameraControlsProps {
 
 const getAffectedBlocks = (
   cx: number, cy: number, cz: number,
-  shape: Shape, shapeSize: number, mapSize: number
+  shape: Shape, shapeSizeX: number, shapeSizeY: number, shapeSizeZ: number, mapSize: number
 ) => {
   const blocks: {x: number, y: number, z: number}[] = []
-  const radius = shapeSize - 1
+  const radiusX = shapeSizeX - 1
+  const radiusY = shapeSizeY - 1
+  const radiusZ = shapeSizeZ - 1
 
-  for (let dx = -radius; dx <= radius; dx++) {
-    for (let dy = -radius; dy <= radius; dy++) {
-      for (let dz = -radius; dz <= radius; dz++) {
+  for (let dx = -radiusX; dx <= radiusX; dx++) {
+    for (let dy = -radiusY; dy <= radiusY; dy++) {
+      for (let dz = -radiusZ; dz <= radiusZ; dz++) {
         const x = cx + dx
         const y = cy + dy
         const z = cz + dz
@@ -39,9 +41,12 @@ const getAffectedBlocks = (
           continue
         }
 
-        if (shape === Shape.Sphere && radius > 0) {
-          const dist = Math.sqrt(dx * dx + dy * dy + dz * dz)
-          if (dist > radius + 0.5) {
+        if (shape === Shape.Sphere && (radiusX > 0 || radiusY > 0 || radiusZ > 0)) {
+          const a = radiusX + 0.5
+          const b = radiusY + 0.5
+          const c = radiusZ + 0.5
+          const distSq = (dx * dx) / (a * a) + (dy * dy) / (b * b) + (dz * dz) / (c * c)
+          if (distSq > 1.0) {
             continue
           }
         }
@@ -91,7 +96,7 @@ const SphereGeometry = 'sphereGeometry' as unknown as React.ElementType
   const updatePreview = () => {
     if (!previewGroupRef.current || !cubePreviewRef.current || !spherePreviewRef.current) return
 
-    const { tool, shape, shapeSize } = useEditorStore.getState()
+    const { tool, shape, shapeSizeX, shapeSizeY, shapeSizeZ } = useEditorStore.getState()
     const isRotate = tool === Tab.RotateX || tool === Tab.RotateY || tool === Tab.RotateZ
     const isActionTool = tool === Tab.Add || tool === Tab.Remove || tool === Tab.Lookup || isRotate
     if (!isActionTool || (!isTouch && !controlsRef.current?.isLocked)) {
@@ -169,21 +174,29 @@ const SphereGeometry = 'sphereGeometry' as unknown as React.ElementType
           matCube.color.set(color)
           matSphere.color.set(color)
           
-          let radius = shapeSize - 1
+          let radiusX = shapeSizeX - 1
+          let radiusY = shapeSizeY - 1
+          let radiusZ = shapeSizeZ - 1
           if (tool == Tab.Lookup) {
-            radius = 0
+            radiusX = 0
+            radiusY = 0
+            radiusZ = 0
           }
-          const scaleVal = (radius * 2 + 1) * (tool === Tab.Add ? 1.0 : 1.02)
+          const scaleValX = (radiusX * 2 + 1) * (tool === Tab.Add ? 1.0 : 1.02)
+          const scaleValY = (radiusY * 2 + 1) * (tool === Tab.Add ? 1.0 : 1.02)
+          const scaleValZ = (radiusZ * 2 + 1) * (tool === Tab.Add ? 1.0 : 1.02)
           
-          if (shape === Shape.Sphere && radius > 0) {
+          if (shape === Shape.Sphere && (radiusX > 0 || radiusY > 0 || radiusZ > 0)) {
             cubePreviewRef.current.visible = false
             spherePreviewRef.current.visible = true
-            const sphereScale = (radius + 0.5) * 2 * (tool === Tab.Add ? 1.0 : 1.02)
-            spherePreviewRef.current.scale.set(sphereScale, sphereScale, sphereScale)
+            const sphereScaleX = (radiusX + 0.5) * 2 * (tool === Tab.Add ? 1.0 : 1.02)
+            const sphereScaleY = (radiusY + 0.5) * 2 * (tool === Tab.Add ? 1.0 : 1.02)
+            const sphereScaleZ = (radiusZ + 0.5) * 2 * (tool === Tab.Add ? 1.0 : 1.02)
+            spherePreviewRef.current.scale.set(sphereScaleX, sphereScaleY, sphereScaleZ)
           } else {
             cubePreviewRef.current.visible = true
             spherePreviewRef.current.visible = false
-            cubePreviewRef.current.scale.set(scaleVal, scaleVal, scaleVal)
+            cubePreviewRef.current.scale.set(scaleValX, scaleValY, scaleValZ)
           }
 
           previewGroupRef.current.visible = true
@@ -211,7 +224,7 @@ const SphereGeometry = 'sphereGeometry' as unknown as React.ElementType
   const handleEditorAction = (e: MouseEvent) => {
     if (e.button !== 0 && e.button !== 1) return // Left click or middle click only
 
-    const { tool, selectedBlock, shape, shapeSize, setSelectedBlock } = useEditorStore.getState()
+    const { tool, selectedBlock, shape, shapeSizeX, shapeSizeY, shapeSizeZ, setSelectedBlock } = useEditorStore.getState()
     if (e.button === 0 && !(Object.values(Tab).includes(tool as Tab))) return
 
     const raycaster = new THREE.Raycaster()
@@ -264,7 +277,7 @@ const SphereGeometry = 'sphereGeometry' as unknown as React.ElementType
       return
     }
 
-    const blocksToUpdate = getAffectedBlocks(centerX, centerY, centerZ, shape, shapeSize, mapSize)
+    const blocksToUpdate = getAffectedBlocks(centerX, centerY, centerZ, shape, shapeSizeX, shapeSizeY, shapeSizeZ, mapSize)
 
     for (const pos of blocksToUpdate) {
       const { x, y, z } = pos
@@ -331,11 +344,19 @@ const SphereGeometry = 'sphereGeometry' as unknown as React.ElementType
 
     const handleWheel = (e: WheelEvent) => {
       if (!active || !controlsRef.current?.isLocked) return
-      const { shapeSize, setShapeSize } = useEditorStore.getState()
-      if (e.deltaY < 0) {
-        setShapeSize(Math.min(5, shapeSize + 1))
+      const { shapeSizeX, shapeSizeY, shapeSizeZ, setShapeSizeX, setShapeSizeY, setShapeSizeZ } = useEditorStore.getState()
+      const delta = e.deltaY < 0 ? 1 : -1
+
+      if (keysRef.current.KeyX) {
+        setShapeSizeX(Math.min(5, Math.max(1, shapeSizeX + delta)))
+      } else if (keysRef.current.KeyY) {
+        setShapeSizeY(Math.min(5, Math.max(1, shapeSizeY + delta)))
+      } else if (keysRef.current.KeyZ) {
+        setShapeSizeZ(Math.min(5, Math.max(1, shapeSizeZ + delta)))
       } else {
-        setShapeSize(Math.max(1, shapeSize - 1))
+        setShapeSizeX(Math.min(5, Math.max(1, shapeSizeX + delta)))
+        setShapeSizeY(Math.min(5, Math.max(1, shapeSizeY + delta)))
+        setShapeSizeZ(Math.min(5, Math.max(1, shapeSizeZ + delta)))
       }
     }
 

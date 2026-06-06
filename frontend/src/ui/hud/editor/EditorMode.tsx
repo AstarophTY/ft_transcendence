@@ -16,6 +16,12 @@ export default function EditorMode() {
   const setCurrentTool = useEditorStore((state) => state.setTool)
   const currentShape = useEditorStore((state) => state.shape)
   const setCurrentShape = useEditorStore((state) => state.setShape)
+  const shapeSizeX = useEditorStore((state) => state.shapeSizeX)
+  const shapeSizeY = useEditorStore((state) => state.shapeSizeY)
+  const shapeSizeZ = useEditorStore((state) => state.shapeSizeZ)
+  const setShapeSizeX = useEditorStore((state) => state.setShapeSizeX)
+  const setShapeSizeY = useEditorStore((state) => state.setShapeSizeY)
+  const setShapeSizeZ = useEditorStore((state) => state.setShapeSizeZ)
   
   const catalogOpen = useEditorStore((state) => state.catalogOpen)
   const setCatalogOpen = useEditorStore((state) => state.setCatalogOpen)
@@ -28,6 +34,11 @@ export default function EditorMode() {
   const changeShape = () => {
     setCurrentShape(currentShape === Shape.Cube ? Shape.Sphere : Shape.Cube)
   }
+  const resetShapeSize = () => {
+    setShapeSizeX(1)
+    setShapeSizeY(1)
+    setShapeSizeZ(1)
+  }
   useHotkeys('1', () => changeShape())
   useHotkeys('2', () => changeTool(Tab.Add))
   useHotkeys('3', () => changeTool(Tab.Remove))
@@ -35,6 +46,7 @@ export default function EditorMode() {
   useHotkeys('5', () => changeTool(Tab.RotateY))
   useHotkeys('6', () => changeTool(Tab.RotateZ))
   useHotkeys('7', () => changeTool(Tab.Lookup))
+  useHotkeys('0', () => resetShapeSize())
   useHotkeys('escape', () => {
     changeTool(Tab.None)
     useLookupStore.getState().closeLookup()
@@ -50,7 +62,6 @@ export default function EditorMode() {
         <Cross />
         {currentTool === Tab.Add && (!isMobile || catalogOpen) && (<SearchBlock />)}
         
-        {/* Floating selected block preview / reopen catalog button */}
         {isMobile && currentTool === Tab.Add && !catalogOpen && (
           <button
             onClick={(e) => {
@@ -70,6 +81,21 @@ export default function EditorMode() {
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </button>
         )}
+        
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 px-5 py-2 bg-background/60 backdrop-blur-md supports-[backdrop-filter]:bg-background/40 border border-border/30 rounded-full shadow-lg select-none pointer-events-none text-sm font-mono font-bold text-foreground">
+          <div className="flex items-center gap-1.5">
+            <span className="text-pink-500">X (scroll + X)</span>
+            <span>{shapeSizeX}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-emerald-500">Y (scroll + Y)</span>
+            <span>{shapeSizeY}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-blue-500">Z (scroll + Z)</span>
+            <span>{shapeSizeZ}</span>
+          </div>
+        </div>
         <LookupBlock />
     </>
   )

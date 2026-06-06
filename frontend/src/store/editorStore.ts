@@ -12,8 +12,12 @@ interface EditorStore {
   setTool: (tool: Tab) => void
   shape: Shape
   setShape: (shape: Shape) => void
-  shapeSize: number
-  setShapeSize: (shapeSize: number) => void
+  shapeSizeX: number
+  setShapeSizeX: (shapeSize: number) => void
+  shapeSizeY: number
+  setShapeSizeY: (shapeSize: number) => void
+  shapeSizeZ: number
+  setShapeSizeZ: (shapeSize: number) => void
   catalogOpen: boolean
   setCatalogOpen: (open: boolean) => void
 }
@@ -48,8 +52,12 @@ export const useEditorStore = create<EditorStore>((set) => ({
   }),
   shape: Shape.Cube,
   setShape: (shape) => set({shape: shape}),
-  shapeSize: 1,
-  setShapeSize: (shape_size) => set({shapeSize: shape_size}),
+  shapeSizeX: 1,
+  shapeSizeY: 1,
+  shapeSizeZ: 1,
+  setShapeSizeX: (shape_size) => set({shapeSizeX: shape_size}),
+  setShapeSizeY: (shape_size) => set({shapeSizeY: shape_size}),
+  setShapeSizeZ: (shape_size) => set({shapeSizeZ: shape_size}),
   catalogOpen: false,
   setCatalogOpen: (open) => {
     if (open) {
