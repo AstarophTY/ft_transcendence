@@ -1,11 +1,14 @@
 import { useFrame } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState, ElementType } from 'react'
 import * as THREE from 'three'
-
+import UserBadge from '@/ui/hud/UserBadge'
 import { connectWorldSocket } from '@/lib/sockets/worldSocket'
 import { tokenStore } from '@/lib/api'
 import { DEFAULT_SKIN_COLOR } from '@/config/playerAppearance'
 import { useAvatar, tintAvatar } from './player/useAvatar'
+import { Billboard, Html } from '@react-three/drei'
+
+
 
 type PlayerMode = 'player' | 'freecam'
 const MODEL_OFFSET = Math.PI
@@ -127,6 +130,18 @@ const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
       <group ref={bodyRef}>
         <Primitive object={body} scale={0.5} />
         <Primitive object={eyes} scale={0.5} />
+        <Billboard position={[0, 1.5, 0]}>
+          <Html center transform sprite distanceFactor={6} zIndexRange={[100, 0]}>
+            <UserBadge user={{
+                  username: target.username,
+                  userId: target.username,
+                  avatar: target.avatar,
+                  email: null,
+                  role: 'USER',
+                  campusId: null
+                }}/>
+          </Html>
+        </Billboard>
       </group>
       <group ref={camRef}>
         <Primitive object={cameraModel} />
