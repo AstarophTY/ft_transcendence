@@ -232,7 +232,8 @@ const WorldScene = () => {
       mapRef.current = map
       setLocalMap(map)
       setMapVersion((v) => v + 1)
-      getWorld(activeCampusId)
+      const isPrivateWorld = usePlanetStore.getState().isPrivateWorld
+      getWorld(isPrivateWorld ? getUserId() : activeCampusId)
         .then((detail) => {
           if (cancelled) return
           for (const b of detail.blocks) applyWorldBlock(map, b)
@@ -270,8 +271,8 @@ useEffect(() => {
     socket.on('world:coins', onCoins)
 
     const isPrivateWorld = usePlanetStore.getState().isPrivateWorld
-    if (isPrivateWorld) usePlanetStore.getState().setCampusId(getUserId());
     socket.emit('world:join', { campusId: activeCampusId, personalWorld: isPrivateWorld })
+
     const onRemoteEdit = ({ blocks }: { blocks: WorldBlock[] }) => {
       const map = mapRef.current
       if (!map) return
@@ -384,13 +385,19 @@ useEffect(() => {
 
   const flushBlocks = useCallback(() => {
     flushTimer.current = null
-    const { activeCampusId } = usePlanetStore.getState()
+    const { activeCampusId, isPrivateWorld } = usePlanetStore.getState()
     const socket = getWorldSocket()
-    if (!activeCampusId || !socket || pendingBlocks.current.length === 0) return
+    if (!socket || pendingBlocks.current.length === 0) return
+    if (!activeCampusId && !isPrivateWorld) return
+
     const batch = pendingBlocks.current
     pendingBlocks.current = []
 
-    socket.emit('world:edit', { campusId: activeCampusId, blocks: batch })
+    socket.emit('world:edit', { 
+      campusId: activeCampusId, 
+      blocks: batch,
+      personalWorld: isPrivateWorld
+    })
   }, [])
 
   // Flush any pending edits when leaving the world.
@@ -399,6 +406,7 @@ useEffect(() => {
   const handleUpdateBlock = (x: number, y: number, z: number, block: Block | null, rotation?: number) => {
     if (!localMap) return
 
+    const isPrivate = usePlanetStore.getState().isPrivateWorld
     const blockValue = block ?? Block.Air
     const isRotation = rotation !== undefined
     const isPlacement = !isRotation && block !== null && blockValue !== Block.Air
@@ -406,7 +414,7 @@ useEffect(() => {
     // Can't place a paid block when the campus has no coins left.
     // null means we haven't received the balance yet — let the server validate.
     const economy = useWorldEconomy.getState()
-    if (isPlacement && isPaidBlock(blockValue) && economy.coins !== null && economy.coins <= 0) {
+    if (!isPrivate && isPlacement && isPaidBlock(blockValue) && economy.coins !== null && economy.coins <= 0) {
       toast.error(i18n.t('world.noCoins', { defaultValue: 'Your campus is out of coins' }))
       return
     }
@@ -426,8 +434,10 @@ useEffect(() => {
     setMapVersion((v) => v + 1)
 
     // Optimistic coin change; the server's `world:coins` reconciles it.
-    if (isPlacement && isPaidBlock(blockValue)) economy.adjust(-1)
-    else if (block === null && isPaidBlock(prevBlock)) economy.adjust(1)
+    if (!isPrivate) {
+      if (isPlacement && isPaidBlock(blockValue)) economy.adjust(-1)
+      else if (block === null && isPaidBlock(prevBlock)) economy.adjust(1)
+    }
 
     pendingBlocks.current.push({ x, y, z, block: blockValue, rotation: rotation ?? 0 })
     // Coalesce bursts into ~100ms batches, but keep flushing while editing
@@ -451,11 +461,12 @@ useEffect(() => {
     useLookupStore.getState().openLookup()
 
     const socket = getWorldSocket()
-    if (!socket || !activeCampusId) return
+    const isPrivate = usePlanetStore.getState().isPrivateWorld
+    if (!socket || (!activeCampusId && !isPrivate)) return
 
     lastLookupTime.current = now
     socket.emit('world:lookup', {
-      campusId: activeCampusId,
+      campusId: isPrivate ? getUserId() : activeCampusId,
       x,
       y,
       z

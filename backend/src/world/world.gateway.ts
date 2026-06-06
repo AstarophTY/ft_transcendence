@@ -277,9 +277,14 @@ export class WorldGateway
     if (blocks.length === 0) return;
 
     try {
-      if (campusId) {
+      const userId = client.data.userId as string;
+
+      if (personalWorld) {
+        // personalWorld — no economy, just persist and relay
+        await this.world.saveBlocks(userId, blocks, userId);
+        client.to(room).emit('world:edit', { blocks });
+      } else if (campusId) {
         // Apply the campus-coin economy, then relay only the accepted edits.
-        const userId = client.data.userId as string;
         const { applied, rejected, coins } = await this.world.applyEdits(campusId, blocks, userId);
         if (applied.length > 0) {
           client.to(room).emit('world:edit', { blocks: applied });
@@ -289,9 +294,6 @@ export class WorldGateway
         }
         client.emit('world:coins', { campusId, coins });
         client.to(room).emit('world:coins', { campusId, coins });
-      } else {
-        // personalWorld — no economy, just relay
-        client.to(room).emit('world:edit', { blocks });
       }
     } catch {
       /* a failed economy/persist should not break the live session */
