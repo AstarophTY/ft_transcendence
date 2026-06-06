@@ -1,4 +1,4 @@
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState, ElementType } from 'react'
 import * as THREE from 'three'
 import UserBadge from '@/ui/hud/UserBadge'
@@ -7,6 +7,9 @@ import { tokenStore } from '@/lib/api'
 import { DEFAULT_SKIN_COLOR } from '@/config/playerAppearance'
 import { useAvatar, tintAvatar } from './player/useAvatar'
 import { Billboard, Html } from '@react-three/drei'
+import { usePlanetStore } from '@/store/planetStore'
+import { MAP_SIZE_BLOCKS } from '@/ui/three/scenes/worldScene/constants'
+import { Chunk } from '@/types/maps/Chunk'
 
 
 
@@ -83,6 +86,8 @@ const createCameraModel = (): THREE.Group => {
  * in freecam an extra translucent camera marker is shown where they are flying.
  */
 const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
+  const { camera } = useThree()
+  const renderDistance = usePlanetStore((state) => state.renderDistance)
   const { body, eyes } = useAvatar()
   const cameraModel = useMemo(() => createCameraModel(), [])
 
@@ -90,11 +95,28 @@ const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
   const camRef = useRef<THREE.Group>(null)
   const spawned = useRef(false)
   const appliedSkin = useRef<string>('')
+  const [visible, setVisible] = useState(true)
 
   useFrame(() => {
     const bodyGroup = bodyRef.current
     const camGroup = camRef.current
     if (!bodyGroup || !camGroup) return
+
+    // Calculate if player is within render distance chunks of the camera
+    const cameraChunkX = Math.floor((camera.position.x + MAP_SIZE_BLOCKS / 2) / Chunk.WIDTH)
+    const cameraChunkZ = Math.floor((camera.position.z + MAP_SIZE_BLOCKS / 2) / Chunk.WIDTH)
+
+    const playerChunkX = Math.floor((target.pos.x + MAP_SIZE_BLOCKS / 2) / Chunk.WIDTH)
+    const playerChunkZ = Math.floor((target.pos.z + MAP_SIZE_BLOCKS / 2) / Chunk.WIDTH)
+
+    const dx = playerChunkX - cameraChunkX
+    const dz = playerChunkZ - cameraChunkZ
+    const distSq = dx * dx + dz * dz
+    const isWithinRenderDistance = distSq <= renderDistance * renderDistance
+
+    if (visible !== isWithinRenderDistance) {
+      setVisible(isWithinRenderDistance)
+    }
 
     if (!spawned.current) {
       bodyGroup.position.copy(target.pos)
@@ -122,7 +144,8 @@ const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
       appliedSkin.current = target.skin
     }
 
-    camGroup.visible = target.mode === 'freecam'
+    bodyGroup.visible = isWithinRenderDistance
+    camGroup.visible = target.mode === 'freecam' && isWithinRenderDistance
   })
 
   return (
@@ -130,18 +153,20 @@ const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
       <group ref={bodyRef}>
         <Primitive object={body} scale={0.5} />
         <Primitive object={eyes} scale={0.5} />
-        <Billboard position={[0, 1.5, 0]}>
-          <Html center transform sprite distanceFactor={6} zIndexRange={[100, 0]}>
-            <UserBadge user={{
-                  username: target.username,
-                  userId: target.username,
-                  avatar: target.avatar,
-                  email: null,
-                  role: 'USER',
-                  campusId: null
-                }}/>
-          </Html>
-        </Billboard>
+        {visible && (
+          <Billboard position={[0, 1.5, 0]}>
+            <Html center transform sprite distanceFactor={6} zIndexRange={[100, 0]}>
+              <UserBadge user={{
+                    username: target.username,
+                    userId: target.username,
+                    avatar: target.avatar,
+                    email: null,
+                    role: 'USER',
+                    campusId: null
+                  }}/>
+            </Html>
+          </Billboard>
+        )}
       </group>
       <group ref={camRef}>
         <Primitive object={cameraModel} />
