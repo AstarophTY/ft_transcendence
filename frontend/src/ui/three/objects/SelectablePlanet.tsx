@@ -52,6 +52,11 @@ function Satellite({ onClick }: { onClick: (event: ThreeEvent<MouseEvent>) => vo
       document.body.style.cursor = 'auto';
       setHovered(false);
     }}>
+      <Billboard position={[0, 0.5, 0]}>
+        <Html center transform sprite distanceFactor={3}>
+          Private planet
+        </Html>
+      </Billboard>
       <BoxGeometry args={[0.2, 0.2, 0.2]} />
       <meshStandardMaterial ref={materialRef} color="#fbbf24" />
     </mesh>    
