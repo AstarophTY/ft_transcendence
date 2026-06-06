@@ -6,7 +6,7 @@ import { useEditorStore } from '@/store/editorStore.ts'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { BlockMetadata } from "@/config/Block.ts"
 import { Block } from "@/types/Block.ts"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, Mouse } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile.tsx"
 import { LookupBlock } from "@/ui/hud/editor/LookupBlock.tsx"
 import { useLookupStore } from '@/store/lookupStore.ts'
@@ -83,16 +83,25 @@ export default function EditorMode() {
         )}
         
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 px-5 py-2 bg-background/60 backdrop-blur-md supports-[backdrop-filter]:bg-background/40 border border-border/30 rounded-full shadow-lg select-none pointer-events-none text-sm font-mono font-bold text-foreground">
-          <div className="flex items-center gap-1.5">
-            <span className="text-pink-500">X (scroll + X)</span>
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1 text-pink-500">
+              <Mouse className="h-4 w-4 shrink-0" />
+              <span>X</span>
+            </span>
             <span>{shapeSizeX}</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-emerald-500">Y (scroll + Y)</span>
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1 text-emerald-500">
+              <Mouse className="h-4 w-4 shrink-0" />
+              <span>Y</span>
+            </span>
             <span>{shapeSizeY}</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-blue-500">Z (scroll + Z)</span>
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1 text-blue-500">
+              <Mouse className="h-4 w-4 shrink-0" />
+              <span>Z</span>
+            </span>
             <span>{shapeSizeZ}</span>
           </div>
         </div>
