@@ -14,11 +14,20 @@ const CameraController = () => {
 
   useFrame((_, delta) => {
     const sceneMode = usePlanetStore.getState().sceneMode
-    if (sceneMode === 'zooming') {
-      const targetPos = new THREE.Vector3(0, 0.4, 0.8)
-      camera.position.lerp(targetPos, delta * 6)
+    if (sceneMode === 'zooming' || sceneMode === 'zooming-private') {
+      const isPrivate = sceneMode === 'zooming-private'
+      const targetPos = isPrivate ? new THREE.Vector3(0.8, 0.5, 1.2) : new THREE.Vector3(0, 0.4, 0.8)
+      const targetLookAt = isPrivate ? new THREE.Vector3(0.8, 0.4, 0) : new THREE.Vector3(0, 0, 0)
 
-      if (camera.position.distanceTo(targetPos) < 0.1) {
+      camera.position.lerp(targetPos, delta * 5)
+      
+      const currentQuaternion = camera.quaternion.clone()
+      camera.lookAt(targetLookAt)
+      const targetQuaternion = camera.quaternion.clone()
+      camera.quaternion.copy(currentQuaternion)
+      camera.quaternion.slerp(targetQuaternion, delta * 6)
+
+      if (camera.position.distanceTo(targetPos) < 0.15) {
         usePlanetStore.getState().setSceneMode('world')
       }
     } else if (sceneMode === 'selection') {

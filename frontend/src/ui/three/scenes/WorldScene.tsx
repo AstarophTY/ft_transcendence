@@ -13,6 +13,7 @@ import { getWorld, type WorldBlock } from '@/lib/api/world'
 import { connectWorldSocket, getWorldSocket } from '@/lib/sockets/worldSocket'
 import { tokenStore } from '@/lib/api'
 import { toast } from 'sonner'
+import { getUserId } from '@/lib/user'
 import i18n from '@/i18n'
 import { usePlayerAppearance } from '../objects/player/playerAppearance'
 import { useWorldEconomy } from '@/store/worldEconomy'
@@ -231,8 +232,8 @@ const WorldScene = () => {
       mapRef.current = map
       setLocalMap(map)
       setMapVersion((v) => v + 1)
-
-      getWorld(activeCampusId)
+      const isPrivateWorld = usePlanetStore.getState().isPrivateWorld
+      getWorld(isPrivateWorld ? getUserId() : activeCampusId)
         .then((detail) => {
           if (cancelled) return
           for (const b of detail.blocks) applyWorldBlock(map, b)
@@ -250,19 +251,14 @@ const WorldScene = () => {
     }
   }, [activeCampusId, profile])
 
-  // Live sync: join this campus's room and apply edits from the other players
-  // standing on the same island.
 useEffect(() => {
     if (!activeCampusId) return
     const token = tokenStore.access
     if (!token) return
     const socket = connectWorldSocket(token)
 
-    // Reset economy so stale balance from a previous campus doesn't block placement.
     useWorldEconomy.getState().reset()
 
-    // Register world:coins listener BEFORE emitting world:join, so we never
-    // miss the server's immediate response on a cached/already-connected socket.
     const onCoins = ({
       campusId,
       coins,
@@ -274,7 +270,8 @@ useEffect(() => {
     }
     socket.on('world:coins', onCoins)
 
-    socket.emit('world:join', { campusId: activeCampusId })
+    const isPrivateWorld = usePlanetStore.getState().isPrivateWorld
+    socket.emit('world:join', { campusId: activeCampusId, personalWorld: isPrivateWorld })
 
     const onRemoteEdit = ({ blocks }: { blocks: WorldBlock[] }) => {
       const map = mapRef.current
@@ -290,7 +287,6 @@ useEffect(() => {
     socket.on('world:edit', onRemoteEdit)
     socket.on('world:lookup:res', onLookupResponse)
 
-    // The server refused a placement (no coins): roll it back to its prior state.
     const onRevert = ({
       positions,
     }: {
@@ -312,7 +308,7 @@ useEffect(() => {
     socket.on('world:revert', onRevert)
 
     return () => {
-      socket.emit('world:leave', { campusId: activeCampusId })
+      socket.emit('world:leave', { campusId: activeCampusId, personalWorld: isPrivateWorld })
       socket.off('world:edit', onRemoteEdit)
 
       socket.off('world:lookup:res', onLookupResponse)
@@ -360,6 +356,7 @@ useEffect(() => {
     }
 
     payload.campusId = activeCampusId!;
+    payload.personalWorld = usePlanetStore.getState().isPrivateWorld;
 
     if (freecam) {
       payload.c = [

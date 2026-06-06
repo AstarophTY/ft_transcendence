@@ -44,7 +44,7 @@ export async function listWorlds(): Promise<CampusWorld[]> {
 }
 
 /** A campus world: its generation profile plus every persisted block edit. */
-export async function getWorld(campusId: string): Promise<WorldDetail> {
+export async function getWorld(campusId: string | null): Promise<WorldDetail> {
   const { data } = await api.get<WorldDetail>(`/world/${campusId}`)
   return data
 }
