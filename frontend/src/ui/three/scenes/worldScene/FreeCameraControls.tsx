@@ -93,7 +93,7 @@ const SphereGeometry = 'sphereGeometry' as unknown as React.ElementType
       sphereMaterialRef.current.depthWrite = false
       sphereMaterialRef.current.wireframe = false
     }
-  }, [])
+  }, [active])
 
   const updatePreview = () => {
     if (!previewGroupRef.current || !cubePreviewRef.current || !spherePreviewRef.current) return
