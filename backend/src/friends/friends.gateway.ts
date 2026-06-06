@@ -51,6 +51,16 @@ export class FriendsGateway
     const { userId, username } = auth;
     client.data.userId = userId;
     client.data.username = username;
+
+    // Disconnect any existing connection for this user
+    const existingSockets = await this.server.fetchSockets();
+    for (const socket of existingSockets) {
+      if (socket.data.userId === userId && socket.id !== client.id) {
+        socket.emit('auth:kick', { reason: 'concurrent_login' });
+        socket.disconnect(true);
+      }
+    }
+
     void client.join(userId);
     void client.join('server');
     const cameOnline = this.presence.add(auth.userId, client.id);

@@ -40,7 +40,8 @@
     "loginSuccess": "Content de te revoir !",
     "registerSuccess": "Compte créé !",
     "logoutSuccess": "Déconnecté",
-    "sessionExpired": "Session expirée, reconnecte-toi"
+    "sessionExpired": "Session expirée, reconnecte-toi",
+    "concurrentLogin": "Déconnecté : une autre session s'est ouverte sur ce compte"
   },
   "friends": {
     "title": "Amis",
