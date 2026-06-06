@@ -270,8 +270,8 @@ useEffect(() => {
     socket.on('world:coins', onCoins)
 
     const isPrivateWorld = usePlanetStore.getState().isPrivateWorld
-    socket.emit('world:join', { campusId: activeCampusId, personalWorld: isPrivateWorld })
     if (isPrivateWorld) usePlanetStore.getState().setCampusId(getUserId());
+    socket.emit('world:join', { campusId: activeCampusId, personalWorld: isPrivateWorld })
     const onRemoteEdit = ({ blocks }: { blocks: WorldBlock[] }) => {
       const map = mapRef.current
       if (!map) return
