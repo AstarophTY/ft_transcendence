@@ -14,6 +14,7 @@ interface PlanetStore {
   setActiveIndex: (index: number) => void
   /** Campus id of the currently selected world, or null while none is loaded. */
   activeCampusId: string | null
+  setCampusId: (id: string | null) => void
   isPrivateWorld: boolean
   setIsPrivateWorld: (isPrivate: boolean) => void
   sceneMode: 'selection' | 'zooming' | 'zooming-private' | 'world'
@@ -38,6 +39,7 @@ const campusIdAt = (worlds: CampusWorld[], index: number): string | null =>
 
 export const usePlanetStore = create<PlanetStore>((set, get) => ({
   worlds: [],
+  setCampusId: (id) => set({ activeCampusId: id }),
   setWorlds: (worlds) => {
     const activeIndex = worlds.length > 0 ? Math.floor(worlds.length / 2) : 0
     set({

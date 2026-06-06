@@ -232,8 +232,7 @@ const WorldScene = () => {
       mapRef.current = map
       setLocalMap(map)
       setMapVersion((v) => v + 1)
-      const isPrivateWorld = usePlanetStore.getState().isPrivateWorld
-      getWorld(isPrivateWorld ? getUserId() : activeCampusId)
+      getWorld(activeCampusId)
         .then((detail) => {
           if (cancelled) return
           for (const b of detail.blocks) applyWorldBlock(map, b)
@@ -272,7 +271,7 @@ useEffect(() => {
 
     const isPrivateWorld = usePlanetStore.getState().isPrivateWorld
     socket.emit('world:join', { campusId: activeCampusId, personalWorld: isPrivateWorld })
-
+    if (isPrivateWorld) usePlanetStore.getState().setCampusId(getUserId());
     const onRemoteEdit = ({ blocks }: { blocks: WorldBlock[] }) => {
       const map = mapRef.current
       if (!map) return
