@@ -17,6 +17,8 @@ interface PlanetStore {
   setCampusId: (id: string | null) => void
   isPrivateWorld: boolean
   setIsPrivateWorld: (isPrivate: boolean) => void
+  privatePlanetPos: [number, number, number] | null
+  setPrivatePlanetPos: (pos: [number, number, number] | null) => void
   sceneMode: 'selection' | 'zooming' | 'zooming-private' | 'world'
   setSceneMode: (mode: 'selection' | 'zooming' | 'zooming-private' | 'world') => void
   renderDistance: number
@@ -57,6 +59,8 @@ export const usePlanetStore = create<PlanetStore>((set, get) => ({
     set({ activeIndex: index, activeCampusId: campusIdAt(get().worlds, index) }),
   isPrivateWorld: false,
   setIsPrivateWorld: (isPrivate) => set({ isPrivateWorld: isPrivate }),
+  privatePlanetPos: null,
+  setPrivatePlanetPos: (pos) => set({ privatePlanetPos: pos }),
   targetOffset: 0,
   setTargetOffset: (offset) => set({ targetOffset: offset }),
   activeCampusId: null,
@@ -67,6 +71,7 @@ export const usePlanetStore = create<PlanetStore>((set, get) => ({
       set({
         sceneMode: mode,
         isPrivateWorld: false,
+        privatePlanetPos: null,
         targetOffset: worlds.length > 1 ? activeIndex / (worlds.length - 1) : 0,
       })
     } else {

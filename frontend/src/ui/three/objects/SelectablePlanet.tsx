@@ -34,6 +34,13 @@ function Satellite({ onClick }: { onClick: (event: ThreeEvent<MouseEvent>) => vo
       Math.sin(t * speed) * radius
     )
     satelliteRef.current.rotation.y += 0.01
+
+    const storeState = usePlanetStore.getState()
+    if (storeState.sceneMode === 'zooming-private') {
+      const worldPos = new THREE.Vector3()
+      satelliteRef.current.getWorldPosition(worldPos)
+      storeState.setPrivatePlanetPos([worldPos.x, worldPos.y, worldPos.z])
+    }
   })
 
   useEffect(() => {
@@ -156,8 +163,11 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
       <Satellite onClick={(e) => {
           e.stopPropagation();
           const storeState = usePlanetStore.getState();
-            storeState.setIsPrivateWorld(true);
-            storeState.setSceneMode('zooming-private');
+          const worldPos = new THREE.Vector3();
+          e.eventObject.getWorldPosition(worldPos);
+          storeState.setPrivatePlanetPos([worldPos.x, worldPos.y, worldPos.z]);
+          storeState.setIsPrivateWorld(true);
+          storeState.setSceneMode('zooming-private');
         }}
       />
     }
