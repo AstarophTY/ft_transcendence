@@ -36,7 +36,7 @@ export const usePlayerRotation = ({ active, camera, playerRef, controlsRef, keys
 
           const targetRotation = Math.atan2(direction.x, direction.z) + Math.PI
           const diff = THREE.MathUtils.euclideanModulo(targetRotation - playerRef.current.rotation.y + Math.PI, Math.PI * 2) - Math.PI
-          playerRef.current.rotation.y += diff * delta * 10
+          playerRef.current.rotation.y += diff * Math.min(1, delta * 10)
         }
       }
       return

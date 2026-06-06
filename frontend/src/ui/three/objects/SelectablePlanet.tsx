@@ -59,9 +59,18 @@ function Satellite({ onClick }: { onClick: (event: ThreeEvent<MouseEvent>) => vo
       document.body.style.cursor = 'auto';
       setHovered(false);
     }}>
-      <Billboard position={[0, 0.5, 0]}>
-        <Html center transform sprite distanceFactor={3}>
-          Private planet
+      <Billboard position={[0, 0.25, 0]}>
+        <Html center transform sprite distanceFactor={3} scale={0.15} >
+          <div style={{
+            fontSize: '48px',
+            fontWeight: 'bold',
+            color: 'white',
+            fontFamily: "'Outfit', 'Inter', sans-serif",
+            pointerEvents: 'none',
+            whiteSpace: 'nowrap'
+          }}>
+            Private planet
+          </div>
         </Html>
       </Billboard>
       <BoxGeometry args={[0.2, 0.2, 0.2]} />
@@ -148,9 +157,18 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
         inset={inset}
         getHeight={getHeight}
       />
-        <Billboard position={[0, 1.5, 0]}>
-          <Html center transform sprite distanceFactor={6} zIndexRange={[100, 0]}>
-            {label}
+        <Billboard position={[0, 1.0, 0]}>
+          <Html center transform sprite distanceFactor={6} scale={0.3} zIndexRange={[100, 0]}>
+            <div style={{
+              fontSize: '48px',
+              fontWeight: 'bold',
+              color: 'white',
+              fontFamily: "'Outfit', 'Inter', sans-serif",
+              pointerEvents: 'none',
+              whiteSpace: 'nowrap'
+            }}>
+              {label}
+            </div>
           </Html>
         </Billboard>
 
