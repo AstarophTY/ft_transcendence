@@ -79,11 +79,7 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
   const worlds = usePlanetStore((s) => s.worlds)
   // const activeIndex = usePlanetStore((s) => s.activeIndex)
 
-  const isPlayerCampus = user && (
-    (user.campusId && worlds[index]?.campusId === user.campusId) ||
-    (!user.campusId && index === 0) ||
-    (user.campusId && !worlds.some(w => w.campusId === user.campusId) && index === 0)
-  );
+  const isPlayerCampus = user?.campusId && worlds[index]?.campusId === user.campusId;
   const label = worlds[index]?.label || 'Unknown';
   // const isActive = activeIndex === index
 
