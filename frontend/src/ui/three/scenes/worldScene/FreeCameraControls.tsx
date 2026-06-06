@@ -12,6 +12,8 @@ import { LocalMap } from '@/types/maps/LocalMap'
 import { Chunk } from '@/types/maps/Chunk'
 import { useIsTouchDevice } from '@/hooks/use-mobile.tsx'
 
+import { usePlanetStore } from '@/store/planetStore'
+
 interface FreeCameraControlsProps {
   localMap: LocalMap
   mapSize: number
@@ -148,6 +150,20 @@ const SphereGeometry = 'sphereGeometry' as unknown as React.ElementType
         const y = Math.floor(blockPos.y)
         const z = Math.floor(blockPos.z + halfSize)
 
+        const isPrivate = usePlanetStore.getState().isPrivateWorld;
+        const midX = Math.floor(localMap.widthInChunks / 2);
+        const midZ = Math.floor(localMap.depthInChunks / 2);
+
+        if (!isPrivate) {
+          const bX = Math.floor(x / Chunk.WIDTH);
+          const bZ = Math.floor(z / Chunk.WIDTH);
+
+          if (bX >= midX - 2 && bX < midX + 2 && bZ >= midZ - 2 && bZ < midZ + 2) {
+            previewGroupRef.current.visible = false;
+            return;
+          }
+        }
+
         if (x >= 0 && x < mapSize && y >= 0 && y < 64 && z >= 0 && z < mapSize) {
             targetX = x - halfSize + 0.5
             targetY = y + 0.5
@@ -271,6 +287,21 @@ const SphereGeometry = 'sphereGeometry' as unknown as React.ElementType
     const centerY = Math.floor(blockPos.y)
     const centerZ = Math.floor(blockPos.z + halfSize)
 
+    // Check if interaction is in protected 4x4 central chunks of campus worlds
+    const isPrivate = usePlanetStore.getState().isPrivateWorld;
+    if (!isPrivate) {
+      const bX = Math.floor(centerX / Chunk.WIDTH);
+      const bZ = Math.floor(centerZ / Chunk.WIDTH);
+      const mapWidthInChunks = localMap.widthInChunks;
+      const mapDepthInChunks = localMap.depthInChunks;
+      const midX = Math.floor(mapWidthInChunks / 2);
+      const midZ = Math.floor(mapDepthInChunks / 2);
+
+      if (bX >= midX - 2 && bX < midX + 2 && bZ >= midZ - 2 && bZ < midZ + 2) {
+        return;
+      }
+    }
+
     if (e.button === 1) {
       const block = localMap.getGlobalBlock(centerX, centerY, centerZ)
       if (block !== Block.Air && block !== Block.Bedrock && block !== Block.Water) {
@@ -281,8 +312,23 @@ const SphereGeometry = 'sphereGeometry' as unknown as React.ElementType
 
     const blocksToUpdate = getAffectedBlocks(centerX, centerY, centerZ, shape, shapeSizeX, shapeSizeY, shapeSizeZ, mapSize)
 
+    const mapWidthInChunks = localMap.widthInChunks;
+    const mapDepthInChunks = localMap.depthInChunks;
+    const midX = Math.floor(mapWidthInChunks / 2);
+    const midZ = Math.floor(mapDepthInChunks / 2);
+
     for (const pos of blocksToUpdate) {
       const { x, y, z } = pos
+
+      // Individual block protection for area tools
+      if (!isPrivate) {
+        const bX = Math.floor(x / Chunk.WIDTH);
+        const bZ = Math.floor(z / Chunk.WIDTH);
+        if (bX >= midX - 2 && bX < midX + 2 && bZ >= midZ - 2 && bZ < midZ + 2) {
+          continue;
+        }
+      }
+
       if (tool === Tab.Remove) {
         const block = localMap.getGlobalBlock(x, y, z)
         if (block !== Block.Air && block !== Block.Bedrock) {

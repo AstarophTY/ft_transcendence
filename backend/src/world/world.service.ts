@@ -187,6 +187,20 @@ export class WorldService {
       const rejected: { x: number; y: number; z: number }[] = [];
 
       for (const b of blocks) {
+        // Protect the 4x4 chunks at the center of campus worlds
+        const chunkSize = 16;
+        const centerX = Math.floor(world.widthInChunks / 2);
+        const centerZ = Math.floor(world.depthInChunks / 2);
+        const bX = Math.floor(b.x / chunkSize);
+        const bZ = Math.floor(b.z / chunkSize);
+
+        if (world.campusId &&
+            bX >= centerX - 2 && bX < centerX + 2 &&
+            bZ >= centerZ - 2 && bZ < centerZ + 2) {
+          rejected.push({ x: b.x, y: b.y, z: b.z });
+          continue;
+        }
+
         const key = `${b.x},${b.y},${b.z}`;
         if (isPaidBlock(b.block)) {
           if (coins <= 0) {
