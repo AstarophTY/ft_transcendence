@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "Campus" ADD COLUMN "coins" INTEGER NOT NULL DEFAULT 0;
