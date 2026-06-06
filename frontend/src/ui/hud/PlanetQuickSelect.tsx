@@ -29,7 +29,7 @@ export default function PlanetQuickSelect() {
         const isActive = index === activeIndex
         return (
           <Tooltip key={world.campusId}>
-            <TooltipTrigger>
+            <TooltipTrigger asChild>
                 <button
                 onClick={() => handleSelect(index)}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${

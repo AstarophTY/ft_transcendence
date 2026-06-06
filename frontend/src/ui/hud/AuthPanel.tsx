@@ -257,9 +257,8 @@ function AuthDialog() {
   const sceneMode = usePlanetStore((s) => s.sceneMode)
   const setSceneMode = usePlanetStore((s) => s.setSceneMode)
   const activeEditor = useEditorStore((s) => s.activeEditor)
-  const inEditor = useEditorStore((s) => s.in_editor)
 
-  const showTakeoff = sceneMode === 'world' && !inEditor
+  const showTakeoff = sceneMode === 'world'
 
   const handleTakeoff = () => {
     activeEditor(false)
@@ -355,9 +354,8 @@ function UserMenu() {
   const sceneMode = usePlanetStore((s) => s.sceneMode)
   const setSceneMode = usePlanetStore((s) => s.setSceneMode)
   const activeEditor = useEditorStore((s) => s.activeEditor)
-  const inEditor = useEditorStore((s) => s.in_editor)
 
-  const showTakeoff = sceneMode === 'world' && !inEditor
+  const showTakeoff = sceneMode === 'world'
 
   const handleTakeoff = () => {
     activeEditor(false)
