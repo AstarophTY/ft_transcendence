@@ -103,11 +103,14 @@ const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
     if (!bodyGroup || !camGroup) return
 
     // Calculate if player is within render distance chunks of the camera
-    const cameraChunkX = Math.floor((camera.position.x + MAP_SIZE_BLOCKS / 2) / Chunk.WIDTH)
-    const cameraChunkZ = Math.floor((camera.position.z + MAP_SIZE_BLOCKS / 2) / Chunk.WIDTH)
+    const isPrivate = usePlanetStore.getState().isPrivateWorld
+    const mapSize = isPrivate ? 64 : MAP_SIZE_BLOCKS
 
-    const playerChunkX = Math.floor((target.pos.x + MAP_SIZE_BLOCKS / 2) / Chunk.WIDTH)
-    const playerChunkZ = Math.floor((target.pos.z + MAP_SIZE_BLOCKS / 2) / Chunk.WIDTH)
+    const cameraChunkX = Math.floor((camera.position.x + mapSize / 2) / Chunk.WIDTH)
+    const cameraChunkZ = Math.floor((camera.position.z + mapSize / 2) / Chunk.WIDTH)
+
+    const playerChunkX = Math.floor((target.pos.x + mapSize / 2) / Chunk.WIDTH)
+    const playerChunkZ = Math.floor((target.pos.z + mapSize / 2) / Chunk.WIDTH)
 
     const dx = playerChunkX - cameraChunkX
     const dz = playerChunkZ - cameraChunkZ
