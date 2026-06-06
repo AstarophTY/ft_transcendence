@@ -104,8 +104,13 @@ export class WorldGateway
     const y = body?.y;
     const z = body?.z;
 
-    const world = await this.prisma.world.findUnique({
-      where: { campusId },
+    const world = await this.prisma.world.findFirst({
+      where: {
+        OR: [
+          { campusId: campusId },
+          { userId: campusId },
+        ],
+      },
       select: { id: true },
     });
     if (!world) return;

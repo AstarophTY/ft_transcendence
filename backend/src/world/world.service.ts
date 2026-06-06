@@ -50,15 +50,23 @@ export class WorldService {
     return worlds;
   }
 
-  /** A campus world: its generation profile plus every persisted block edit. */
-  async getWorld(campusId: string) {
-    const world = await this.ensureWorld(campusId);
+  /** A campus or personal world: its generation profile plus every persisted block edit. */
+  async getWorld(id: string) {
+    // Attempt to resolve the world as a personal planet first, then fallback to campus.
+    // ensureWorld handles lazy creation if it was somehow missed during login.
+    let world: World;
+    try {
+      world = await this.ensureWorld(id, true);
+    } catch {
+      world = await this.ensureWorld(id, false);
+    }
+
     const blocks = await this.prisma.worldBlock.findMany({
       where: { worldId: world.id },
       select: { x: true, y: true, z: true, block: true, rotation: true, block_log: false },
     });
     return {
-      campusId,
+      campusId: world.campusId ?? world.userId ?? id,
       seed: world.seed,
       widthInChunks: world.widthInChunks,
       depthInChunks: world.depthInChunks,
@@ -72,11 +80,16 @@ export class WorldService {
     };
   }
 
-  async saveBlocks(campusId: string, blocks: WorldBlockDto[], userId: string): Promise<void> {
+  async saveBlocks(id: string, blocks: WorldBlockDto[], userId: string): Promise<void> {
     if (blocks.length === 0)
       return;
 
-    const world = await this.ensureWorld(campusId);
+    let world: World;
+    try {
+      world = await this.ensureWorld(id, true);
+    } catch {
+      world = await this.ensureWorld(id, false);
+    }
 
     await this.prisma.$transaction(async (tx) => {
       for (const b of blocks) {
@@ -167,7 +180,12 @@ export class WorldService {
     rejected: { x: number; y: number; z: number }[];
     coins: number;
   }> {
-    const world = await this.ensureWorld(campusId);
+    let world: World;
+    try {
+      world = await this.ensureWorld(campusId, true);
+    } catch {
+      world = await this.ensureWorld(campusId, false);
+    }
     const campus = await this.prisma.campus.findUnique({
       where: { id: campusId },
       select: { coins: true },
@@ -281,27 +299,30 @@ export class WorldService {
     return campus?.coins ?? null;
   }
 
-  /** Create a world (with a fresh random profile) for a campus that has none. */
-  createWorld(campusId: string, private_planet: boolean = false): Promise<World> {
+  /** Create a world (with a fresh random profile) for a campus or user. */
+  createWorld(ownerId: string, private_planet: boolean = false): Promise<World> {
     if (private_planet)
     {
       return this.prisma.world.create({
         data: {
-          ...generateWorldProfile(campusId),
-          seed: campusId,
+          userId: ownerId,
+          ...generateWorldProfile(ownerId),
+          seed: ownerId,
           widthInChunks: 4
         },
       });
     } else {
       return this.prisma.world.create({
-        data: { campusId, ...generateWorldProfile(campusId) },
+        data: { campusId: ownerId, ...generateWorldProfile(ownerId) },
       });
     }
   }
 
-  /** Return the campus world, creating it on the fly if it does not exist yet. */
-  private async ensureWorld(worldId: string, is_personal_planet: boolean = false): Promise<World> {
-    const world = await this.prisma.world.findUnique({ where: { campusId: worldId } });
+  /** Return the world, creating it on the fly if it does not exist yet. */
+  async ensureWorld(worldId: string, is_personal_planet: boolean = false): Promise<World> {
+    const world = await this.prisma.world.findUnique({
+      where: is_personal_planet ? { userId: worldId } : { campusId: worldId },
+    });
     if (world) return world;
 
     if (!is_personal_planet) {

@@ -15,6 +15,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
 import { UsersService } from '../users/users.service';
 import { AuthTokens, FortyTwoProfile } from './interfaces/auth.interfaces';
+import { WorldService } from '../world/world.service';
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const BCRYPT_ROUNDS = 12;
@@ -29,6 +30,7 @@ export class AuthService {
     private readonly redis: RedisService,
     private readonly campus: CampusService,
     private readonly fortyTwo: FortyTwoService,
+    private readonly world: WorldService,
   ) {}
 
   async register(
@@ -44,6 +46,7 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
     const user = await this.users.create({ email, username, passwordHash });
 
+    await this.world.ensureWorld(user.id, true);
     return this.generateTokens(user);
   }
 
@@ -63,6 +66,7 @@ export class AuthService {
     }
 
     await this.redis.resetLoginAttempts(email);
+    await this.world.ensureWorld(user.id, true);
     return this.generateTokens(user);
   }
 
@@ -97,6 +101,7 @@ export class AuthService {
         avatar: profile.avatar,
       });
       await this.syncFortyTwo(updated, profile);
+      await this.world.ensureWorld(updated.id, true);
       return this.generateTokens(updated);
     }
 
@@ -110,6 +115,7 @@ export class AuthService {
           isVerified: true,
         });
         await this.syncFortyTwo(merged, profile);
+        await this.world.ensureWorld(merged.id, true);
         return this.generateTokens(merged);
       }
     }
@@ -128,6 +134,7 @@ export class AuthService {
     });
 
     await this.syncFortyTwo(created, profile);
+    await this.world.ensureWorld(created.id, true);
     return this.generateTokens(created);
   }
 
