@@ -102,7 +102,8 @@ export class AuthService {
       });
       await this.syncFortyTwo(updated, profile);
       await this.world.ensureWorld(updated.id, true);
-      return this.generateTokens(updated);
+      const latestUser = await this.users.findById(updated.id);
+      return this.generateTokens(latestUser!);
     }
 
     if (profile.email) {
@@ -116,7 +117,8 @@ export class AuthService {
         });
         await this.syncFortyTwo(merged, profile);
         await this.world.ensureWorld(merged.id, true);
-        return this.generateTokens(merged);
+        const latestUser = await this.users.findById(merged.id);
+        return this.generateTokens(latestUser!);
       }
     }
 
@@ -135,7 +137,8 @@ export class AuthService {
 
     await this.syncFortyTwo(created, profile);
     await this.world.ensureWorld(created.id, true);
-    return this.generateTokens(created);
+    const latestUser = await this.users.findById(created.id);
+    return this.generateTokens(latestUser!);
   }
 
   /** Keep campus and logtime-coins in sync with 42 on every login. */

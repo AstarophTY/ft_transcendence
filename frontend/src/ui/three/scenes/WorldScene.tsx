@@ -214,8 +214,21 @@ const WorldScene = () => {
 
   // Generation profile of the selected campus world.
   const profile = useMemo(() => {
+    if (isPrivate) {
+      return {
+        seed: getUserId() || 'private-world',
+        widthInChunks: 4,
+        depthInChunks: 4,
+        scale: 0.05,
+        octaves: 4,
+        persistence: 0.5,
+        relief: 0.5,
+        baseHeight: 5,
+        variationRange: 5,
+      }
+    }
     return worlds.find((w) => w.campusId === activeCampusId) ?? worlds[0] ?? null
-  }, [worlds, activeCampusId])
+  }, [worlds, activeCampusId, isPrivate])
 
   const [localMap, setLocalMap] = useState<LocalMap | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
@@ -228,7 +241,8 @@ const WorldScene = () => {
   )
 
   useEffect(() => {
-    if (!profile || !activeCampusId) return
+    const isPrivate = usePlanetStore.getState().isPrivateWorld
+    if (!profile || (!isPrivate && !activeCampusId)) return
     setIsLoaded(false)
     let cancelled = false
 
@@ -259,8 +273,8 @@ const WorldScene = () => {
     }
   }, [activeCampusId, profile])
 
-useEffect(() => {
-    if (!activeCampusId) return
+  useEffect(() => {
+    if (!activeCampusId && !isPrivate) return
     const token = tokenStore.access
     if (!token) return
     const socket = connectWorldSocket(token)
@@ -278,8 +292,7 @@ useEffect(() => {
     }
     socket.on('world:coins', onCoins)
 
-    const isPrivateWorld = usePlanetStore.getState().isPrivateWorld
-    socket.emit('world:join', { campusId: activeCampusId, personalWorld: isPrivateWorld })
+    socket.emit('world:join', { campusId: activeCampusId, personalWorld: isPrivate })
 
     const onRemoteEdit = ({ blocks }: { blocks: WorldBlock[] }) => {
       const map = mapRef.current
@@ -316,14 +329,14 @@ useEffect(() => {
     socket.on('world:revert', onRevert)
 
     return () => {
-      socket.emit('world:leave', { campusId: activeCampusId, personalWorld: isPrivateWorld })
+      socket.emit('world:leave', { campusId: activeCampusId, personalWorld: isPrivate })
       socket.off('world:edit', onRemoteEdit)
 
       socket.off('world:lookup:res', onLookupResponse)
       socket.off('world:coins', onCoins)
       socket.off('world:revert', onRevert)
     }
-  }, [activeCampusId])
+  }, [activeCampusId, isPrivate])
 
   // Broadcast our own transform to the island, throttled and only when it
   // changed. We always send the body; in freecam we also send the flying camera
@@ -332,9 +345,9 @@ useEffect(() => {
   const camDir = useRef(new THREE.Vector3())
   useFrame(() => {
     const socket = getWorldSocket()
-    const { activeCampusId } = usePlanetStore.getState()
+    const { activeCampusId, isPrivateWorld } = usePlanetStore.getState()
     const p = playerRef.current
-    if (!socket || !activeCampusId || !p) return
+    if (!socket || (!activeCampusId && !isPrivateWorld) || !p) return
 
     const freecam = currentMode === 'freecam'
     const round = (n: number) => Math.round(n * 50) / 50 // ~0.02 step
@@ -363,8 +376,10 @@ useEffect(() => {
       skin,
     }
 
-    payload.campusId = activeCampusId!;
-    payload.personalWorld = usePlanetStore.getState().isPrivateWorld;
+    if (activeCampusId) {
+      payload.campusId = activeCampusId
+    }
+    payload.personalWorld = isPrivateWorld
 
     if (freecam) {
       payload.c = [
@@ -624,7 +639,7 @@ useEffect(() => {
         active={currentMode === 'player'}
         playerRef={playerRef}
       />
-      {activeCampusId && <RemotePlayers campusId={activeCampusId} />}
+      {(activeCampusId || isPrivate) && <RemotePlayers campusId={activeCampusId || 'personal'} />}
       {visibleChunks.map(({ cx, cz }) => (
         <ChunkRenderer
           key={`${cx}-${cz}`}

@@ -66,6 +66,7 @@ export const usePlanetStore = create<PlanetStore>((set, get) => ({
       const { worlds, activeIndex } = get()
       set({
         sceneMode: mode,
+        isPrivateWorld: false,
         targetOffset: worlds.length > 1 ? activeIndex / (worlds.length - 1) : 0,
       })
     } else {
