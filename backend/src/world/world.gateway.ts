@@ -88,6 +88,15 @@ export class WorldGateway
     client.data.userId = auth.userId;
     client.data.username = auth.username;
     client.data.avatar = auth.avatar;
+
+    // Disconnect any existing connection for this user
+    const existingSockets = await this.server.fetchSockets();
+    for (const socket of existingSockets) {
+      if (socket.data.userId === auth.userId && socket.id !== client.id) {
+        socket.emit('auth:kick', { reason: 'concurrent_login' });
+        socket.disconnect(true);
+      }
+    }
   }
 
   handleDisconnect(client: Socket): void {

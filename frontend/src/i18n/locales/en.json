@@ -40,7 +40,8 @@
     "loginSuccess": "Welcome back!",
     "registerSuccess": "Account created!",
     "logoutSuccess": "Logged out",
-    "sessionExpired": "Session expired, please log in again"
+    "sessionExpired": "Session expired, please log in again",
+    "concurrentLogin": "Disconnected: another connection was opened under this account"
   },
   "friends": {
     "title": "Friends",

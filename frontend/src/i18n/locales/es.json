@@ -40,7 +40,8 @@
     "loginSuccess": "¡Bienvenido de nuevo!",
     "registerSuccess": "¡Cuenta creada!",
     "logoutSuccess": "Sesión cerrada",
-    "sessionExpired": "Sesión expirada, inicia sesión de nuevo"
+    "sessionExpired": "Sesión expirada, inicia sesión de nuevo",
+    "concurrentLogin": "Desconectado: se abrió otra sesión con esta cuenta"
   },
   "friends": {
     "title": "Amigos",
