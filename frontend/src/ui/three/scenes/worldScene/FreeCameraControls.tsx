@@ -52,6 +52,8 @@ const getAffectedBlocks = (
   return blocks
 }
 
+let lastUnlockTime = 0
+
 export const FreeCameraControls = ({
   localMap,
   mapSize,
@@ -322,10 +324,27 @@ const SphereGeometry = 'sphereGeometry' as unknown as React.ElementType
       if (!active) return
       if (!controlsRef.current?.isLocked) {
         if (e.target === gl.domElement) {
+          if (performance.now() - lastUnlockTime < 1250) {
+            e.stopPropagation()
+            e.preventDefault()
+            return
+          }
           controlsRef.current?.lock()
         }
       } else {
         handleEditorAction(e)
+      }
+    }
+
+    const handleClick = (e: MouseEvent) => {
+      if (!active) return
+      if (!controlsRef.current?.isLocked) {
+        if (e.target === gl.domElement) {
+          if (performance.now() - lastUnlockTime < 1250) {
+            e.stopPropagation()
+            e.preventDefault()
+          }
+        }
       }
     }
 
@@ -338,17 +357,26 @@ const SphereGeometry = 'sphereGeometry' as unknown as React.ElementType
         setShapeSize(Math.max(1, shapeSize - 1))
       }
     }
+    const handlePointerLockChange = () => {
+      if (!document.pointerLockElement) {
+        lastUnlockTime = performance.now()
+      }
+    }
 
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
     window.addEventListener('mousedown', handleMouseDown)
+    gl.domElement.addEventListener('click', handleClick)
     window.addEventListener('wheel', handleWheel)
+    document.addEventListener('pointerlockchange', handlePointerLockChange)
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
       window.removeEventListener('mousedown', handleMouseDown)
+      gl.domElement.removeEventListener('click', handleClick)
       window.removeEventListener('wheel', handleWheel)
+      document.removeEventListener('pointerlockchange', handlePointerLockChange)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gl.domElement, active, localMap, onUpdateBlock, onLookupBlock])
