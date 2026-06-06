@@ -304,8 +304,8 @@ export class WorldGateway
         client.emit('world:coins', { campusId, coins });
         client.to(room).emit('world:coins', { campusId, coins });
       }
-    } catch {
-      /* a failed economy/persist should not break the live session */
+    } catch (error) {
+      console.error('Failed to save world blocks:', error);
     }
   }
 
