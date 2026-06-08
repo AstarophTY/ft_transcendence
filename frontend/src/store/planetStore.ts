@@ -21,6 +21,9 @@ interface PlanetStore {
   setPrivatePlanetPos: (pos: [number, number, number] | null) => void
   sceneMode: 'selection' | 'zooming' | 'zooming-private' | 'world'
   setSceneMode: (mode: 'selection' | 'zooming' | 'zooming-private' | 'world') => void
+  /** True while the takeoff transition (world -> selection) is in progress. */
+  isTakingOff: boolean
+  setTakingOff: (value: boolean) => void
   renderDistance: number
   setRenderDistance: (dist: number) => void
   theme: 'light' | 'dark'
@@ -78,6 +81,8 @@ export const usePlanetStore = create<PlanetStore>((set, get) => ({
       set({ sceneMode: mode })
     }
   },
+  isTakingOff: false,
+  setTakingOff: (value) => set({ isTakingOff: value }),
   renderDistance: getInitialRenderDistance(),
   setRenderDistance: (dist) => {
     localStorage.setItem('renderDistance', dist.toString())

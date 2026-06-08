@@ -24,6 +24,7 @@
     "or": "ou",
     "logout": "Se déconnecter",
     "takeoff": "Décollage",
+    "takingOff": "Décollage en cours...",
     "errorFallback": "Une erreur est survenue, réessaie.",
     "emailPlaceholder": "toi@exemple.com",
     "usernamePlaceholder": "pongmaster",

@@ -24,6 +24,7 @@
     "or": "o",
     "logout": "Cerrar sesión",
     "takeoff": "Despegar",
+    "takingOff": "Despegando...",
     "errorFallback": "Algo salió mal, inténtalo de nuevo.",
     "emailPlaceholder": "tu@ejemplo.com",
     "usernamePlaceholder": "pongmaster",

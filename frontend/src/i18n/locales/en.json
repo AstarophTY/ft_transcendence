@@ -24,6 +24,7 @@
     "or": "or",
     "logout": "Log out",
     "takeoff": "Take off",
+    "takingOff": "Taking off...",
     "errorFallback": "Something went wrong, please try again",
     "emailPlaceholder": "you@example.com",
     "usernamePlaceholder": "pongmaster",
