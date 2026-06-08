@@ -241,7 +241,13 @@
       "none": "No hay historial para este bloque."
     },
     "freecam": "Cámara libre",
-    "exitFreecam": "Salir de cámara libre"
+    "exitFreecam": "Salir de cámara libre",
+    "free": "Gratis",
+    "economy": {
+      "coins": "Monedas del campus",
+      "budget": "Presupuesto de construcción del campus — colocar un bloque de pago cuesta 1 moneda",
+      "freeBlock": "Colocación gratuita"
+    }
   },
   "planet": {
     "private": "Planeta privado"

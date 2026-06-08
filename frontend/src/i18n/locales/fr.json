@@ -234,7 +234,13 @@
       "none": "Aucun historique pour ce bloc."
     },
     "freecam": "Caméra libre",
-    "exitFreecam": "Quitter la caméra libre"
+    "exitFreecam": "Quitter la caméra libre",
+    "free": "Gratuit",
+    "economy": {
+      "coins": "Coins du campus",
+      "budget": "Budget de construction du campus — poser un bloc payant coûte 1 coin",
+      "freeBlock": "Pose gratuite"
+    }
   },
   "planet": {
     "private": "Planète privée"

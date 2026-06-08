@@ -238,7 +238,13 @@
       "none": "No history found for this block."
     },
     "freecam": "Freecam",
-    "exitFreecam": "Exit Freecam"
+    "exitFreecam": "Exit Freecam",
+    "free": "Free",
+    "economy": {
+      "coins": "Campus coins",
+      "budget": "Campus build budget — placing a paid block costs 1 coin",
+      "freeBlock": "Free to place"
+    }
   },
   "planet": {
     "private": "Private planet"

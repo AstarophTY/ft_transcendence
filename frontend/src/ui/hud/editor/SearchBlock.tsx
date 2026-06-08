@@ -4,11 +4,13 @@ import { Input } from '@/ui/shadcn/input.tsx';
 import { Card } from '@/ui/shadcn/card.tsx';
 import { ScrollArea } from '@/ui/shadcn/scroll-area.tsx';
 import { BlocksList } from '@/config/Block.ts';
+import { isPaidBlock } from '@/config/worldBlocks.ts';
 import { useEditorStore } from '@/store/editorStore.ts';
 import { motion, useDragControls } from 'motion/react';
-import { GripHorizontal, X } from 'lucide-react';
+import { GripHorizontal, X, Coins } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile.tsx';
 import { useTranslation } from 'react-i18next';
+import { useWorldEconomy } from '@/store/worldEconomy.ts';
 import {
   Select,
   SelectContent,
@@ -230,6 +232,7 @@ export function SearchBlock() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const { selectedBlock, setSelectedBlock, setCatalogOpen } = useEditorStore();
+  const coins = useWorldEconomy((s) => s.coins);
   const dragControls = useDragControls();
   const isMobile = useIsMobile();
 
@@ -325,8 +328,20 @@ export function SearchBlock() {
               {!isMobile && <GripHorizontal className="h-5 w-5 text-muted-foreground" />}
               <h2 className="text-lg font-bold select-none">{t('editor.catalog.title')}</h2>
             </div>
-            
-            {/* Close button */}
+
+            <div className="flex items-center gap-2">
+              {coins !== null && (
+                <div
+                  title={t('editor.economy.budget')}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/20 border border-border/30 select-none"
+                >
+                  <Coins className="h-4 w-4 shrink-0 text-yellow-500" />
+                  <span className="text-sm font-mono font-bold text-foreground tabular-nums">{coins}</span>
+                  <span className="sr-only">{t('editor.economy.coins')}</span>
+                </div>
+              )}
+
+              {/* Close button */}
             {isMobile && (
               <button 
                 onClick={() => setCatalogOpen(false)}
@@ -336,6 +351,7 @@ export function SearchBlock() {
                 <X className="h-5 w-5" />
               </button>
             )}
+            </div>
           </div>
           <div className="flex gap-2">
             <Input
@@ -376,9 +392,17 @@ export function SearchBlock() {
                   }
                 }}
               >
-                <div 
+                <div
                   className="h-20 w-full flex items-center justify-center border-b bg-muted/10 relative"
                 >
+                  {!isPaidBlock(block.id) && (
+                    <span
+                      title={t('editor.economy.freeBlock')}
+                      className="absolute top-1 left-1 px-1.5 py-0.5 rounded-full bg-green-500/85 text-white text-[10px] font-bold uppercase tracking-wide leading-none shadow-sm select-none"
+                    >
+                      {t('editor.free')}
+                    </span>
+                  )}
                   <BlockPreview name={block.name} color={block.color} />
                 </div>
                 <div className="p-2 text-center text-sm font-medium truncate">
