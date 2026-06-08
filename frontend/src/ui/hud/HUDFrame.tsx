@@ -3,6 +3,7 @@ import PlanetQuickSelect from "@/ui/hud/PlanetQuickSelect.tsx";
 import EditorMode from "@/ui/hud/editor/EditorMode";
 import AuthPanel from "@/ui/hud/AuthPanel"
 import MobileVirtualControls from "@/ui/hud/MobileVirtualControls"
+import TakeoffOverlay from "@/ui/hud/TakeoffOverlay"
 import { usePlanetStore } from '@/store/planetStore'
 import { useEditorStore } from '@/store/editorStore'
 
@@ -16,6 +17,7 @@ export default function HUDFrame() {
         <AuthPanel />
         {editorMode ? <EditorMode /> : <></>}
         {sceneMode === 'world' && <MobileVirtualControls />}
+        <TakeoffOverlay />
       </>
   )
 }

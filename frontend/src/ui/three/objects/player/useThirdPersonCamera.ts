@@ -20,7 +20,7 @@ type Params = {
 }
 
 export const useThirdPersonCamera = ({ active, camera, playerRef, controlsRef, keysRef, mapSize, localMap }: Params) => {
-  const pitchRef = React.useRef(0.463) // start at ~26 degrees looking down
+  const pitchRef = React.useRef(-0.45) // start at ~26 degrees looking down from above (tpv)
 
   useFrame((_, delta) => {
     if (!playerRef.current) return
@@ -92,7 +92,7 @@ export const useThirdPersonCamera = ({ active, camera, playerRef, controlsRef, k
       pitchRef.current += pitchSpeed * delta
     }
     // Clamp vertical look angle so the camera doesn't flip upside down
-    pitchRef.current = THREE.MathUtils.clamp(pitchRef.current, -Math.PI / 6, Math.PI / 2.2)
+    pitchRef.current = THREE.MathUtils.clamp(pitchRef.current, -Math.PI / 3, Math.PI / 4)
 
     const startPos = new THREE.Vector3(
       playerRef.current.position.x,

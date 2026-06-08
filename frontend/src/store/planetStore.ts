@@ -17,8 +17,13 @@ interface PlanetStore {
   setCampusId: (id: string | null) => void
   isPrivateWorld: boolean
   setIsPrivateWorld: (isPrivate: boolean) => void
+  privatePlanetPos: [number, number, number] | null
+  setPrivatePlanetPos: (pos: [number, number, number] | null) => void
   sceneMode: 'selection' | 'zooming' | 'zooming-private' | 'world'
   setSceneMode: (mode: 'selection' | 'zooming' | 'zooming-private' | 'world') => void
+  /** True while the takeoff transition (world -> selection) is in progress. */
+  isTakingOff: boolean
+  setTakingOff: (value: boolean) => void
   renderDistance: number
   setRenderDistance: (dist: number) => void
   theme: 'light' | 'dark'
@@ -57,6 +62,8 @@ export const usePlanetStore = create<PlanetStore>((set, get) => ({
     set({ activeIndex: index, activeCampusId: campusIdAt(get().worlds, index) }),
   isPrivateWorld: false,
   setIsPrivateWorld: (isPrivate) => set({ isPrivateWorld: isPrivate }),
+  privatePlanetPos: null,
+  setPrivatePlanetPos: (pos) => set({ privatePlanetPos: pos }),
   targetOffset: 0,
   setTargetOffset: (offset) => set({ targetOffset: offset }),
   activeCampusId: null,
@@ -66,12 +73,16 @@ export const usePlanetStore = create<PlanetStore>((set, get) => ({
       const { worlds, activeIndex } = get()
       set({
         sceneMode: mode,
+        isPrivateWorld: false,
+        privatePlanetPos: null,
         targetOffset: worlds.length > 1 ? activeIndex / (worlds.length - 1) : 0,
       })
     } else {
       set({ sceneMode: mode })
     }
   },
+  isTakingOff: false,
+  setTakingOff: (value) => set({ isTakingOff: value }),
   renderDistance: getInitialRenderDistance(),
   setRenderDistance: (dist) => {
     localStorage.setItem('renderDistance', dist.toString())

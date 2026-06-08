@@ -8,9 +8,14 @@ import UserBadge from '@/ui/hud/UserBadge.tsx'
 import { BlockPreview } from '@/ui/hud/editor/SearchBlock.tsx'
 import { BlockMetadata } from '@/config/Block'
 import { useIsMobile } from '@/hooks/use-mobile.tsx'
+import { useTranslation } from 'react-i18next'
 
 export function LookupBlock() {
+  const { t } = useTranslation()
   const { isOpen, isLoading, results, closeLookup } = useLookupStore()
+
+  const blockLabel = (name: string) =>
+    t(`blocks.${name}`, { defaultValue: name.replace(/_/g, ' ') })
   const dragControls = useDragControls()
   const isMobile = useIsMobile()
 
@@ -58,7 +63,7 @@ export function LookupBlock() {
           >
             <div className="flex items-center gap-2">
               {!isMobile && <GripHorizontal className="h-5 w-5 text-muted-foreground" />}
-              <h2 className="text-lg font-bold select-none">Block History</h2>
+              <h2 className="text-lg font-bold select-none">{t('editor.history.title')}</h2>
             </div>
             <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={closeLookup}>
               <X className="h-4 w-4" />
@@ -70,7 +75,7 @@ export function LookupBlock() {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-full space-y-4 py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-muted-foreground text-sm">Fetching block history...</p>
+              <p className="text-muted-foreground text-sm">{t('editor.history.fetching')}</p>
             </div>
           ) : results && results.length > 0 ? (
             <div className="flex flex-col gap-3 pr-3">
@@ -100,7 +105,7 @@ export function LookupBlock() {
                       {/* Previous block state */}
                       <div 
                         className="flex items-center justify-center h-10 w-10 rounded-md border border-dashed border-muted-foreground/30 shadow-sm overflow-hidden relative bg-muted/10" 
-                        title={`Before: ${record.previousBlock && BlockMetadata[record.previousBlock as keyof typeof BlockMetadata] ? BlockMetadata[record.previousBlock as keyof typeof BlockMetadata].name : "Air"}`}
+                        title={`Before: ${record.previousBlock && BlockMetadata[record.previousBlock as keyof typeof BlockMetadata] ? blockLabel(BlockMetadata[record.previousBlock as keyof typeof BlockMetadata].name) : "Air"}`}
                       >
                         {record.previousBlock && BlockMetadata[record.previousBlock as keyof typeof BlockMetadata] ? (
                           <div className="absolute inset-0 flex items-center justify-center scale-75">
@@ -120,7 +125,7 @@ export function LookupBlock() {
                       {/* New placed block state */}
                       <div 
                         className="flex items-center justify-center h-10 w-10 rounded-md border border-border shadow-sm overflow-hidden relative bg-background" 
-                        title={`After: ${blockMeta ? blockMeta.name : "Air"}`}
+                        title={`After: ${blockMeta ? blockLabel(blockMeta.name) : "Air"}`}
                       >
                         {blockMeta ? (
                           <div className="absolute inset-0 flex items-center justify-center scale-75">
@@ -138,12 +143,12 @@ export function LookupBlock() {
           ) : results === null ? (
             <div className="flex flex-col items-center justify-center py-12 text-center space-y-2">
               <Clock className="h-8 w-8 text-muted-foreground/50 animate-pulse" />
-              <p className="text-muted-foreground text-sm px-4">Click a block in the 3D scene to view its history.</p>
+              <p className="text-muted-foreground text-sm px-4">{t('editor.history.empty')}</p>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center space-y-2">
               <Clock className="h-8 w-8 text-muted-foreground/50" />
-              <p className="text-muted-foreground text-sm">No history found for this block.</p>
+              <p className="text-muted-foreground text-sm">{t('editor.history.none')}</p>
             </div>
           )}
         </ScrollArea>

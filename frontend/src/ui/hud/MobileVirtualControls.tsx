@@ -9,8 +9,10 @@ import { usePlanetStore } from '@/store/planetStore'
 import { Joystick } from 'react-joystick-component'
 import { useIsTouchDevice } from '@/hooks/use-mobile.tsx'
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export default function MobileVirtualControls() {
+  const { t } = useTranslation()
   const inEditor = useEditorStore((s) => s.in_editor)
   const activeEditor = useEditorStore((s) => s.activeEditor)
   const theme = usePlanetStore((s) => s.theme)
@@ -222,12 +224,12 @@ export default function MobileVirtualControls() {
           {inEditor ? (
             <>
               <Eye className="size-4 text-primary" />
-              <span>Exit Freecam</span>
+              <span>{t('editor.exitFreecam')}</span>
             </>
           ) : (
             <>
               <Video className="size-4" />
-              <span>Freecam</span>
+              <span>{t('editor.freecam')}</span>
             </>
           )}
         </button>

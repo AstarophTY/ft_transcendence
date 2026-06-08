@@ -16,14 +16,28 @@ export const usePlayerRotation = ({ active, camera, playerRef, controlsRef, keys
     if (!active || !playerRef.current) return
 
     if (controlsRef.current?.isLocked) {
-      const direction = new THREE.Vector3()
-      camera.getWorldDirection(direction)
-      direction.y = 0
-      direction.normalize()
+      const isMoving = keysRef.current.KeyW || keysRef.current.KeyS || keysRef.current.KeyA || keysRef.current.KeyD;
+      if (isMoving) {
+        const moveX = (keysRef.current.KeyD ? 1 : 0) - (keysRef.current.KeyA ? 1 : 0);
+        const moveZ = (keysRef.current.KeyS ? 1 : 0) - (keysRef.current.KeyW ? 1 : 0);
 
-      if (direction.lengthSq() > 0.1) {
-        const targetRotation = Math.atan2(direction.x, direction.z)
-        playerRef.current.rotation.y = targetRotation + Math.PI
+        if (moveX !== 0 || moveZ !== 0) {
+          const forward = new THREE.Vector3()
+          camera.getWorldDirection(forward)
+          forward.y = 0
+          forward.normalize()
+
+          const right = new THREE.Vector3().crossVectors(forward, camera.up).normalize()
+
+          const direction = new THREE.Vector3()
+            .addScaledVector(forward, -moveZ)
+            .addScaledVector(right, moveX)
+            .normalize()
+
+          const targetRotation = Math.atan2(direction.x, direction.z) + Math.PI
+          const diff = THREE.MathUtils.euclideanModulo(targetRotation - playerRef.current.rotation.y + Math.PI, Math.PI * 2) - Math.PI
+          playerRef.current.rotation.y += diff * Math.min(1, delta * 10)
+        }
       }
       return
     }

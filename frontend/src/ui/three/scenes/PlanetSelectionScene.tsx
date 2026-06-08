@@ -16,8 +16,19 @@ const CameraController = () => {
     const sceneMode = usePlanetStore.getState().sceneMode
     if (sceneMode === 'zooming' || sceneMode === 'zooming-private') {
       const isPrivate = sceneMode === 'zooming-private'
-      const targetPos = isPrivate ? new THREE.Vector3(0.8, 0.5, 1.2) : new THREE.Vector3(0, 0.4, 0.8)
-      const targetLookAt = isPrivate ? new THREE.Vector3(0.8, 0.4, 0) : new THREE.Vector3(0, 0, 0)
+      const privatePos = usePlanetStore.getState().privatePlanetPos
+
+      let targetPos = new THREE.Vector3(0, 0.4, 0.8)
+      let targetLookAt = new THREE.Vector3(0, 0, 0)
+
+      if (isPrivate && privatePos) {
+        const satPos = new THREE.Vector3(...privatePos)
+        targetLookAt.copy(satPos)
+        targetPos.copy(satPos).add(new THREE.Vector3(0.2, 0.1, 0.45))
+      } else if (isPrivate) {
+        targetPos.set(0.8, 0.5, 1.2)
+        targetLookAt.set(0.8, 0.4, 0)
+      }
 
       camera.position.lerp(targetPos, delta * 5)
       
@@ -33,15 +44,20 @@ const CameraController = () => {
     } else if (sceneMode === 'selection') {
       const defaultPos = new THREE.Vector3(0, 1.2, 4.5)
       const targetLookAt = new THREE.Vector3(0, 0, 0)
-      
+
       camera.position.lerp(defaultPos, delta * 4)
-      
+
       // Gradually reset rotation to look at the center planets
       const currentQuaternion = camera.quaternion.clone()
       camera.lookAt(targetLookAt)
       const targetQuaternion = camera.quaternion.clone()
       camera.quaternion.copy(currentQuaternion)
       camera.quaternion.slerp(targetQuaternion, delta * 4)
+
+      // Hide the takeoff loading overlay once the camera has flown back to space.
+      if (usePlanetStore.getState().isTakingOff && camera.position.distanceTo(defaultPos) < 0.1) {
+        usePlanetStore.getState().setTakingOff(false)
+      }
     }
   })
 

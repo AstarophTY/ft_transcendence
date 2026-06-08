@@ -21,7 +21,7 @@ import { isPaidBlock } from '@/config/worldBlocks'
 import Player from '../objects/Player'
 import RemotePlayers from '../objects/RemotePlayers'
 import { ChunkRenderer } from './worldScene/ChunkRenderer'
-import { CHUNKS_PER_SIDE, MAP_SIZE_BLOCKS } from './worldScene/constants'
+import { MAP_SIZE_BLOCKS } from './worldScene/constants'
 import { FreeCameraControls } from './worldScene/FreeCameraControls'
 import { Block } from '@/types/Block'
 import { BlockMetadata } from '@/config/Block'
@@ -29,6 +29,7 @@ import { LocalMap } from '@/types/maps/LocalMap'
 import { IslandMap, BiomeType, getBiomeBlock } from '@/generation'
 import { useLookupStore, LookupRecord } from '@/store/lookupStore.ts'
 import { Minimap } from './worldScene/Minimap'
+import { useTranslation } from 'react-i18next'
 
 const generateLocalMap = (profile: DemoPlanetProfile, mapSize: number) => {
   const widthInChunks = mapSize / Chunk.WIDTH
@@ -48,6 +49,8 @@ const generateLocalMap = (profile: DemoPlanetProfile, mapSize: number) => {
     applyConstraints: true,
   })
 
+  const isPrivate = usePlanetStore.getState().isPrivateWorld
+
   for (let chunkX = 0; chunkX < widthInChunks; chunkX++) {
     for (let chunkZ = 0; chunkZ < depthInChunks; chunkZ++) {
       const chunk = new Chunk()
@@ -57,8 +60,8 @@ const generateLocalMap = (profile: DemoPlanetProfile, mapSize: number) => {
         for (let z = 0; z < Chunk.WIDTH; z++) {
           const worldX = chunkX * Chunk.WIDTH + x
           const worldZ = chunkZ * Chunk.WIDTH + z
-          const height = islandMap.getHeightAt(worldX, worldZ)
-          const biome = islandMap.getBiomeAt(worldX, worldZ)
+          const height = isPrivate ? 5 : islandMap.getHeightAt(worldX, worldZ)
+          const biome = isPrivate ? BiomeType.Plains : islandMap.getBiomeAt(worldX, worldZ)
 
           // Bedrock at the very bottom
           chunk.setBlock(x, 0, z, Block.Bedrock)
@@ -70,37 +73,39 @@ const generateLocalMap = (profile: DemoPlanetProfile, mapSize: number) => {
         }
       }
 
-      // Pass 2: Spawn trees in Forest biome (using deterministic hash coordinate positioning)
-      for (let x = 2; x < Chunk.WIDTH - 2; x++) {
-        for (let z = 2; z < Chunk.WIDTH - 2; z++) {
-          const worldX = chunkX * Chunk.WIDTH + x
-          const worldZ = chunkZ * Chunk.WIDTH + z
-          const height = islandMap.getHeightAt(worldX, worldZ)
-          const biome = islandMap.getBiomeAt(worldX, worldZ)
+      if (!isPrivate) {
+        // Pass 2: Spawn trees in Forest biome (using deterministic hash coordinate positioning)
+        for (let x = 2; x < Chunk.WIDTH - 2; x++) {
+          for (let z = 2; z < Chunk.WIDTH - 2; z++) {
+            const worldX = chunkX * Chunk.WIDTH + x
+            const worldZ = chunkZ * Chunk.WIDTH + z
+            const height = islandMap.getHeightAt(worldX, worldZ)
+            const biome = islandMap.getBiomeAt(worldX, worldZ)
 
-          if (biome === BiomeType.Forest) {
-            const hash = (Math.abs(Math.sin(worldX * 12.9898 + worldZ * 78.233) * 43758.5453) % 1)
-            
-            // 2% chance to spawn a tree in forest biome
-            if (hash < 0.02) {
-              const treeHeight = 4 + Math.floor(hash * 100) % 2 // 4 or 5 blocks tall
+            if (biome === BiomeType.Forest) {
+              const hash = (Math.abs(Math.sin(worldX * 12.9898 + worldZ * 78.233) * 43758.5453) % 1)
               
-              // Place wood trunk
-              for (let ty = 1; ty <= treeHeight; ty++) {
-                chunk.setBlock(x, height + ty, z, Block.Wood)
-              }
+              // 2% chance to spawn a tree in forest biome
+              if (hash < 0.02) {
+                const treeHeight = 4 + Math.floor(hash * 100) % 2 // 4 or 5 blocks tall
+                
+                // Place wood trunk
+                for (let ty = 1; ty <= treeHeight; ty++) {
+                  chunk.setBlock(x, height + ty, z, Block.Wood)
+                }
 
-              // Place leaves canopy
-              for (let dy = -2; dy <= 2; dy++) {
-                for (let dx = -2; dx <= 2; dx++) {
-                  for (let dz = -2; dz <= 2; dz++) {
-                    const ly = height + treeHeight + dy
-                    if (ly < 1 || ly >= Chunk.HEIGHT) continue
+                // Place leaves canopy
+                for (let dy = -2; dy <= 2; dy++) {
+                  for (let dx = -2; dx <= 2; dx++) {
+                    for (let dz = -2; dz <= 2; dz++) {
+                      const ly = height + treeHeight + dy
+                      if (ly < 1 || ly >= Chunk.HEIGHT) continue
 
-                    const dist = Math.abs(dx) + Math.abs(dy) + Math.abs(dz)
-                    if (dist <= 3 && !(dx === 0 && dz === 0 && dy <= 0)) {
-                      if (chunk.getBlock(x + dx, ly, z + dz) === Block.Air) {
-                        chunk.setBlock(x + dx, ly, z + dz, Block.Leaves)
+                      const dist = Math.abs(dx) + Math.abs(dy) + Math.abs(dz)
+                      if (dist <= 3 && !(dx === 0 && dz === 0 && dy <= 0)) {
+                        if (chunk.getBlock(x + dx, ly, z + dz) === Block.Air) {
+                          chunk.setBlock(x + dx, ly, z + dz, Block.Leaves)
+                        }
                       }
                     }
                   }
@@ -191,10 +196,13 @@ const WorldShadowLight = ({ playerRef, currentMode }: WorldShadowLightProps) => 
 }
 
 const WorldScene = () => {
+  const { t } = useTranslation()
   const { camera } = useThree()
   const activeCampusId = usePlanetStore((state) => state.activeCampusId)
   const worlds = usePlanetStore((state) => state.worlds)
   const renderDistance = usePlanetStore((state) => state.renderDistance)
+  const isPrivate = usePlanetStore((state) => state.isPrivateWorld)
+  const mapSize = isPrivate ? 64 : MAP_SIZE_BLOCKS
   const playerRef = useRef<THREE.Group | null>(null)
 
   const inEditor = useEditorStore((state) => state.in_editor)
@@ -209,8 +217,21 @@ const WorldScene = () => {
 
   // Generation profile of the selected campus world.
   const profile = useMemo(() => {
+    if (isPrivate) {
+      return {
+        seed: getUserId() || 'private-world',
+        widthInChunks: 4,
+        depthInChunks: 4,
+        scale: 0.05,
+        octaves: 4,
+        persistence: 0.5,
+        relief: 0.5,
+        baseHeight: 5,
+        variationRange: 5,
+      }
+    }
     return worlds.find((w) => w.campusId === activeCampusId) ?? worlds[0] ?? null
-  }, [worlds, activeCampusId])
+  }, [worlds, activeCampusId, isPrivate])
 
   const [localMap, setLocalMap] = useState<LocalMap | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
@@ -223,13 +244,16 @@ const WorldScene = () => {
   )
 
   useEffect(() => {
-    if (!profile || !activeCampusId) return
+    const isPrivate = usePlanetStore.getState().isPrivateWorld
+    if (!profile || (!isPrivate && !activeCampusId)) return
     setIsLoaded(false)
     let cancelled = false
 
     setTimeout(() => {
       if (cancelled) return
-      const map = generateLocalMap(profile, MAP_SIZE_BLOCKS)
+      const isPrivate = usePlanetStore.getState().isPrivateWorld
+      const size = isPrivate ? 64 : MAP_SIZE_BLOCKS
+      const map = generateLocalMap(profile, size)
       mapRef.current = map
       setLocalMap(map)
       setMapVersion((v) => v + 1)
@@ -252,8 +276,8 @@ const WorldScene = () => {
     }
   }, [activeCampusId, profile])
 
-useEffect(() => {
-    if (!activeCampusId) return
+  useEffect(() => {
+    if (!activeCampusId && !isPrivate) return
     const token = tokenStore.access
     if (!token) return
     const socket = connectWorldSocket(token)
@@ -271,8 +295,7 @@ useEffect(() => {
     }
     socket.on('world:coins', onCoins)
 
-    const isPrivateWorld = usePlanetStore.getState().isPrivateWorld
-    socket.emit('world:join', { campusId: activeCampusId, personalWorld: isPrivateWorld })
+    socket.emit('world:join', { campusId: activeCampusId, personalWorld: isPrivate })
 
     const onRemoteEdit = ({ blocks }: { blocks: WorldBlock[] }) => {
       const map = mapRef.current
@@ -309,14 +332,14 @@ useEffect(() => {
     socket.on('world:revert', onRevert)
 
     return () => {
-      socket.emit('world:leave', { campusId: activeCampusId, personalWorld: isPrivateWorld })
+      socket.emit('world:leave', { campusId: activeCampusId, personalWorld: isPrivate })
       socket.off('world:edit', onRemoteEdit)
 
       socket.off('world:lookup:res', onLookupResponse)
       socket.off('world:coins', onCoins)
       socket.off('world:revert', onRevert)
     }
-  }, [activeCampusId])
+  }, [activeCampusId, isPrivate])
 
   // Broadcast our own transform to the island, throttled and only when it
   // changed. We always send the body; in freecam we also send the flying camera
@@ -325,9 +348,9 @@ useEffect(() => {
   const camDir = useRef(new THREE.Vector3())
   useFrame(() => {
     const socket = getWorldSocket()
-    const { activeCampusId } = usePlanetStore.getState()
+    const { activeCampusId, isPrivateWorld } = usePlanetStore.getState()
     const p = playerRef.current
-    if (!socket || !activeCampusId || !p) return
+    if (!socket || (!activeCampusId && !isPrivateWorld) || !p) return
 
     const freecam = currentMode === 'freecam'
     const round = (n: number) => Math.round(n * 50) / 50 // ~0.02 step
@@ -356,8 +379,10 @@ useEffect(() => {
       skin,
     }
 
-    payload.campusId = activeCampusId!;
-    payload.personalWorld = usePlanetStore.getState().isPrivateWorld;
+    if (activeCampusId) {
+      payload.campusId = activeCampusId
+    }
+    payload.personalWorld = isPrivateWorld
 
     if (freecam) {
       payload.c = [
@@ -558,12 +583,15 @@ useEffect(() => {
   const [visibleChunks, setVisibleChunks] = useState<{ cx: number; cz: number }[]>([])
 
   useFrame(() => {
-    const cameraChunkX = Math.floor((camera.position.x + MAP_SIZE_BLOCKS / 2) / Chunk.WIDTH)
-    const cameraChunkZ = Math.floor((camera.position.z + MAP_SIZE_BLOCKS / 2) / Chunk.WIDTH)
+    const isPrivate = usePlanetStore.getState().isPrivateWorld
+    const size = isPrivate ? 64 : MAP_SIZE_BLOCKS
+    const cameraChunkX = Math.floor((camera.position.x + size / 2) / Chunk.WIDTH)
+    const cameraChunkZ = Math.floor((camera.position.z + size / 2) / Chunk.WIDTH)
 
     const newVisibleChunks: { cx: number; cz: number }[] = []
-    for (let cz = 0; cz < CHUNKS_PER_SIDE; cz++) {
-      for (let cx = 0; cx < CHUNKS_PER_SIDE; cx++) {
+    const chunksPerSide = size / Chunk.WIDTH
+    for (let cz = 0; cz < chunksPerSide; cz++) {
+      for (let cx = 0; cx < chunksPerSide; cx++) {
         const dx = cx - cameraChunkX
         const dz = cz - cameraChunkZ
         const distSq = dx * dx + dz * dz
@@ -592,7 +620,7 @@ useEffect(() => {
       >
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
           <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary" />
-          <h2 className="text-2xl font-bold tracking-tight text-primary">Loading World...</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-primary">{t('world.loading')}</h2>
         </div>
       </Html>
     )
@@ -610,7 +638,7 @@ useEffect(() => {
       <WorldShadowLight playerRef={playerRef} currentMode={currentMode} />
       <FreeCameraControls
         localMap={localMap}
-        mapSize={MAP_SIZE_BLOCKS}
+        mapSize={mapSize}
         active={currentMode === 'freecam'}
         playerRef={playerRef}
         onLookupBlock={handleLookupBlock}
@@ -621,7 +649,7 @@ useEffect(() => {
         active={currentMode === 'player'}
         playerRef={playerRef}
       />
-      {activeCampusId && <RemotePlayers campusId={activeCampusId} />}
+      {(activeCampusId || isPrivate) && <RemotePlayers campusId={activeCampusId || 'personal'} />}
       {visibleChunks.map(({ cx, cz }) => (
         <ChunkRenderer
           key={`${cx}-${cz}`}

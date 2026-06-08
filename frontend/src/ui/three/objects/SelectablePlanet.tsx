@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, ElementType } from 'react'
 import { ThreeEvent, useFrame } from '@react-three/fiber'
 import { Billboard, Html } from '@react-three/drei'
 import * as THREE from 'three'
+import { useTranslation } from 'react-i18next'
 
 import type { PlanetMap } from '@/types/maps/PlanetMap.ts'
 import { usePlanetStore } from '@/store/planetStore.ts'
@@ -19,6 +20,7 @@ interface SelectablePlanetProps {
 }
 
 function Satellite({ onClick }: { onClick: (event: ThreeEvent<MouseEvent>) => void }) {
+  const { t: translate } = useTranslation();
   const satelliteRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.MeshStandardMaterial>(null);
   const [hovered, setHovered] = useState(false);
@@ -34,6 +36,13 @@ function Satellite({ onClick }: { onClick: (event: ThreeEvent<MouseEvent>) => vo
       Math.sin(t * speed) * radius
     )
     satelliteRef.current.rotation.y += 0.01
+
+    const storeState = usePlanetStore.getState()
+    if (storeState.sceneMode === 'zooming-private') {
+      const worldPos = new THREE.Vector3()
+      satelliteRef.current.getWorldPosition(worldPos)
+      storeState.setPrivatePlanetPos([worldPos.x, worldPos.y, worldPos.z])
+    }
   })
 
   useEffect(() => {
@@ -52,9 +61,18 @@ function Satellite({ onClick }: { onClick: (event: ThreeEvent<MouseEvent>) => vo
       document.body.style.cursor = 'auto';
       setHovered(false);
     }}>
-      <Billboard position={[0, 0.5, 0]}>
-        <Html center transform sprite distanceFactor={3}>
-          Private planet
+      <Billboard position={[0, 0.25, 0]}>
+        <Html center transform sprite distanceFactor={3} scale={0.15} >
+          <div style={{
+            fontSize: '48px',
+            fontWeight: 'bold',
+            color: 'white',
+            fontFamily: "'Outfit', 'Inter', sans-serif",
+            pointerEvents: 'none',
+            whiteSpace: 'nowrap'
+          }}>
+            {translate('planet.private')}
+          </div>
         </Html>
       </Billboard>
       <BoxGeometry args={[0.2, 0.2, 0.2]} />
@@ -141,9 +159,18 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
         inset={inset}
         getHeight={getHeight}
       />
-        <Billboard position={[0, 1.5, 0]}>
-          <Html center transform sprite distanceFactor={6} zIndexRange={[100, 0]}>
-            {label}
+        <Billboard position={[0, 1.0, 0]}>
+          <Html center transform sprite distanceFactor={6} scale={0.3} zIndexRange={[100, 0]}>
+            <div style={{
+              fontSize: '48px',
+              fontWeight: 'bold',
+              color: 'white',
+              fontFamily: "'Outfit', 'Inter', sans-serif",
+              pointerEvents: 'none',
+              whiteSpace: 'nowrap'
+            }}>
+              {label}
+            </div>
           </Html>
         </Billboard>
 
@@ -152,8 +179,11 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
       <Satellite onClick={(e) => {
           e.stopPropagation();
           const storeState = usePlanetStore.getState();
-            storeState.setIsPrivateWorld(true);
-            storeState.setSceneMode('zooming-private');
+          const worldPos = new THREE.Vector3();
+          e.eventObject.getWorldPosition(worldPos);
+          storeState.setPrivatePlanetPos([worldPos.x, worldPos.y, worldPos.z]);
+          storeState.setIsPrivateWorld(true);
+          storeState.setSceneMode('zooming-private');
         }}
       />
     }

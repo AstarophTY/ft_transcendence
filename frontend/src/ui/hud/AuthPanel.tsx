@@ -252,38 +252,42 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
 
 function AuthDialog() {
   const { t } = useTranslation()
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const user = useAuth((s) => s.user)
+  const [dialogOpen, setDialogOpen] = useState(!user)
 
   const sceneMode = usePlanetStore((s) => s.sceneMode)
   const setSceneMode = usePlanetStore((s) => s.setSceneMode)
+  const setTakingOff = usePlanetStore((s) => s.setTakingOff)
   const activeEditor = useEditorStore((s) => s.activeEditor)
 
   const showTakeoff = sceneMode === 'world'
 
   const handleTakeoff = () => {
+    setTakingOff(true)
     activeEditor(false)
     setSceneMode('selection')
   }
 
-  const triggerButton = (
-    <Button variant="ghost" className="flex size-12 p-0 rounded-full justify-center items-center hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 border-none shadow-none">
-      <UserBadge user={{
-          username: t('auth.signIn'),
-          userId: "test",
-          avatar: "",
-          email: null,
-          role: 'USER',
-          campusId: null
-        }} onlyAvatar />
-    </Button>
-  )
+  useEffect(() => {
+    setDialogOpen(!user)
+  }, [user])
+
+  const handleOpenChange = (open: boolean) => {
+    if (!user) {
+      setDialogOpen(true)
+    } else {
+      setDialogOpen(open)
+    }
+  }
 
   return (
     <div className="pointer-events-auto absolute z-50 right-3 top-3 md:right-5 md:top-5">
-      {showTakeoff ? (
+      {user && (showTakeoff ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            {triggerButton}
+            <Button variant="ghost" className="flex size-12 p-0 rounded-full justify-center items-center hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 border-none shadow-none">
+              <UserBadge user={user} onlyAvatar />
+            </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent 
             side="left" 
@@ -309,19 +313,16 @@ function AuthDialog() {
           onClick={() => setDialogOpen(true)}
           className="flex size-12 p-0 rounded-full justify-center items-center hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 border-none shadow-none"
         >
-          <UserBadge user={{
-              username: t('auth.signIn'),
-              userId: "test",
-              avatar: "",
-              email: null,
-              role: 'USER',
-              campusId: null
-            }} onlyAvatar />
+          <UserBadge user={user} onlyAvatar />
         </Button>
-      )}
+      ))}
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="pointer-events-auto">
+      <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
+        <DialogContent 
+          className={cn("pointer-events-auto", !user && "[&>button]:hidden")}
+          onInteractOutside={!user ? (e) => e.preventDefault() : undefined}
+          onEscapeKeyDown={!user ? (e) => e.preventDefault() : undefined}
+        >
           <DialogHeader>
             <DialogTitle>{t('auth.title')}</DialogTitle>
             <DialogDescription>{t('auth.description')}</DialogDescription>
@@ -353,11 +354,13 @@ function UserMenu() {
 
   const sceneMode = usePlanetStore((s) => s.sceneMode)
   const setSceneMode = usePlanetStore((s) => s.setSceneMode)
+  const setTakingOff = usePlanetStore((s) => s.setTakingOff)
   const activeEditor = useEditorStore((s) => s.activeEditor)
 
   const showTakeoff = sceneMode === 'world'
 
   const handleTakeoff = () => {
+    setTakingOff(true)
     activeEditor(false)
     setSceneMode('selection')
   }

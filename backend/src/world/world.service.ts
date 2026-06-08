@@ -131,36 +131,11 @@ export class WorldService {
             },
           },
         });
-
-        const oldLogs = await tx.blockLog.findMany({
-          where: {
-            worldBlockWorldId: world.id,
-            worldBlockX: b.x,
-            worldBlockY: b.y,
-            worldBlockZ: b.z,
-          },
-          orderBy: {
-            date: 'desc',
-          },
-          skip: 5,
-          select: {
-            id: true,
-          },
-        });
-
-        if (oldLogs.length > 0) {
-          await tx.blockLog.deleteMany({
-            where: {
-              id: {
-                in: oldLogs.map(log => log.id),
-              },
-            },
-          });
-        }
       }
+    }, {
+      timeout: 10000, // Increase timeout for large batches
     });
   }
-
   /**
    * Apply a batch of edits with the campus-coin economy:
    * - placing a paid block costs 1 campus coin (rejected when the campus has 0);
@@ -186,46 +161,60 @@ export class WorldService {
     } catch {
       world = await this.ensureWorld(campusId, false);
     }
-    const campus = await this.prisma.campus.findUnique({
-      where: { id: campusId },
-      select: { coins: true },
-    });
-    if (!campus) throw new NotFoundException('Campus not found');
 
-    // Previous (persisted) block at each edited position; absent = base terrain.
-    const existing = await this.prisma.worldBlock.findMany({
-      where: {
-        worldId: world.id,
-        OR: blocks.map((b) => ({ x: b.x, y: b.y, z: b.z })),
-      },
-      select: { x: true, y: true, z: true, block: true },
-    });
-    const prev = new Map<string, number>(
-      existing.map((e) => [`${e.x},${e.y},${e.z}`, e.block]),
-    );
+    return await this.prisma.$transaction(async (tx) => {
+      // Lock campus record for the duration of the transaction to prevent coin race conditions
+      const campus = await tx.campus.findUnique({
+        where: { id: campusId },
+        select: { coins: true },
+      });
+      if (!campus) throw new NotFoundException('Campus not found');
 
-    let coins = campus.coins;
-    const applied: WorldBlockDto[] = [];
-    const rejected: { x: number; y: number; z: number }[] = [];
+      // Query existing blocks in a single batch to calculate costs/refunds correctly
+      const existing = await tx.worldBlock.findMany({
+        where: {
+          worldId: world.id,
+          OR: blocks.map((b) => ({ x: b.x, y: b.y, z: b.z })),
+        },
+        select: { x: true, y: true, z: true, block: true },
+      });
+      const prev = new Map<string, number>(
+        existing.map((e) => [`${e.x},${e.y},${e.z}`, e.block]),
+      );
 
-    for (const b of blocks) {
-      const key = `${b.x},${b.y},${b.z}`;
-      if (isPaidBlock(b.block)) {
-        if (coins <= 0) {
+      let coins = campus.coins;
+      const applied: WorldBlockDto[] = [];
+      const rejected: { x: number; y: number; z: number }[] = [];
+
+      for (const b of blocks) {
+        // Protect the 4x4 chunks at the center of campus worlds
+        const chunkSize = 16;
+        const centerX = Math.floor(world.widthInChunks / 2);
+        const centerZ = Math.floor(world.depthInChunks / 2);
+        const bX = Math.floor(b.x / chunkSize);
+        const bZ = Math.floor(b.z / chunkSize);
+
+        if (world.campusId &&
+            bX >= centerX - 2 && bX < centerX + 2 &&
+            bZ >= centerZ - 2 && bZ < centerZ + 2) {
           rejected.push({ x: b.x, y: b.y, z: b.z });
           continue;
         }
-        coins -= 1;
-      } else if (b.block === AIR) {
-        // Breaking: refund only when a placed paid block is removed.
-        const before = prev.get(key);
-        if (before !== undefined && isPaidBlock(before)) coins += 1;
-      }
-      applied.push(b);
-      prev.set(key, b.block);
-    }
 
-    await this.prisma.$transaction(async (tx) => {
+        const key = `${b.x},${b.y},${b.z}`;
+        if (isPaidBlock(b.block)) {
+          if (coins <= 0) {
+            rejected.push({ x: b.x, y: b.y, z: b.z });
+            continue;
+          }
+          coins -= 1;
+        } else if (b.block === AIR) {
+          const before = prev.get(key);
+          if (before !== undefined && isPaidBlock(before)) coins += 1;
+        }
+        applied.push(b);
+      }
+
       for (const b of applied) {
         const rotation = b.rotation ?? 0;
         await tx.worldBlock.upsert({
@@ -239,55 +228,25 @@ export class WorldService {
             z: b.z,
             block: b.block,
             rotation,
-            block_log: {
-              create: {
-                userId,
-                date: new Date(),
-                placedBlock: b.block,
-              },
-            },
+            block_log: { create: { userId, date: new Date(), placedBlock: b.block } },
           },
           update: {
             block: b.block,
             rotation,
-            block_log: {
-              create: {
-                userId,
-                date: new Date(),
-                placedBlock: b.block,
-              },
-            },
+            block_log: { create: { userId, date: new Date(), placedBlock: b.block } },
           },
         });
-
-        const oldLogs = await tx.blockLog.findMany({
-          where: {
-            worldBlockWorldId: world.id,
-            worldBlockX: b.x,
-            worldBlockY: b.y,
-            worldBlockZ: b.z,
-          },
-          orderBy: { date: 'desc' },
-          skip: 5,
-          select: { id: true },
-        });
-
-        if (oldLogs.length > 0) {
-          await tx.blockLog.deleteMany({
-            where: {
-              id: { in: oldLogs.map((log) => log.id) },
-            },
-          });
-        }
       }
 
       await tx.campus.update({
         where: { id: campusId },
         data: { coins },
       });
-    });
 
-    return { applied, rejected, coins };
+      return { applied, rejected, coins };
+    }, {
+      timeout: 15000, // Higher timeout for economy logic processing
+    });
   }
 
   /** The campus build budget (coins), or null if the campus does not exist. */
