@@ -18,8 +18,11 @@ export const usePlayerInput = ({ active, domElement, controlsRef, keysRef }: Par
       // Ignore game controls while typing in an input/textarea/etc.
       if (isEditableTarget(e)) return
       keysRef.current[e.code] = true
-      if (active && e.code === 'ControlLeft') {
+      if (active && (e.code === 'ControlLeft' || e.code === 'KeyE')) {
         controlsRef.current?.unlock()
+        // E doubles as a rotation key when unlocked; clear it so unlocking
+        // doesn't immediately spin the camera.
+        keysRef.current.KeyE = false
       }
     }
     const handleKeyUp = (e: KeyboardEvent) => {

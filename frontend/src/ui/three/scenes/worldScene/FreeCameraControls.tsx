@@ -432,8 +432,11 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
       // Ignore game/editor controls while typing in an input/textarea/etc.
       if (isEditableTarget(event)) return
       keysRef.current[event.code] = true
-      if (active && event.code === 'ControlLeft') {
+      if (active && (event.code === 'ControlLeft' || event.code === 'KeyE')) {
         controlsRef.current?.unlock()
+        // E doubles as a rotation key when unlocked; clear it so unlocking
+        // doesn't immediately spin the camera.
+        keysRef.current.KeyE = false
       }
       if (active && event.code === 'Enter') {
         handleEditorAction({ button: 0 } as MouseEvent)
