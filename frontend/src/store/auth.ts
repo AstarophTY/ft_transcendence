@@ -10,6 +10,7 @@ import {
   type AuthTokens,
 } from '@/lib/api'
 import { decodeAccessToken } from '@/lib/jwt'
+import { getMe } from '@/lib/api/account'
 import { toMessage } from '@/lib/apiError'
 import i18n from '@/i18n'
 
@@ -49,6 +50,28 @@ function userFromToken(accessToken: string): AuthUser | null {
   }
 }
 
+/** Refresh the in-memory user with the current DB values (avatar, username...). */
+async function hydrateUser(): Promise<void> {
+  try {
+    const me = await getMe()
+    useAuth.setState((s) =>
+      s.user
+        ? {
+            user: {
+              ...s.user,
+              email: me.email,
+              username: me.username,
+              avatar: me.avatar,
+              role: me.role,
+            },
+          }
+        : s,
+    )
+  } catch {
+    // Keep the token-derived user if the profile fetch fails.
+  }
+}
+
 export const useAuth = create<AuthState>((set) => ({
   user: null,
   loading: false,
@@ -72,6 +95,10 @@ export const useAuth = create<AuthState>((set) => ({
     const stored = tokenStore.access
     if (stored) {
       set({ user: userFromToken(stored) })
+      // The JWT carries a snapshot of mutable fields (avatar, username...) from
+      // when it was issued. Re-hydrate from the DB so a change made after login
+      // (e.g. a new profile picture) survives a page refresh.
+      void hydrateUser()
     }
   },
 

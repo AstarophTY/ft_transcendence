@@ -97,9 +97,11 @@ export class AuthService {
     const linked = await this.users.findByFortyTwoId(profile.fortyTwoId);
 
     if (linked) {
-      const updated = await this.users.update(linked.id, {
-        avatar: profile.avatar,
-      });
+      // Only seed the 42 avatar if the user has none — never clobber a
+      // custom upload on re-login.
+      const updated = linked.avatar
+        ? linked
+        : await this.users.update(linked.id, { avatar: profile.avatar });
       await this.syncFortyTwo(updated, profile);
       await this.world.ensureWorld(updated.id, true);
       const latestUser = await this.users.findById(updated.id);
@@ -112,7 +114,7 @@ export class AuthService {
         const merged = await this.users.update(sameEmail.id, {
           fortyTwoId: profile.fortyTwoId,
           fortyTwoLogin: profile.fortyTwoLogin,
-          avatar: profile.avatar,
+          avatar: sameEmail.avatar ?? profile.avatar,
           isVerified: true,
         });
         await this.syncFortyTwo(merged, profile);
