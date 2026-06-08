@@ -19,7 +19,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 /** World bounds used to reject out-of-range edits (see worldScene constants). */
 const MAP_WIDTH = 512;
 const MAP_HEIGHT = 64;
-const MAX_BLOCK = 12;
+const MAX_BLOCK = 249;
 const MAX_ROTATION = 63; // 2 bits per X/Y/Z axis
 const MAX_BATCH = 4096;
 
