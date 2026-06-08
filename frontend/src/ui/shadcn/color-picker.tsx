@@ -31,7 +31,7 @@ export function ColorPicker({ value, onChange, className }: ColorPickerProps) {
           type="button"
           aria-label="Pick a color"
           className={cn(
-            'flex h-9 w-full items-center gap-2 rounded-md border border-input bg-transparent px-3 text-sm shadow-sm',
+            'flex h-9 w-full items-center gap-2 rounded-md border border-input bg-card/50 px-3 text-sm shadow-sm',
             className,
           )}
         >
