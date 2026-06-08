@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { useEditorStore } from '@/store/editorStore'
 import { usePlanetStore } from '@/store/planetStore'
+import { useCanEditCurrentWorld } from '@/lib/permissions'
 import { Joystick } from 'react-joystick-component'
 import { useIsTouchDevice } from '@/hooks/use-mobile.tsx'
 import { useRef, useState } from 'react'
@@ -15,6 +16,7 @@ export default function MobileVirtualControls() {
   const { t } = useTranslation()
   const inEditor = useEditorStore((s) => s.in_editor)
   const activeEditor = useEditorStore((s) => s.activeEditor)
+  const canEdit = useCanEditCurrentWorld()
   const theme = usePlanetStore((s) => s.theme)
   const isTouch = useIsTouchDevice()
   const leftMoved = useRef(false)
@@ -216,7 +218,8 @@ export default function MobileVirtualControls() {
                    portrait:right-8 portrait:bottom-20
                    landscape:right-10 landscape:bottom-10"
       >
-        {/* Freecam Mode Toggle Button */}
+        {/* Freecam Mode Toggle Button — only 42 accounts on their own worlds. */}
+        {canEdit && (
         <button
           onClick={() => activeEditor(!inEditor)}
           className="flex h-10 px-3.5 items-center justify-center gap-1.5 rounded-xl bg-background/60 backdrop-blur-md border border-border/30 text-foreground font-semibold text-xs shadow-lg active:scale-95 active:bg-background/80 transition-all select-none pointer-events-auto"
@@ -233,6 +236,7 @@ export default function MobileVirtualControls() {
             </>
           )}
         </button>
+        )}
 
         <div className={`p-2 rounded-full backdrop-blur-md border shadow-lg transition-all duration-150 ${
           rightActive 

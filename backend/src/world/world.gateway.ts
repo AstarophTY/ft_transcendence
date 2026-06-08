@@ -88,6 +88,8 @@ export class WorldGateway
     client.data.userId = auth.userId;
     client.data.username = auth.username;
     client.data.avatar = auth.avatar;
+    // The user's own campus (null for guests/non-42), used to authorize edits.
+    client.data.userCampusId = auth.campusId;
 
     // Disconnect any existing connection for this user
     const existingSockets = await this.server.fetchSockets();
@@ -284,6 +286,13 @@ export class WorldGateway
 
     const blocks = this.sanitize(body.blocks);
     if (blocks.length === 0) return;
+
+    // Only 42 accounts (which carry a campus) may build, and a campus world may
+    // only be edited by its own members. Guests/non-42 users have no campus, so
+    // they can't edit anything — including their personal planet.
+    const userCampusId = client.data.userCampusId as string | null;
+    if (!userCampusId) return;
+    if (campusId && campusId !== userCampusId) return;
 
     try {
       const userId = client.data.userId as string;

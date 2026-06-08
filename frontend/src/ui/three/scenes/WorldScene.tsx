@@ -18,6 +18,7 @@ import i18n from '@/i18n'
 import { usePlayerAppearance } from '../objects/player/playerAppearance'
 import { useWorldEconomy } from '@/store/worldEconomy'
 import { isPaidBlock } from '@/config/worldBlocks'
+import { canEditCurrentWorld } from '@/lib/permissions'
 import Player from '../objects/Player'
 import RemotePlayers from '../objects/RemotePlayers'
 import { ChunkRenderer } from './worldScene/ChunkRenderer'
@@ -212,8 +213,15 @@ const WorldScene = () => {
   const LOOKUP_COOLDOWN = 200
 
   useHotkeys('c', () => {
+    // Only 42 accounts may freecam, and only on their own campus/personal planet.
+    if (!canEditCurrentWorld()) return
     activeEditor(!inEditor)
   })
+
+  // Leave freecam if the user loses edit rights (e.g. flies to another campus).
+  useEffect(() => {
+    if (inEditor && !canEditCurrentWorld()) activeEditor(false)
+  }, [inEditor, isPrivate, activeCampusId, activeEditor])
 
   // Generation profile of the selected campus world.
   const profile = useMemo(() => {
@@ -431,6 +439,8 @@ const WorldScene = () => {
 
   const handleUpdateBlock = (x: number, y: number, z: number, block: Block | null, rotation?: number) => {
     if (!localMap) return
+    // Guests (non-42) can't touch blocks, and 42 users only on their own worlds.
+    if (!canEditCurrentWorld()) return
 
     const isPrivate = usePlanetStore.getState().isPrivateWorld
     const blockValue = block ?? Block.Air
