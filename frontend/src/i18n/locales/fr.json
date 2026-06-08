@@ -488,5 +488,6 @@
     "Wool_Colored_Silver": "Laine gris clair",
     "Wool_Colored_White": "Laine blanche",
     "Wool_Colored_Yellow": "Laine jaune"
-  }
+  },
+  "world.loading": "Chargement du monde..."
 }

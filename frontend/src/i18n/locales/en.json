@@ -492,5 +492,6 @@
     "Wool_Colored_Silver": "Wool Colored Silver",
     "Wool_Colored_White": "Wool Colored White",
     "Wool_Colored_Yellow": "Wool Colored Yellow"
-  }
+  },
+  "world.loading": "Loading the world..."
 }

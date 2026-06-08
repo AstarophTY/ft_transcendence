@@ -28,6 +28,7 @@ import { BlockMetadata } from '@/config/Block'
 import { LocalMap } from '@/types/maps/LocalMap'
 import { IslandMap, BiomeType, getBiomeBlock } from '@/generation'
 import { useLookupStore, LookupRecord } from '@/store/lookupStore.ts'
+import { useTranslation } from 'react-i18next'
 
 const generateLocalMap = (profile: DemoPlanetProfile, mapSize: number) => {
   const widthInChunks = mapSize / Chunk.WIDTH
@@ -194,6 +195,7 @@ const WorldShadowLight = ({ playerRef, currentMode }: WorldShadowLightProps) => 
 }
 
 const WorldScene = () => {
+  const { t } = useTranslation()
   const { camera } = useThree()
   const activeCampusId = usePlanetStore((state) => state.activeCampusId)
   const worlds = usePlanetStore((state) => state.worlds)
@@ -617,7 +619,7 @@ const WorldScene = () => {
       >
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
           <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary" />
-          <h2 className="text-2xl font-bold tracking-tight text-primary">Loading World...</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-primary">{t('world.loading')}</h2>
         </div>
       </Html>
     )

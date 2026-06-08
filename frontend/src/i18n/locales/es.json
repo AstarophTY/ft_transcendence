@@ -495,5 +495,6 @@
     "Wool_Colored_Silver": "Lana gris claro",
     "Wool_Colored_White": "Lana blanca",
     "Wool_Colored_Yellow": "Lana amarilla"
-  }
+  },
+  "world.loading": "Cargando el mundo..."
 }
