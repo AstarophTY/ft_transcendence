@@ -432,9 +432,15 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
       // Ignore game/editor controls while typing in an input/textarea/etc.
       if (isEditableTarget(event)) return
       keysRef.current[event.code] = true
-      if (active && (event.code === 'ControlLeft' || event.code === 'KeyE')) {
-        controlsRef.current?.unlock()
-        // E doubles as a rotation key when unlocked; clear it so unlocking
+      if (active && (event.code === 'ControlLeft' || event.code === 'KeyE' || event.code === 'Escape')) {
+        // Toggle the cursor: free it to use the UI, or re-lock to control the
+        // camera again — so no manual click is needed to get back in.
+        if (controlsRef.current?.isLocked) {
+          controlsRef.current.unlock()
+        } else if (performance.now() - lastUnlockTime >= 1250) {
+          controlsRef.current?.lock()
+        }
+        // E doubles as a rotation key when unlocked; clear it so toggling
         // doesn't immediately spin the camera.
         keysRef.current.KeyE = false
       }

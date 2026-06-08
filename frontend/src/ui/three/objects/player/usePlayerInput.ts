@@ -18,9 +18,15 @@ export const usePlayerInput = ({ active, domElement, controlsRef, keysRef }: Par
       // Ignore game controls while typing in an input/textarea/etc.
       if (isEditableTarget(e)) return
       keysRef.current[e.code] = true
-      if (active && (e.code === 'ControlLeft' || e.code === 'KeyE')) {
-        controlsRef.current?.unlock()
-        // E doubles as a rotation key when unlocked; clear it so unlocking
+      if (active && (e.code === 'ControlLeft' || e.code === 'KeyE' || e.code === 'Escape')) {
+        // Toggle the cursor: free it to use the UI, or re-lock to control the
+        // camera again — so no manual click is needed to get back in.
+        if (controlsRef.current?.isLocked) {
+          controlsRef.current.unlock()
+        } else if (performance.now() - lastUnlockTime >= 1250) {
+          controlsRef.current?.lock()
+        }
+        // E doubles as a rotation key when unlocked; clear it so toggling
         // doesn't immediately spin the camera.
         keysRef.current.KeyE = false
       }
