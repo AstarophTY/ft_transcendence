@@ -133,7 +133,7 @@ export const Minimap = ({
     ctx.drawImage(mCanvas, 0, 0)
     ctx.restore()
 
-    ctx.rotate(ry + Math.PI)
+    ctx.rotate(-ry + Math.PI)
     
     ctx.fillStyle = '#ef4444'
     ctx.beginPath()

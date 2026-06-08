@@ -600,6 +600,13 @@ useEffect(() => {
 
   return (
     <group>
+      <Minimap
+        localMap={localMap}
+        mapVersion={mapVersion}
+        playerRef={playerRef}
+        currentMode={currentMode}
+        mapSize={MAP_SIZE_BLOCKS}
+      />
       <WorldShadowLight playerRef={playerRef} currentMode={currentMode} />
       <FreeCameraControls
         localMap={localMap}
@@ -624,13 +631,6 @@ useEffect(() => {
           blockAssets={blockAssets}
         />
       ))}
-      <Minimap
-        localMap={localMap}
-        mapVersion={mapVersion}
-        playerRef={playerRef}
-        currentMode={currentMode}
-        mapSize={MAP_SIZE_BLOCKS}
-      />
     </group>
   )
 }
