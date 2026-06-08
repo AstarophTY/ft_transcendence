@@ -1,11 +1,12 @@
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
-
+import { Chunk } from '@/types/maps/Chunk'
 import { LocalMap } from '@/types/maps/LocalMap'
 import { PLAYER_SPEED } from './config'
 import { checkCollisionAt } from './playerCollision'
 import React from "react";
+import { useEditorStore } from '@/store/editorStore'
 
 type Params = {
   active: boolean
@@ -17,9 +18,12 @@ type Params = {
 }
 
 export const usePlayerMovement = ({ active, camera, playerRef, controlsRef, keysRef, localMap }: Params) => {
+  const setClaimZone = useEditorStore((s) => s.setClaimZone)
+  const inClaim = useEditorStore((s) => s.inClaimZone)
+  const midX = Math.floor(localMap.widthInChunks / 2);
+  const midZ = Math.floor(localMap.depthInChunks / 2);
   useFrame((_, delta) => {
     if (!active || !playerRef.current) return
-
     const moveVector = new THREE.Vector3()
     if (keysRef.current.KeyW) moveVector.z -= 1
     if (keysRef.current.KeyS) moveVector.z += 1
@@ -67,6 +71,16 @@ export const usePlayerMovement = ({ active, camera, playerRef, controlsRef, keys
       playerRef.current.position.x = nextX
     } else if (!hit(playerRef.current.position.x, nextZ)) {
       playerRef.current.position.z = nextZ
+    }
+    const pX = Math.floor(playerRef.current.position.x / Chunk.WIDTH);
+    const pZ = Math.floor(playerRef.current.position.z / Chunk.WIDTH);
+    console.log(pX, pZ)
+    if (pX >= -2 && pX < 2 && pZ >= -2 && pZ < 2 && !inClaim) {
+      console.log("test");
+      setClaimZone(true)   
+    } else if (inClaim) {
+      console.log("test2");
+      setClaimZone(false)
     }
   })
 }

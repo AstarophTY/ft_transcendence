@@ -4,6 +4,8 @@ import { Tab, Shape } from '@/types/Editor'
 import { useLookupStore } from './lookupStore'
 
 interface EditorStore {
+  inClaimZone: boolean
+  setClaimZone: (state: boolean) => void
   in_editor: boolean
   activeEditor: (state: boolean) => void
   selectedBlock: Block
@@ -23,6 +25,8 @@ interface EditorStore {
 }
 
 export const useEditorStore = create<EditorStore>((set) => ({
+  inClaimZone: false,
+  setClaimZone: (state) => set({ inClaimZone: state}),
   in_editor: false,
   activeEditor: (state) => set({ in_editor: state }),
   selectedBlock: Block.Dirt,
