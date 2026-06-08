@@ -59,6 +59,55 @@ const getAffectedBlocks = (
   return blocks
 }
 
+// Voxel face templates (4 corners each, relative to a 1-unit block centred on
+// its offset). Rendered double-sided so winding order is irrelevant.
+const VOXEL_FACES: { n: [number, number, number]; c: [number, number, number][] }[] = [
+  { n: [1, 0, 0], c: [[0.5, -0.5, -0.5], [0.5, 0.5, -0.5], [0.5, 0.5, 0.5], [0.5, -0.5, 0.5]] },
+  { n: [-1, 0, 0], c: [[-0.5, -0.5, 0.5], [-0.5, 0.5, 0.5], [-0.5, 0.5, -0.5], [-0.5, -0.5, -0.5]] },
+  { n: [0, 1, 0], c: [[-0.5, 0.5, -0.5], [-0.5, 0.5, 0.5], [0.5, 0.5, 0.5], [0.5, 0.5, -0.5]] },
+  { n: [0, -1, 0], c: [[-0.5, -0.5, 0.5], [-0.5, -0.5, -0.5], [0.5, -0.5, -0.5], [0.5, -0.5, 0.5]] },
+  { n: [0, 0, 1], c: [[0.5, -0.5, 0.5], [0.5, 0.5, 0.5], [-0.5, 0.5, 0.5], [-0.5, -0.5, 0.5]] },
+  { n: [0, 0, -1], c: [[-0.5, -0.5, -0.5], [-0.5, 0.5, -0.5], [0.5, 0.5, -0.5], [0.5, -0.5, -0.5]] },
+]
+
+// Builds a single merged surface mesh of the voxel sphere/ellipsoid (the exact
+// blocks getAffectedBlocks would place), keeping only outward-facing faces so it
+// reads as one continuous translucent shape instead of a pile of cubes.
+const buildVoxelSphereGeometry = (radiusX: number, radiusY: number, radiusZ: number) => {
+  const a = radiusX + 0.5
+  const b = radiusY + 0.5
+  const c = radiusZ + 0.5
+  const key = (x: number, y: number, z: number) => `${x},${y},${z}`
+  const inside = new Set<string>()
+  for (let dx = -radiusX; dx <= radiusX; dx++) {
+    for (let dy = -radiusY; dy <= radiusY; dy++) {
+      for (let dz = -radiusZ; dz <= radiusZ; dz++) {
+        if ((dx * dx) / (a * a) + (dy * dy) / (b * b) + (dz * dz) / (c * c) <= 1.0) {
+          inside.add(key(dx, dy, dz))
+        }
+      }
+    }
+  }
+
+  const positions: number[] = []
+  const tri = [0, 1, 2, 0, 2, 3]
+  inside.forEach((k) => {
+    const [x, y, z] = k.split(',').map(Number) as [number, number, number]
+    for (const face of VOXEL_FACES) {
+      // Skip internal faces shared with a neighbouring block.
+      if (inside.has(key(x + face.n[0], y + face.n[1], z + face.n[2]))) continue
+      for (const i of tri) {
+        const corner = face.c[i]!
+        positions.push(x + corner[0], y + corner[1], z + corner[2])
+      }
+    }
+  })
+
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+  return geometry
+}
+
 let lastUnlockTime = 0
 
 export const FreeCameraControls = ({
@@ -74,15 +123,18 @@ export const FreeCameraControls = ({
   const controlsRef = useRef<PointerLockControlsImpl | null>(null)
   const keysRef = useRef<Record<string, boolean>>({})
 const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
-const SphereGeometry = 'sphereGeometry' as unknown as React.ElementType
 
   const previewGroupRef = useRef<THREE.Group>(null)
   const cubePreviewRef = useRef<THREE.Mesh>(null)
   const spherePreviewRef = useRef<THREE.Mesh>(null)
+  const lastSphereKeyRef = useRef<string>('')
   const cubeMaterialRef = useRef<THREE.MeshBasicMaterial>(null)
   const sphereMaterialRef = useRef<THREE.MeshBasicMaterial>(null)
 
   useEffect(() => {
+    // The sphere mesh is recreated on (re)activation, so force its geometry to
+    // rebuild by invalidating the cached size key.
+    lastSphereKeyRef.current = ''
     if (previewGroupRef.current) previewGroupRef.current.visible = false
     if (spherePreviewRef.current) spherePreviewRef.current.visible = false
     if (cubeMaterialRef.current) {
@@ -94,6 +146,9 @@ const SphereGeometry = 'sphereGeometry' as unknown as React.ElementType
       sphereMaterialRef.current.transparent = true
       sphereMaterialRef.current.depthWrite = false
       sphereMaterialRef.current.wireframe = false
+      // Double-sided so the merged voxel surface reads as one solid translucent
+      // shape regardless of face winding.
+      sphereMaterialRef.current.side = THREE.DoubleSide
     }
   }, [active])
 
@@ -207,10 +262,15 @@ const SphereGeometry = 'sphereGeometry' as unknown as React.ElementType
           if (shape === Shape.Sphere && (radiusX > 0 || radiusY > 0 || radiusZ > 0)) {
             cubePreviewRef.current.visible = false
             spherePreviewRef.current.visible = true
-            const sphereScaleX = (radiusX + 0.5) * 2 * (tool === Tab.Add ? 1.0 : 1.02)
-            const sphereScaleY = (radiusY + 0.5) * 2 * (tool === Tab.Add ? 1.0 : 1.02)
-            const sphereScaleZ = (radiusZ + 0.5) * 2 * (tool === Tab.Add ? 1.0 : 1.02)
-            spherePreviewRef.current.scale.set(sphereScaleX, sphereScaleY, sphereScaleZ)
+
+            // Rebuild the merged voxel-sphere surface only when the radii change;
+            // the group position follows the cursor for free.
+            const sphereKey = `${radiusX},${radiusY},${radiusZ}`
+            if (sphereKey !== lastSphereKeyRef.current) {
+              lastSphereKeyRef.current = sphereKey
+              spherePreviewRef.current.geometry?.dispose()
+              spherePreviewRef.current.geometry = buildVoxelSphereGeometry(radiusX, radiusY, radiusZ)
+            }
           } else {
             cubePreviewRef.current.visible = true
             spherePreviewRef.current.visible = false
@@ -580,7 +640,6 @@ const SphereGeometry = 'sphereGeometry' as unknown as React.ElementType
           <meshBasicMaterial ref={cubeMaterialRef} color="#fbbf24" opacity={0.4} />
         </mesh>
         <mesh ref={spherePreviewRef}>
-          <SphereGeometry args={[0.5, 16, 16]} />
           <meshBasicMaterial ref={sphereMaterialRef} color="#fbbf24" opacity={0.4} />
         </mesh>
       </group>
