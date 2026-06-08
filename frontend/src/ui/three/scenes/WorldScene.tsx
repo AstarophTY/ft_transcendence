@@ -28,6 +28,7 @@ import { BlockMetadata } from '@/config/Block'
 import { LocalMap } from '@/types/maps/LocalMap'
 import { IslandMap, BiomeType, getBiomeBlock } from '@/generation'
 import { useLookupStore, LookupRecord } from '@/store/lookupStore.ts'
+import { Minimap } from './worldScene/Minimap'
 import { useTranslation } from 'react-i18next'
 
 const generateLocalMap = (profile: DemoPlanetProfile, mapSize: number) => {
@@ -234,7 +235,7 @@ const WorldScene = () => {
 
   const [localMap, setLocalMap] = useState<LocalMap | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
-  const [, setMapVersion] = useState(0)
+  const [mapVersion, setMapVersion] = useState(0)
   // Latest map, for the socket listener which is registered once per campus.
   const mapRef = useRef<LocalMap | null>(localMap)
   // Previous block state per edited position, to roll back rejected placements.
@@ -627,6 +628,13 @@ const WorldScene = () => {
 
   return (
     <group>
+      <Minimap
+        localMap={localMap}
+        mapVersion={mapVersion}
+        playerRef={playerRef}
+        currentMode={currentMode}
+        mapSize={MAP_SIZE_BLOCKS}
+      />
       <WorldShadowLight playerRef={playerRef} currentMode={currentMode} />
       <FreeCameraControls
         localMap={localMap}
