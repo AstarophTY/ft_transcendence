@@ -12,6 +12,11 @@ import { useIsTouchDevice } from '@/hooks/use-mobile.tsx'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+// Deadzone threshold before a joystick tilt registers as a key press.
+// Higher value = lower sensitivity (stick must be pushed further).
+const MOVE_THRESHOLD = 0.55
+const LOOK_THRESHOLD = 0.55
+
 export default function MobileVirtualControls() {
   const { t } = useTranslation()
   const inEditor = useEditorStore((s) => s.in_editor)
@@ -79,10 +84,10 @@ export default function MobileVirtualControls() {
     const y = event.y ?? 0
 
     // Up/Down (Forward/Backward)
-    if (y > 0.35) {
+    if (y > MOVE_THRESHOLD) {
       dispatchKey('KeyW', true)
       dispatchKey('KeyS', false)
-    } else if (y < -0.35) {
+    } else if (y < -MOVE_THRESHOLD) {
       dispatchKey('KeyS', true)
       dispatchKey('KeyW', false)
     } else {
@@ -91,10 +96,10 @@ export default function MobileVirtualControls() {
     }
 
     // Left/Right
-    if (x > 0.35) {
+    if (x > MOVE_THRESHOLD) {
       dispatchKey('KeyD', true)
       dispatchKey('KeyA', false)
-    } else if (x < -0.35) {
+    } else if (x < -MOVE_THRESHOLD) {
       dispatchKey('KeyA', true)
       dispatchKey('KeyD', false)
     } else {
@@ -116,10 +121,10 @@ export default function MobileVirtualControls() {
     const y = event.y ?? 0
 
     // Camera Up/Down (Inverted vertical movement as requested)
-    if (y > 0.35) {
+    if (y > LOOK_THRESHOLD) {
       dispatchKey('ArrowDown', true)
       dispatchKey('ArrowUp', false)
-    } else if (y < -0.35) {
+    } else if (y < -LOOK_THRESHOLD) {
       dispatchKey('ArrowUp', true)
       dispatchKey('ArrowDown', false)
     } else {
@@ -128,10 +133,10 @@ export default function MobileVirtualControls() {
     }
 
     // Camera Left/Right
-    if (x > 0.35) {
+    if (x > LOOK_THRESHOLD) {
       dispatchKey('ArrowRight', true)
       dispatchKey('ArrowLeft', false)
-    } else if (x < -0.35) {
+    } else if (x < -LOOK_THRESHOLD) {
       dispatchKey('ArrowLeft', true)
       dispatchKey('ArrowRight', false)
     } else {

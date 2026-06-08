@@ -272,11 +272,16 @@ export function SearchBlock() {
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
 
+    // Scrolling happens inside the Radix ScrollArea viewport, not the window.
+    // Anchor the observer to that container so the sentinel is detected reliably
+    // on touch devices (with root: null it stops firing after a batch on mobile).
+    const root = sentinel.closest('[data-radix-scroll-area-viewport]');
+
     const observer = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting) {
         setVisibleCount((prev) => prev + 48);
       }
-    }, { rootMargin: '100px' });
+    }, { root, rootMargin: '100px' });
 
     observer.observe(sentinel);
     return () => {
