@@ -1,6 +1,8 @@
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
 import React, { useEffect } from 'react'
 
+import { isEditableTarget } from '@/lib/utils'
+
 type Params = {
   active: boolean
   domElement: HTMLElement
@@ -13,6 +15,8 @@ let lastUnlockTime = 0
 export const usePlayerInput = ({ active, domElement, controlsRef, keysRef }: Params) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore game controls while typing in an input/textarea/etc.
+      if (isEditableTarget(e)) return
       keysRef.current[e.code] = true
       if (active && e.code === 'ControlLeft') {
         controlsRef.current?.unlock()

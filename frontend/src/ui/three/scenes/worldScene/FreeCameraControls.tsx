@@ -11,6 +11,7 @@ import { Block } from '@/types/Block'
 import { LocalMap } from '@/types/maps/LocalMap'
 import { Chunk } from '@/types/maps/Chunk'
 import { useIsTouchDevice } from '@/hooks/use-mobile.tsx'
+import { isEditableTarget } from '@/lib/utils'
 
 import { usePlanetStore } from '@/store/planetStore'
 
@@ -428,6 +429,8 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
   useEffect(() => {
     if (!active) return
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Ignore game/editor controls while typing in an input/textarea/etc.
+      if (isEditableTarget(event)) return
       keysRef.current[event.code] = true
       if (active && event.code === 'ControlLeft') {
         controlsRef.current?.unlock()
