@@ -8,6 +8,7 @@ import { useEditorStore } from '@/store/editorStore.ts';
 import { motion, useDragControls } from 'motion/react';
 import { GripHorizontal, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile.tsx';
+import { useTranslation } from 'react-i18next';
 import {
   Select,
   SelectContent,
@@ -225,6 +226,7 @@ export function BlockPreview({ name, color }: { name: string; color: string }) {
 }
 
 export function SearchBlock() {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const { selectedBlock, setSelectedBlock, setCatalogOpen } = useEditorStore();
@@ -236,13 +238,20 @@ export function SearchBlock() {
     return ['all', ...Array.from(cats)];
   }, []);
 
+  const blockLabel = (name: string) =>
+    t(`blocks.${name}`, { defaultValue: name.replace(/_/g, ' ') });
+
   const filteredBlocks = useMemo(() => {
+    const term = searchTerm.toLowerCase();
     return BlocksList.filter((block) => {
-      const matchesSearch = block.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch =
+        block.name.toLowerCase().includes(term) ||
+        blockLabel(block.name).toLowerCase().includes(term);
       const matchesCategory = selectedCategory === 'all' || block.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [searchTerm, selectedCategory]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, selectedCategory, t]);
 
   const [visibleCount, setVisibleCount] = useState(48);
 
@@ -314,7 +323,7 @@ export function SearchBlock() {
           >
             <div className="flex items-center gap-2">
               {!isMobile && <GripHorizontal className="h-5 w-5 text-muted-foreground" />}
-              <h2 className="text-lg font-bold select-none">Block Catalog</h2>
+              <h2 className="text-lg font-bold select-none">{t('editor.catalog.title')}</h2>
             </div>
             
             {/* Close button */}
@@ -330,19 +339,19 @@ export function SearchBlock() {
           </div>
           <div className="flex gap-2">
             <Input
-              placeholder="Search blocks..."
+              placeholder={t('editor.catalog.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-1 bg-background/20 backdrop-blur-xs border-border/30 focus-visible:ring-1 focus-visible:ring-primary/50"
             />
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-[120px] capitalize bg-background/20 backdrop-blur-xs border-border/30 focus:ring-1 focus:ring-primary/50">
-                <SelectValue placeholder="Color" />
+                <SelectValue placeholder={t('editor.catalog.colorPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (
                   <SelectItem key={category} value={category} className="capitalize">
-                    {category}
+                    {t(`editor.categories.${category}`, { defaultValue: category })}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -373,7 +382,7 @@ export function SearchBlock() {
                   <BlockPreview name={block.name} color={block.color} />
                 </div>
                 <div className="p-2 text-center text-sm font-medium truncate">
-                  {block.name.replace(/_/g, ' ')}
+                  {blockLabel(block.name)}
                 </div>
               </Card>
             ))}
@@ -383,13 +392,13 @@ export function SearchBlock() {
                 ref={sentinelRef}
                 className="col-span-full h-8 flex items-center justify-center text-xs text-muted-foreground"
               >
-                Loading more blocks...
+                {t('editor.catalog.loadingMore')}
               </div>
             )}
 
             {filteredBlocks.length === 0 && (
               <div className="col-span-full py-8 text-center text-muted-foreground">
-                No blocks found.
+                {t('editor.catalog.noBlocks')}
               </div>
             )}
           </div>

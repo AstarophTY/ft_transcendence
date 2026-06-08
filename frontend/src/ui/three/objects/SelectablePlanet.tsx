@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, ElementType } from 'react'
 import { ThreeEvent, useFrame } from '@react-three/fiber'
 import { Billboard, Html } from '@react-three/drei'
 import * as THREE from 'three'
+import { useTranslation } from 'react-i18next'
 
 import type { PlanetMap } from '@/types/maps/PlanetMap.ts'
 import { usePlanetStore } from '@/store/planetStore.ts'
@@ -19,6 +20,7 @@ interface SelectablePlanetProps {
 }
 
 function Satellite({ onClick }: { onClick: (event: ThreeEvent<MouseEvent>) => void }) {
+  const { t: translate } = useTranslation();
   const satelliteRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.MeshStandardMaterial>(null);
   const [hovered, setHovered] = useState(false);
@@ -69,7 +71,7 @@ function Satellite({ onClick }: { onClick: (event: ThreeEvent<MouseEvent>) => vo
             pointerEvents: 'none',
             whiteSpace: 'nowrap'
           }}>
-            Private planet
+            {translate('planet.private')}
           </div>
         </Html>
       </Billboard>

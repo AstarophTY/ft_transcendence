@@ -11,8 +11,10 @@ import { ChevronDown, Mouse, Minus, Plus } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile.tsx"
 import { LookupBlock } from "@/ui/hud/editor/LookupBlock.tsx"
 import { useLookupStore } from '@/store/lookupStore.ts'
+import { useTranslation } from 'react-i18next'
 
 export default function EditorMode() {
+  const { t } = useTranslation()
   const currentTool = useEditorStore((state) => state.tool)
   const setCurrentTool = useEditorStore((state) => state.setTool)
   const currentShape = useEditorStore((state) => state.shape)
@@ -92,7 +94,7 @@ export default function EditorMode() {
               <BlockPreview name={selectedBlockName} color={selectedBlockColor} />
             </div>
             <span className="text-xs font-bold text-foreground capitalize">
-              {selectedBlockName.replace(/_/g, ' ')}
+              {blockMeta ? t(`blocks.${selectedBlockName}`, { defaultValue: selectedBlockName.replace(/_/g, ' ') }) : selectedBlockName}
             </span>
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </button>
