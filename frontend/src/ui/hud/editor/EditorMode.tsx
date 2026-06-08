@@ -25,7 +25,6 @@ export default function EditorMode() {
   const setShapeSizeX = useEditorStore((state) => state.setShapeSizeX)
   const setShapeSizeY = useEditorStore((state) => state.setShapeSizeY)
   const setShapeSizeZ = useEditorStore((state) => state.setShapeSizeZ)
-  const inClaimZone = useEditorStore((state) => state.inClaimZone)
   const catalogOpen = useEditorStore((state) => state.catalogOpen)
   const setCatalogOpen = useEditorStore((state) => state.setCatalogOpen)
   const selectedBlock = useEditorStore((state) => state.selectedBlock)
@@ -76,7 +75,7 @@ export default function EditorMode() {
   return (
       <>
         <ToolBar updateCurrenTool={changeTool} currentTool={currentTool} updateCurrentShape={changeShape} currentShape={currentShape}/>
-        {!inClaimZone && (<Cross />)}
+        <Cross/>
         {currentTool === Tab.Add && (!isMobile || catalogOpen) && (<SearchBlock />)}
         
         {isMobile && currentTool === Tab.Add && !catalogOpen && (

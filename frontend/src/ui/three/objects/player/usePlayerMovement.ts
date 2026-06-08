@@ -20,8 +20,8 @@ type Params = {
 export const usePlayerMovement = ({ active, camera, playerRef, controlsRef, keysRef, localMap }: Params) => {
   const setClaimZone = useEditorStore((s) => s.setClaimZone)
   const inClaim = useEditorStore((s) => s.inClaimZone)
-  const midX = Math.floor(localMap.widthInChunks / 2);
-  const midZ = Math.floor(localMap.depthInChunks / 2);
+  // const midX = Math.floor(localMap.widthInChunks / 2);
+  // const midZ = Math.floor(localMap.depthInChunks / 2);
   useFrame((_, delta) => {
     if (!active || !playerRef.current) return
     const moveVector = new THREE.Vector3()
@@ -74,12 +74,9 @@ export const usePlayerMovement = ({ active, camera, playerRef, controlsRef, keys
     }
     const pX = Math.floor(playerRef.current.position.x / Chunk.WIDTH);
     const pZ = Math.floor(playerRef.current.position.z / Chunk.WIDTH);
-    console.log(pX, pZ)
-    if (pX >= -2 && pX < 2 && pZ >= -2 && pZ < 2 && !inClaim) {
-      console.log("test");
-      setClaimZone(true)   
+    if (pX >= -2 && pX < 2 && pZ >= -2 && pZ < 2) {
+      if (!inClaim) setClaimZone(true)   
     } else if (inClaim) {
-      console.log("test2");
       setClaimZone(false)
     }
   })
