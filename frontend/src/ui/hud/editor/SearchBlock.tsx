@@ -266,28 +266,42 @@ export function SearchBlock() {
     return filteredBlocks.slice(0, visibleCount);
   }, [filteredBlocks, visibleCount]);
 
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const sentinelRef = useRef<HTMLButtonElement | null>(null);
 
+  const loadMore = () =>
+    setVisibleCount((prev) =>
+      prev < filteredBlocks.length ? prev + 48 : prev
+    );
+
+  // Drive pagination from the viewport's scroll position instead of an
+  // IntersectionObserver: the observer stops firing inside the Radix
+  // ScrollArea viewport on touch devices, leaving the list stuck on the
+  // "loading more" row. A scroll listener works reliably on mobile and desktop.
   useEffect(() => {
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
 
-    // Scrolling happens inside the Radix ScrollArea viewport, not the window.
-    // Anchor the observer to that container so the sentinel is detected reliably
-    // on touch devices (with root: null it stops firing after a batch on mobile).
-    const root = sentinel.closest('[data-radix-scroll-area-viewport]');
+    const viewport = sentinel.closest(
+      '[data-radix-scroll-area-viewport]'
+    ) as HTMLElement | null;
+    if (!viewport) return;
 
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        setVisibleCount((prev) => prev + 48);
+    const maybeLoadMore = () => {
+      if (
+        viewport.scrollTop + viewport.clientHeight >=
+        viewport.scrollHeight - 150
+      ) {
+        loadMore();
       }
-    }, { root, rootMargin: '100px' });
-
-    observer.observe(sentinel);
-    return () => {
-      observer.unobserve(sentinel);
     };
-  }, [displayedBlocks]);
+
+    viewport.addEventListener('scroll', maybeLoadMore, { passive: true });
+    // Also fill the viewport when the current batch is shorter than it.
+    maybeLoadMore();
+
+    return () => viewport.removeEventListener('scroll', maybeLoadMore);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [displayedBlocks, filteredBlocks.length]);
 
   return (
     <div className="
@@ -417,12 +431,14 @@ export function SearchBlock() {
             ))}
 
             {filteredBlocks.length > visibleCount && (
-              <div 
+              <button
                 ref={sentinelRef}
-                className="col-span-full h-8 flex items-center justify-center text-xs text-muted-foreground"
+                type="button"
+                onClick={loadMore}
+                className="col-span-full h-9 flex items-center justify-center text-xs text-muted-foreground hover:text-foreground active:scale-95 transition-all cursor-pointer"
               >
                 {t('editor.catalog.loadingMore')}
-              </div>
+              </button>
             )}
 
             {filteredBlocks.length === 0 && (
