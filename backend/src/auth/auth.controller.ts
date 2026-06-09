@@ -66,6 +66,7 @@ export class AuthController {
       access_token: tokens.accessToken,
       refresh_token: tokens.refreshToken,
     });
+    if (tokens.isNew) params.set('is_new', '1');
     res.redirect(`${frontend}/?${params.toString()}`);
   }
 }

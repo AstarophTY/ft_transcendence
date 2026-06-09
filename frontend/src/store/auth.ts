@@ -10,7 +10,7 @@ import {
   type AuthTokens,
 } from '@/lib/api'
 import { decodeAccessToken } from '@/lib/jwt'
-import { getMe } from '@/lib/api/account'
+import { deleteAccount, getMe } from '@/lib/api/account'
 import { toMessage } from '@/lib/apiError'
 import i18n from '@/i18n'
 
@@ -26,6 +26,8 @@ export interface AuthUser {
 interface AuthState {
   user: AuthUser | null
   loading: boolean
+  /** True when a brand-new 42 account must accept the Privacy Policy. */
+  requirePrivacy: boolean
   init: () => void
   login: (email: string, password: string) => Promise<boolean>
   register: (
@@ -35,6 +37,8 @@ interface AuthState {
   ) => Promise<boolean>
   logout: () => Promise<void>
   loginWith42: () => void
+  acceptPrivacy: () => void
+  declinePrivacy: () => Promise<void>
 }
 
 function userFromToken(accessToken: string): AuthUser | null {
@@ -75,15 +79,20 @@ async function hydrateUser(): Promise<void> {
 export const useAuth = create<AuthState>((set) => ({
   user: null,
   loading: false,
+  requirePrivacy: false,
 
   init: () => {
     const params = new URLSearchParams(window.location.search)
     const access = params.get('access_token')
     const refresh = params.get('refresh_token')
+    const isNew = params.get('is_new') === '1'
     if (access && refresh) {
       const tokens: AuthTokens = { accessToken: access, refreshToken: refresh }
       tokenStore.save(tokens)
       window.history.replaceState({}, '', window.location.pathname)
+      // A freshly created 42 account must accept the Privacy Policy before
+      // it can use the app; gate it here right after the OAuth round-trip.
+      if (isNew) set({ requirePrivacy: true })
       toast.success(i18n.t('auth.loginSuccess'))
     }
 
@@ -139,11 +148,28 @@ export const useAuth = create<AuthState>((set) => ({
       // ignore network errors on logout, clear locally anyway
     }
     tokenStore.clear()
-    set({ user: null })
+    set({ user: null, requirePrivacy: false })
     toast.success(i18n.t('auth.logoutSuccess'))
   },
 
   loginWith42: () => {
     window.location.href = getFortyTwoLoginUrl()
+  },
+
+  acceptPrivacy: () => set({ requirePrivacy: false }),
+
+  declinePrivacy: async () => {
+    // Declining cancels the just-created 42 sign-up: permanently delete the
+    // account (cascades all data) while the access token is still valid, then
+    // drop the local session.
+    set({ requirePrivacy: false })
+    try {
+      await deleteAccount()
+    } catch {
+      // Network/already-gone: fall through and clear the session anyway.
+    }
+    tokenStore.clear()
+    set({ user: null })
+    toast.success(i18n.t('auth.signupCancelled'))
   },
 }))

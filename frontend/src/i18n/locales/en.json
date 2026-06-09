@@ -42,7 +42,11 @@
     "registerSuccess": "Account created!",
     "logoutSuccess": "Logged out",
     "sessionExpired": "Session expired, please log in again",
-    "concurrentLogin": "Disconnected: another connection was opened under this account"
+    "concurrentLogin": "Disconnected: another connection was opened under this account",
+    "acceptPrivacyPre": "I have read and accept the",
+    "privacyPolicy": "Privacy Policy",
+    "mustAcceptPrivacy": "You must accept the Privacy Policy to create an account",
+    "signupCancelled": "Sign-up cancelled, your account was not kept"
   },
   "friends": {
     "title": "Friends",
@@ -110,7 +114,10 @@
       "DND": "Do not disturb",
       "OFFLINE": "Offline"
     },
-    "theme": { "light": "Light", "dark": "Dark" },
+    "theme": {
+      "light": "Light",
+      "dark": "Dark"
+    },
     "profile": {
       "displayName": "Display name",
       "bio": "Bio",
@@ -175,7 +182,9 @@
       "42": "42",
       "local": "Local"
     },
-    "chart": { "title": "Signups (last 14 days)" },
+    "chart": {
+      "title": "Signups (last 14 days)"
+    },
     "edit": {
       "title": "Edit user",
       "newPassword": "New password",
@@ -500,5 +509,55 @@
     "Wool_Colored_White": "Wool Colored White",
     "Wool_Colored_Yellow": "Wool Colored Yellow"
   },
-  "world.loading": "Loading the world..."
+  "world.loading": "Loading the world...",
+  "legal": {
+    "privacyTitle": "Privacy Policy",
+    "lastUpdated": "Last updated: June 2026",
+    "accept": "Accept and continue",
+    "decline": "Decline",
+    "acceptRequired": "Welcome! Please review and accept our Privacy Policy to finish creating your account.",
+    "intro": "This Privacy Policy explains what personal data ft_transcendence collects when you create an account and use the application, why we collect it, and the rights you have over it. By creating an account you confirm that you have read and accepted this policy.",
+    "sections": [
+      {
+        "title": "1. Data we collect",
+        "body": "When you register we collect the account details you provide: your username, email address and password (stored only as a salted hash, never in clear text). If you sign in with your 42 account, we receive your 42 login, email and profile picture. While you use the service we also store data you generate: your avatar, time spent connected (logtime), the blocks and contributions you place in the shared world, your friends list, game results and your preferences (language and theme)."
+      },
+      {
+        "title": "2. How we use your data",
+        "body": "We use your data only to operate the service: to authenticate you, display your profile and presence to other players, save your world contributions and game progress, manage your friendships, and remember your settings. We do not sell your data or use it for advertising."
+      },
+      {
+        "title": "3. Legal basis",
+        "body": "We process your data on the basis of the contract that lets you use the application (managing your account and gameplay) and, where applicable, your consent, which you give by accepting this policy when you sign up. You can withdraw your consent at any time by deleting your account."
+      },
+      {
+        "title": "4. Third parties",
+        "body": "Authentication can be handled through the 42 OAuth service when you choose to log in with 42; in that case 42 processes your login according to its own privacy policy. We do not share your personal data with any other third party except where required by law."
+      },
+      {
+        "title": "5. Data retention",
+        "body": "We keep your data for as long as your account exists. When you delete your account, your personal data (profile, email, credentials) is removed. Anonymised or aggregated data, and shared world contributions that cannot be linked back to you, may be retained."
+      },
+      {
+        "title": "6. Your rights",
+        "body": "You have the right to access, correct or delete your personal data, to object to or restrict its processing, and to request a copy of the data you provided. You can update most information from your profile settings, or contact us for any other request."
+      },
+      {
+        "title": "7. Security",
+        "body": "Passwords are stored as salted hashes and access to the application is protected by authentication tokens served over an encrypted connection. While no system can be guaranteed perfectly secure, we apply reasonable measures to protect your data."
+      },
+      {
+        "title": "8. Cookies and local storage",
+        "body": "We use your browser's local storage to keep you signed in and to remember preferences such as your chosen language. These are strictly necessary for the application to work and are not used for tracking or advertising."
+      },
+      {
+        "title": "9. Changes to this policy",
+        "body": "We may update this Privacy Policy. The date at the top indicates the latest version. If a change significantly affects your rights, you may be asked to review and accept the updated policy."
+      },
+      {
+        "title": "10. Contact",
+        "body": "For any question about this policy or your personal data, please contact the project administrators through the application."
+      }
+    ]
+  }
 }

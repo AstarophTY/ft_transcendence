@@ -45,6 +45,16 @@ export class ProfileService {
     return this.fortyTwo.debugLogtime(userId);
   }
 
+  /**
+   * Permanently delete the account and everything it owns. All relations are
+   * `onDelete: Cascade`, so a single delete removes the world, friendships,
+   * messages and tokens too. Used when a new 42 user declines the Privacy
+   * Policy, which cancels the just-created sign-up.
+   */
+  async deleteAccount(userId: string): Promise<void> {
+    await this.prisma.user.delete({ where: { id: userId } });
+  }
+
   /** Update freely-editable fields + optional avatar URL. */
   async updateProfile(
     userId: string,
