@@ -28,7 +28,6 @@ export class WorldService {
     const worlds = [];
     for (const campus of campuses) {
       const world = campus.world ?? (await this.createWorld(campus.id));
-
       const contests = await this.prisma.voteContest.findMany({
         where: { campusId: campus.id, isActive: true },
         include: {
@@ -40,7 +39,7 @@ export class WorldService {
           },
         },
       });
-      
+
       worlds.push({
         campusId: campus.id,
         label: campus.label,
