@@ -15,6 +15,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
 import { UsersService } from '../users/users.service';
 import { AuthTokens, FortyTwoProfile } from './interfaces/auth.interfaces';
+import { WorldService } from '../world/world.service';
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const BCRYPT_ROUNDS = 12;
@@ -29,6 +30,7 @@ export class AuthService {
     private readonly redis: RedisService,
     private readonly campus: CampusService,
     private readonly fortyTwo: FortyTwoService,
+    private readonly world: WorldService,
   ) {}
 
   async register(
@@ -44,6 +46,7 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
     const user = await this.users.create({ email, username, passwordHash });
 
+    await this.world.ensureWorld(user.id, true);
     return this.generateTokens(user);
   }
 
@@ -63,6 +66,7 @@ export class AuthService {
     }
 
     await this.redis.resetLoginAttempts(email);
+    await this.world.ensureWorld(user.id, true);
     return this.generateTokens(user);
   }
 
@@ -93,11 +97,15 @@ export class AuthService {
     const linked = await this.users.findByFortyTwoId(profile.fortyTwoId);
 
     if (linked) {
-      const updated = await this.users.update(linked.id, {
-        avatar: profile.avatar,
-      });
+      // Only seed the 42 avatar if the user has none — never clobber a
+      // custom upload on re-login.
+      const updated = linked.avatar
+        ? linked
+        : await this.users.update(linked.id, { avatar: profile.avatar });
       await this.syncFortyTwo(updated, profile);
-      return this.generateTokens(updated);
+      await this.world.ensureWorld(updated.id, true);
+      const latestUser = await this.users.findById(updated.id);
+      return this.generateTokens(latestUser!);
     }
 
     if (profile.email) {
@@ -106,11 +114,13 @@ export class AuthService {
         const merged = await this.users.update(sameEmail.id, {
           fortyTwoId: profile.fortyTwoId,
           fortyTwoLogin: profile.fortyTwoLogin,
-          avatar: profile.avatar,
+          avatar: sameEmail.avatar ?? profile.avatar,
           isVerified: true,
         });
         await this.syncFortyTwo(merged, profile);
-        return this.generateTokens(merged);
+        await this.world.ensureWorld(merged.id, true);
+        const latestUser = await this.users.findById(merged.id);
+        return this.generateTokens(latestUser!);
       }
     }
 
@@ -128,7 +138,9 @@ export class AuthService {
     });
 
     await this.syncFortyTwo(created, profile);
-    return this.generateTokens(created);
+    await this.world.ensureWorld(created.id, true);
+    const latestUser = await this.users.findById(created.id);
+    return this.generateTokens(latestUser!);
   }
 
   /** Keep campus and logtime-coins in sync with 42 on every login. */

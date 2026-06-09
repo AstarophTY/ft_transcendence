@@ -8,6 +8,8 @@ export interface SocketAuth {
   userId: string;
   username: string;
   avatar: string | null;
+  /** The user's own campus, or null for guest/non-42 accounts. */
+  campusId: string | null;
 }
 
 /** Authenticates a socket from its JWT; returns {userId, username} or null. */
@@ -27,7 +29,12 @@ export async function authenticateSocket(
       secret: config.get<string>('JWT_SECRET'),
     });
     if (await redis.isTokenBlacklisted(payload.jti)) return null;
-    return { userId: payload.sub, username: payload.username, avatar: payload.avatar };
+    return {
+      userId: payload.sub,
+      username: payload.username,
+      avatar: payload.avatar,
+      campusId: payload.campusId ?? null,
+    };
   } catch {
     return null;
   }

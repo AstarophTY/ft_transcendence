@@ -1,6 +1,8 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, ElementType } from 'react'
 import { ThreeEvent, useFrame } from '@react-three/fiber'
+import { Billboard, Html } from '@react-three/drei'
 import * as THREE from 'three'
+import { useTranslation } from 'react-i18next'
 
 import type { PlanetMap } from '@/types/maps/PlanetMap.ts'
 import { usePlanetStore } from '@/store/planetStore.ts'
@@ -9,6 +11,8 @@ import { useAuth } from '@/store/auth'
 import PlanetPreviewFaces from './selectablePlanet/PlanetPreviewFaces'
 import { useSelectablePlanetAnimation } from './selectablePlanet/useSelectablePlanetAnimation'
 
+const BoxGeometry = 'boxGeometry' as unknown as ElementType
+
 interface SelectablePlanetProps {
   map: PlanetMap
   index: number
@@ -16,8 +20,10 @@ interface SelectablePlanetProps {
 }
 
 function Satellite({ onClick }: { onClick: (event: ThreeEvent<MouseEvent>) => void }) {
+  const { t: translate } = useTranslation();
   const satelliteRef = useRef<THREE.Mesh>(null);
-  const [_, setHovered] = useState(false);
+  const materialRef = useRef<THREE.MeshStandardMaterial>(null);
+  const [hovered, setHovered] = useState(false);
 
   useFrame((state) => {
     if (!satelliteRef.current) return
@@ -30,7 +36,21 @@ function Satellite({ onClick }: { onClick: (event: ThreeEvent<MouseEvent>) => vo
       Math.sin(t * speed) * radius
     )
     satelliteRef.current.rotation.y += 0.01
+
+    const storeState = usePlanetStore.getState()
+    if (storeState.sceneMode === 'zooming-private') {
+      const worldPos = new THREE.Vector3()
+      satelliteRef.current.getWorldPosition(worldPos)
+      storeState.setPrivatePlanetPos([worldPos.x, worldPos.y, worldPos.z])
+    }
   })
+
+  useEffect(() => {
+    if (materialRef.current) {
+      materialRef.current.emissive.set('#fbbf24');
+      materialRef.current.emissiveIntensity = hovered ? 1.0 : 0.5;
+    }
+  }, [hovered]);
 
   return (
     <mesh ref={satelliteRef} onClick={onClick} onPointerOver={() => {
@@ -41,8 +61,22 @@ function Satellite({ onClick }: { onClick: (event: ThreeEvent<MouseEvent>) => vo
       document.body.style.cursor = 'auto';
       setHovered(false);
     }}>
-      <boxGeometry args={[0.2, 0.2, 0.2]} />
-      <meshStandardMaterial color="#fbbf24" emissive="#fbbf24" emissiveIntensity={0.5} />
+      <Billboard position={[0, 0.25, 0]}>
+        <Html center transform sprite distanceFactor={3} scale={0.15} >
+          <div style={{
+            fontSize: '48px',
+            fontWeight: 'bold',
+            color: 'white',
+            fontFamily: "'Outfit', 'Inter', sans-serif",
+            pointerEvents: 'none',
+            whiteSpace: 'nowrap'
+          }}>
+            {translate('planet.private')}
+          </div>
+        </Html>
+      </Billboard>
+      <BoxGeometry args={[0.2, 0.2, 0.2]} />
+      <meshStandardMaterial ref={materialRef} color="#fbbf24" />
     </mesh>    
   )
 }
@@ -54,7 +88,11 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
   
   const user = useAuth((s) => s.user)
   const worlds = usePlanetStore((s) => s.worlds)
-  const isPlayerCampus = user?.campusId && worlds[index]?.campusId === user.campusId
+  // const activeIndex = usePlanetStore((s) => s.activeIndex)
+
+  const isPlayerCampus = user?.campusId && worlds[index]?.campusId === user.campusId;
+  const label = worlds[index]?.label || 'Unknown';
+  // const isActive = activeIndex === index
 
   useSelectablePlanetAnimation({ planetRef, blendRef, hovered, index, totalCount })
 
@@ -102,6 +140,7 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
           e.stopPropagation()
           const storeState = usePlanetStore.getState();
           if (storeState.activeIndex === index) {
+            storeState.setIsPrivateWorld(false);
             storeState.setSceneMode('zooming');
           } else {
             storeState.setTargetOffset(index / (totalCount - 1))
@@ -109,7 +148,7 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
           }
         }}
       >
-        <boxGeometry args={[1, 1, 1]} />
+        <BoxGeometry args={[1, 1, 1]} />
         <meshStandardMaterial color={baseColor} />
       </mesh>
 
@@ -120,17 +159,31 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
         inset={inset}
         getHeight={getHeight}
       />
+        <Billboard position={[0, 1.0, 0]}>
+          <Html center transform sprite distanceFactor={6} scale={0.3} zIndexRange={[100, 0]}>
+            <div style={{
+              fontSize: '48px',
+              fontWeight: 'bold',
+              color: 'white',
+              fontFamily: "'Outfit', 'Inter', sans-serif",
+              pointerEvents: 'none',
+              whiteSpace: 'nowrap'
+            }}>
+              {label}
+            </div>
+          </Html>
+        </Billboard>
+
 
       {isPlayerCampus &&
       <Satellite onClick={(e) => {
           e.stopPropagation();
           const storeState = usePlanetStore.getState();
-          if (storeState.activeIndex === index) {
-            storeState.setSceneMode('zooming');
-          } else {
-            storeState.setTargetOffset(index / (totalCount - 1));
-            storeState.setActiveIndex(index + 0.5); // set offset of .5 for satellites
-          }
+          const worldPos = new THREE.Vector3();
+          e.eventObject.getWorldPosition(worldPos);
+          storeState.setPrivatePlanetPos([worldPos.x, worldPos.y, worldPos.z]);
+          storeState.setIsPrivateWorld(true);
+          storeState.setSceneMode('zooming-private');
         }}
       />
     }

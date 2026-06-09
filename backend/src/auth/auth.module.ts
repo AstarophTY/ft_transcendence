@@ -11,12 +11,14 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { FortyTwoStrategy } from './strategies/forty-two.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { WorldModule } from '../world/world.module';
 
 @Module({
   imports: [
     CampusModule,
     UsersModule,
     FortyTwoModule,
+    WorldModule,
     PassportModule,
     JwtModule.register({}),
   ],

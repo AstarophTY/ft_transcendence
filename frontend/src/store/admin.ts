@@ -12,14 +12,14 @@ import {
   type AdminUser,
   type AdminUserUpdate,
   type SignupPoint,
-} from '@/lib/admin'
+} from '@/lib/api/admin'
 import {
   deleteCampus,
   listManagedCampuses,
   removeCampusMember,
   updateCampus,
   type CampusWithMembers,
-} from '@/lib/campus'
+} from '@/lib/api/campus'
 import type { UserRole } from '@/lib/api'
 import { toMessage } from '@/lib/apiError'
 import i18n from '@/i18n'

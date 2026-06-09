@@ -1,28 +1,38 @@
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { Loader2 } from 'lucide-react'
 
 import { Chunk } from '@/types/maps/Chunk.ts'
+import type { DemoPlanetProfile } from '@/types/Three'
 import { usePlanetStore } from '@/store/planetStore.ts'
 import { useEditorStore } from '@/store/editorStore'
-import { getWorld, type WorldBlock } from '@/lib/world'
-import { connectWorldSocket, getWorldSocket } from '@/lib/worldSocket'
+import { getWorld, type WorldBlock } from '@/lib/api/world'
+import { connectWorldSocket, getWorldSocket } from '@/lib/sockets/worldSocket'
 import { tokenStore } from '@/lib/api'
+import { toast } from 'sonner'
+import { getUserId } from '@/lib/user'
+import i18n from '@/i18n'
+import { usePlayerAppearance } from '../objects/player/playerAppearance'
+import { useWorldEconomy } from '@/store/worldEconomy'
+import { isPaidBlock } from '@/config/worldBlocks'
+import { canEditCurrentWorld } from '@/lib/permissions'
 import Player from '../objects/Player'
 import RemotePlayers from '../objects/RemotePlayers'
 import { ChunkRenderer } from './worldScene/ChunkRenderer'
-import { CHUNKS_PER_SIDE, MAP_SIZE_BLOCKS } from './worldScene/constants'
+import { MAP_SIZE_BLOCKS } from './worldScene/constants'
 import { FreeCameraControls } from './worldScene/FreeCameraControls'
 import { Block } from '@/types/Block'
 import { BlockMetadata } from '@/config/Block'
 import { LocalMap } from '@/types/maps/LocalMap'
-import { IslandMap, BiomeType, getBiomeBlock } from '@/perlin'
-import { useLookupStore } from '@/store/lookupStore'
+import { IslandMap, BiomeType, getBiomeBlock } from '@/generation'
+import { useLookupStore, LookupRecord } from '@/store/lookupStore.ts'
+import { Minimap } from './worldScene/Minimap'
+import { useTranslation } from 'react-i18next'
 
-const generateLocalMap = (profile: any, mapSize: number) => {
+const generateLocalMap = (profile: DemoPlanetProfile, mapSize: number) => {
   const widthInChunks = mapSize / Chunk.WIDTH
   const depthInChunks = mapSize / Chunk.WIDTH
   const localMap = new LocalMap(widthInChunks, depthInChunks)
@@ -40,6 +50,8 @@ const generateLocalMap = (profile: any, mapSize: number) => {
     applyConstraints: true,
   })
 
+  const isPrivate = usePlanetStore.getState().isPrivateWorld
+
   for (let chunkX = 0; chunkX < widthInChunks; chunkX++) {
     for (let chunkZ = 0; chunkZ < depthInChunks; chunkZ++) {
       const chunk = new Chunk()
@@ -49,8 +61,8 @@ const generateLocalMap = (profile: any, mapSize: number) => {
         for (let z = 0; z < Chunk.WIDTH; z++) {
           const worldX = chunkX * Chunk.WIDTH + x
           const worldZ = chunkZ * Chunk.WIDTH + z
-          const height = islandMap.getHeightAt(worldX, worldZ)
-          const biome = islandMap.getBiomeAt(worldX, worldZ)
+          const height = isPrivate ? 5 : islandMap.getHeightAt(worldX, worldZ)
+          const biome = isPrivate ? BiomeType.Plains : islandMap.getBiomeAt(worldX, worldZ)
 
           // Bedrock at the very bottom
           chunk.setBlock(x, 0, z, Block.Bedrock)
@@ -62,37 +74,39 @@ const generateLocalMap = (profile: any, mapSize: number) => {
         }
       }
 
-      // Pass 2: Spawn trees in Forest biome (using deterministic hash coordinate positioning)
-      for (let x = 2; x < Chunk.WIDTH - 2; x++) {
-        for (let z = 2; z < Chunk.WIDTH - 2; z++) {
-          const worldX = chunkX * Chunk.WIDTH + x
-          const worldZ = chunkZ * Chunk.WIDTH + z
-          const height = islandMap.getHeightAt(worldX, worldZ)
-          const biome = islandMap.getBiomeAt(worldX, worldZ)
+      if (!isPrivate) {
+        // Pass 2: Spawn trees in Forest biome (using deterministic hash coordinate positioning)
+        for (let x = 2; x < Chunk.WIDTH - 2; x++) {
+          for (let z = 2; z < Chunk.WIDTH - 2; z++) {
+            const worldX = chunkX * Chunk.WIDTH + x
+            const worldZ = chunkZ * Chunk.WIDTH + z
+            const height = islandMap.getHeightAt(worldX, worldZ)
+            const biome = islandMap.getBiomeAt(worldX, worldZ)
 
-          if (biome === BiomeType.Forest) {
-            const hash = (Math.abs(Math.sin(worldX * 12.9898 + worldZ * 78.233) * 43758.5453) % 1)
-            
-            // 2% chance to spawn a tree in forest biome
-            if (hash < 0.02) {
-              const treeHeight = 4 + Math.floor(hash * 100) % 2 // 4 or 5 blocks tall
+            if (biome === BiomeType.Forest) {
+              const hash = (Math.abs(Math.sin(worldX * 12.9898 + worldZ * 78.233) * 43758.5453) % 1)
               
-              // Place wood trunk
-              for (let ty = 1; ty <= treeHeight; ty++) {
-                chunk.setBlock(x, height + ty, z, Block.Wood)
-              }
+              // 2% chance to spawn a tree in forest biome
+              if (hash < 0.02) {
+                const treeHeight = 4 + Math.floor(hash * 100) % 2 // 4 or 5 blocks tall
+                
+                // Place wood trunk
+                for (let ty = 1; ty <= treeHeight; ty++) {
+                  chunk.setBlock(x, height + ty, z, Block.Wood)
+                }
 
-              // Place leaves canopy
-              for (let dy = -2; dy <= 2; dy++) {
-                for (let dx = -2; dx <= 2; dx++) {
-                  for (let dz = -2; dz <= 2; dz++) {
-                    const ly = height + treeHeight + dy
-                    if (ly < 1 || ly >= Chunk.HEIGHT) continue
+                // Place leaves canopy
+                for (let dy = -2; dy <= 2; dy++) {
+                  for (let dx = -2; dx <= 2; dx++) {
+                    for (let dz = -2; dz <= 2; dz++) {
+                      const ly = height + treeHeight + dy
+                      if (ly < 1 || ly >= Chunk.HEIGHT) continue
 
-                    const dist = Math.abs(dx) + Math.abs(dy) + Math.abs(dz)
-                    if (dist <= 3 && !(dx === 0 && dz === 0 && dy <= 0)) {
-                      if (chunk.getBlock(x + dx, ly, z + dz) === Block.Air) {
-                        chunk.setBlock(x + dx, ly, z + dz, Block.Leaves)
+                      const dist = Math.abs(dx) + Math.abs(dy) + Math.abs(dz)
+                      if (dist <= 3 && !(dx === 0 && dz === 0 && dy <= 0)) {
+                        if (chunk.getBlock(x + dx, ly, z + dz) === Block.Air) {
+                          chunk.setBlock(x + dx, ly, z + dz, Block.Leaves)
+                        }
                       }
                     }
                   }
@@ -117,6 +131,8 @@ const applyWorldBlock = (map: LocalMap, b: WorldBlock) => {
   if (b.rotation) map.setGlobalBlockRotation(b.x, b.y, b.z, b.rotation)
 }
 
+const DirectionalLight = 'directionalLight' as unknown as React.ElementType
+
 interface WorldShadowLightProps {
   playerRef: React.RefObject<THREE.Group | null>
   currentMode: 'freecam' | 'player'
@@ -126,6 +142,22 @@ const WorldShadowLight = ({ playerRef, currentMode }: WorldShadowLightProps) => 
   const { camera } = useThree()
   const lightRef = useRef<THREE.DirectionalLight | null>(null)
   const targetRef = useRef<THREE.Object3D | null>(null)
+
+  useEffect(() => {
+    const light = lightRef.current
+    if (light) {
+      light.shadow.bias = -0.0005
+      light.shadow.normalBias = 0.05
+      const cam = light.shadow.camera
+      cam.left = -120
+      cam.right = 120
+      cam.top = 120
+      cam.bottom = -120
+      cam.near = 0.1
+      cam.far = 500
+      cam.updateProjectionMatrix()
+    }
+  }, [])
 
   useFrame(() => {
     if (!lightRef.current || !targetRef.current) return
@@ -154,68 +186,87 @@ const WorldShadowLight = ({ playerRef, currentMode }: WorldShadowLightProps) => 
   return (
     <>
       <object3D ref={targetRef} />
-      <directionalLight
+      <DirectionalLight
         ref={lightRef}
         intensity={1.2}
         castShadow
-        shadow-bias={-0.0005}
-        shadow-normalBias={0.05}
         shadow-mapSize={[2048, 2048]}
-        shadow-camera-left={-120}
-        shadow-camera-right={120}
-        shadow-camera-top={120}
-        shadow-camera-bottom={-120}
-        shadow-camera-near={0.1}
-        shadow-camera-far={500}
       />
     </>
   )
 }
 
 const WorldScene = () => {
+  const { t } = useTranslation()
   const { camera } = useThree()
   const activeCampusId = usePlanetStore((state) => state.activeCampusId)
   const worlds = usePlanetStore((state) => state.worlds)
   const renderDistance = usePlanetStore((state) => state.renderDistance)
+  const isPrivate = usePlanetStore((state) => state.isPrivateWorld)
+  const mapSize = isPrivate ? 64 : MAP_SIZE_BLOCKS
   const playerRef = useRef<THREE.Group | null>(null)
 
-  const [currentMode, setCurrentMode] = useState<'freecam' | 'player'>('player')
+  const inEditor = useEditorStore((state) => state.in_editor)
   const activeEditor = useEditorStore((state) => state.activeEditor)
+  const currentMode = inEditor ? 'freecam' : 'player'
   const lastLookupTime = useRef<number>(0)
   const LOOKUP_COOLDOWN = 200
 
   useHotkeys('c', () => {
-    setCurrentMode((prev) => {
-      const nextMode = prev === 'freecam' ? 'player' : 'freecam'
-      activeEditor(nextMode === 'freecam')
-      return nextMode
-    })
+    // Only 42 accounts may freecam, and only on their own campus/personal planet.
+    if (!canEditCurrentWorld()) return
+    activeEditor(!inEditor)
   })
+
+  // Leave freecam if the user loses edit rights (e.g. flies to another campus).
+  useEffect(() => {
+    if (inEditor && !canEditCurrentWorld()) activeEditor(false)
+  }, [inEditor, isPrivate, activeCampusId, activeEditor])
 
   // Generation profile of the selected campus world.
   const profile = useMemo(() => {
+    if (isPrivate) {
+      return {
+        seed: getUserId() || 'private-world',
+        widthInChunks: 4,
+        depthInChunks: 4,
+        scale: 0.05,
+        octaves: 4,
+        persistence: 0.5,
+        relief: 0.5,
+        baseHeight: 5,
+        variationRange: 5,
+      }
+    }
     return worlds.find((w) => w.campusId === activeCampusId) ?? worlds[0] ?? null
-  }, [worlds, activeCampusId])
+  }, [worlds, activeCampusId, isPrivate])
 
   const [localMap, setLocalMap] = useState<LocalMap | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
-  const [, setMapVersion] = useState(0)
+  const [mapVersion, setMapVersion] = useState(0)
   // Latest map, for the socket listener which is registered once per campus.
   const mapRef = useRef<LocalMap | null>(localMap)
+  // Previous block state per edited position, to roll back rejected placements.
+  const prevStates = useRef<Map<string, { block: Block; rotation: number }>>(
+    new Map(),
+  )
 
   useEffect(() => {
-    if (!profile || !activeCampusId) return
+    const isPrivate = usePlanetStore.getState().isPrivateWorld
+    if (!profile || (!isPrivate && !activeCampusId)) return
     setIsLoaded(false)
     let cancelled = false
 
     setTimeout(() => {
       if (cancelled) return
-      const map = generateLocalMap(profile, MAP_SIZE_BLOCKS)
+      const isPrivate = usePlanetStore.getState().isPrivateWorld
+      const size = isPrivate ? 64 : MAP_SIZE_BLOCKS
+      const map = generateLocalMap(profile, size)
       mapRef.current = map
       setLocalMap(map)
       setMapVersion((v) => v + 1)
-
-      getWorld(activeCampusId)
+      const isPrivateWorld = usePlanetStore.getState().isPrivateWorld
+      getWorld(isPrivateWorld ? getUserId() : activeCampusId)
         .then((detail) => {
           if (cancelled) return
           for (const b of detail.blocks) applyWorldBlock(map, b)
@@ -233,15 +284,26 @@ const WorldScene = () => {
     }
   }, [activeCampusId, profile])
 
-  // Live sync: join this campus's room and apply edits from the other players
-  // standing on the same island.
-useEffect(() => {
-    if (!activeCampusId) return
+  useEffect(() => {
+    if (!activeCampusId && !isPrivate) return
     const token = tokenStore.access
     if (!token) return
     const socket = connectWorldSocket(token)
 
-    socket.emit('world:join', { campusId: activeCampusId })
+    useWorldEconomy.getState().reset()
+
+    const onCoins = ({
+      campusId,
+      coins,
+    }: {
+      campusId: string
+      coins: number
+    }) => {
+      if (campusId === activeCampusId) useWorldEconomy.getState().setCoins(coins)
+    }
+    socket.on('world:coins', onCoins)
+
+    socket.emit('world:join', { campusId: activeCampusId, personalWorld: isPrivate })
 
     const onRemoteEdit = ({ blocks }: { blocks: WorldBlock[] }) => {
       const map = mapRef.current
@@ -250,19 +312,42 @@ useEffect(() => {
       setMapVersion((v) => v + 1)
     }
 
-    const onLookupResponse = (data: { date: string; userId: string, userName: string, userAvatar: string, placedBlock: number }[]) => {
+    const onLookupResponse = (data: LookupRecord[]) => {
       useLookupStore.getState().setResults(data)
     }
 
     socket.on('world:edit', onRemoteEdit)
     socket.on('world:lookup:res', onLookupResponse)
 
-    return () => {
-      socket.emit('world:leave', { campusId: activeCampusId })
-      socket.off('world:edit', onRemoteEdit)
-      socket.off('world:lookup:res', onLookupResponse)
+    const onRevert = ({
+      positions,
+    }: {
+      positions: { x: number; y: number; z: number }[]
+    }) => {
+      const map = mapRef.current
+      if (!map) return
+      for (const pos of positions) {
+        const key = `${pos.x},${pos.y},${pos.z}`
+        const prev = prevStates.current.get(key)
+        if (prev) {
+          map.setGlobalBlock(pos.x, pos.y, pos.z, prev.block)
+          map.setGlobalBlockRotation(pos.x, pos.y, pos.z, prev.rotation)
+          prevStates.current.delete(key)
+        }
+      }
+      setMapVersion((v) => v + 1)
     }
-  }, [activeCampusId])
+    socket.on('world:revert', onRevert)
+
+    return () => {
+      socket.emit('world:leave', { campusId: activeCampusId, personalWorld: isPrivate })
+      socket.off('world:edit', onRemoteEdit)
+
+      socket.off('world:lookup:res', onLookupResponse)
+      socket.off('world:coins', onCoins)
+      socket.off('world:revert', onRevert)
+    }
+  }, [activeCampusId, isPrivate])
 
   // Broadcast our own transform to the island, throttled and only when it
   // changed. We always send the body; in freecam we also send the flying camera
@@ -271,15 +356,17 @@ useEffect(() => {
   const camDir = useRef(new THREE.Vector3())
   useFrame(() => {
     const socket = getWorldSocket()
-    const { activeCampusId } = usePlanetStore.getState()
+    const { activeCampusId, isPrivateWorld } = usePlanetStore.getState()
     const p = playerRef.current
-    if (!socket || !activeCampusId || !p) return
+    if (!socket || (!activeCampusId && !isPrivateWorld) || !p) return
 
     const freecam = currentMode === 'freecam'
     const round = (n: number) => Math.round(n * 50) / 50 // ~0.02 step
 
+
     camera.getWorldDirection(camDir.current)
 
+    const skin = usePlayerAppearance.getState().skinColor
     const payload: {
       campusId?: string
       personalWorld?: boolean
@@ -288,15 +375,22 @@ useEffect(() => {
       m: 'player' | 'freecam'
       c?: [number, number, number]
       cr?: number
+
       cp?: number
+      skin: string
     } = {
       p: [round(p.position.x), round(p.position.y), round(p.position.z)],
       r: round(p.rotation.y),
       m: freecam ? 'freecam' : 'player',
+
       cp: round(Math.asin(camDir.current.y)),
+      skin,
     }
 
-    payload.campusId = activeCampusId!;
+    if (activeCampusId) {
+      payload.campusId = activeCampusId
+    }
+    payload.personalWorld = isPrivateWorld
 
     if (freecam) {
       payload.c = [
@@ -307,8 +401,9 @@ useEffect(() => {
       payload.cr = round(Math.atan2(camDir.current.x, camDir.current.z))
     }
 
-    // A signature that captures everything peers care about (incl. mode switch).
-    const key = `${payload.m}|${payload.p.join(',')}|${payload.r}|${payload.c?.join(',') ?? ''}|${payload.cr ?? ''}|${payload.cp ?? ''}`
+
+    // A signature that captures everything peers care about (incl. mode/skin).
+    const key = `${payload.m}|${payload.p.join(',')}|${payload.r}|${payload.c?.join(',') ?? ''}|${payload.cr ?? ''}|${payload.cp ?? ''}|${payload.skin}`
     const now = performance.now()
     const last = lastSent.current
     if (key === last.key || now - last.t < 66) return // ~15 Hz, only on change
@@ -324,13 +419,19 @@ useEffect(() => {
 
   const flushBlocks = useCallback(() => {
     flushTimer.current = null
-    const { activeCampusId } = usePlanetStore.getState()
+    const { activeCampusId, isPrivateWorld } = usePlanetStore.getState()
     const socket = getWorldSocket()
-    if (!activeCampusId || !socket || pendingBlocks.current.length === 0) return
+    if (!socket || pendingBlocks.current.length === 0) return
+    if (!activeCampusId && !isPrivateWorld) return
+
     const batch = pendingBlocks.current
     pendingBlocks.current = []
 
-    socket.emit('world:edit', { campusId: activeCampusId, blocks: batch })
+    socket.emit('world:edit', { 
+      campusId: activeCampusId, 
+      blocks: batch,
+      personalWorld: isPrivateWorld
+    })
   }, [])
 
   // Flush any pending edits when leaving the world.
@@ -338,15 +439,41 @@ useEffect(() => {
 
   const handleUpdateBlock = (x: number, y: number, z: number, block: Block | null, rotation?: number) => {
     if (!localMap) return
+    // Guests (non-42) can't touch blocks, and 42 users only on their own worlds.
+    if (!canEditCurrentWorld()) return
 
+    const isPrivate = usePlanetStore.getState().isPrivateWorld
     const blockValue = block ?? Block.Air
+    const isRotation = rotation !== undefined
+    const isPlacement = !isRotation && block !== null && blockValue !== Block.Air
 
-    if (rotation !== undefined) {
+    // Can't place a paid block when the campus has no coins left.
+    // null means we haven't received the balance yet — let the server validate.
+    const economy = useWorldEconomy.getState()
+    if (!isPrivate && isPlacement && isPaidBlock(blockValue) && economy.coins !== null && economy.coins <= 0) {
+      toast.error(i18n.t('world.noCoins', { defaultValue: 'Your campus is out of coins' }))
+      return
+    }
+
+    // Remember the prior state in case the server rejects this placement.
+    const prevBlock = localMap.getGlobalBlock(x, y, z)
+    prevStates.current.set(`${x},${y},${z}`, {
+      block: prevBlock,
+      rotation: localMap.getGlobalBlockRotation(x, y, z),
+    })
+
+    if (isRotation) {
       localMap.setGlobalBlockRotation(x, y, z, rotation)
     } else {
       localMap.setGlobalBlock(x, y, z, blockValue)
     }
     setMapVersion((v) => v + 1)
+
+    // Optimistic coin change; the server's `world:coins` reconciles it.
+    if (!isPrivate) {
+      if (isPlacement && isPaidBlock(blockValue)) economy.adjust(-1)
+      else if (block === null && isPaidBlock(prevBlock)) economy.adjust(1)
+    }
 
     pendingBlocks.current.push({ x, y, z, block: blockValue, rotation: rotation ?? 0 })
     // Coalesce bursts into ~100ms batches, but keep flushing while editing
@@ -361,14 +488,21 @@ useEffect(() => {
       return
     }
 
+    const isMobile = window.matchMedia("(max-width: 767px)").matches || 
+                     window.matchMedia("(max-width: 1023px) and (orientation: landscape)").matches
+    if (isMobile) {
+      useEditorStore.getState().setCatalogOpen(false)
+    }
+
     useLookupStore.getState().openLookup()
 
     const socket = getWorldSocket()
-    if (!socket || !activeCampusId) return
+    const isPrivate = usePlanetStore.getState().isPrivateWorld
+    if (!socket || (!activeCampusId && !isPrivate)) return
 
     lastLookupTime.current = now
     socket.emit('world:lookup', {
-      campusId: activeCampusId,
+      campusId: isPrivate ? getUserId() : activeCampusId,
       x,
       y,
       z
@@ -382,7 +516,13 @@ useEffect(() => {
         geometry: THREE.BufferGeometry; 
         material: THREE.Material | THREE.Material[]; 
       }
-    > = {} as any
+    > = {} as unknown as Record<
+      Exclude<Block, Block.Air>,
+      { 
+        geometry: THREE.BufferGeometry; 
+        material: THREE.Material | THREE.Material[]; 
+      }
+    >
 
     const geometry = new THREE.BoxGeometry(2, 2, 2)
     const textureLoader = new THREE.TextureLoader()
@@ -431,7 +571,7 @@ useEffect(() => {
             mat.map = faceTex
 
             // Reset color to white by default when texture is loaded, to prevent oversaturation
-            mat.color.set('#ffffff' as any)
+            mat.color.set(new THREE.Color('#ffffff'))
 
             mat.needsUpdate = true
           })
@@ -453,12 +593,15 @@ useEffect(() => {
   const [visibleChunks, setVisibleChunks] = useState<{ cx: number; cz: number }[]>([])
 
   useFrame(() => {
-    const cameraChunkX = Math.floor((camera.position.x + MAP_SIZE_BLOCKS / 2) / Chunk.WIDTH)
-    const cameraChunkZ = Math.floor((camera.position.z + MAP_SIZE_BLOCKS / 2) / Chunk.WIDTH)
+    const isPrivate = usePlanetStore.getState().isPrivateWorld
+    const size = isPrivate ? 64 : MAP_SIZE_BLOCKS
+    const cameraChunkX = Math.floor((camera.position.x + size / 2) / Chunk.WIDTH)
+    const cameraChunkZ = Math.floor((camera.position.z + size / 2) / Chunk.WIDTH)
 
     const newVisibleChunks: { cx: number; cz: number }[] = []
-    for (let cz = 0; cz < CHUNKS_PER_SIDE; cz++) {
-      for (let cx = 0; cx < CHUNKS_PER_SIDE; cx++) {
+    const chunksPerSide = size / Chunk.WIDTH
+    for (let cz = 0; cz < chunksPerSide; cz++) {
+      for (let cx = 0; cx < chunksPerSide; cx++) {
         const dx = cx - cameraChunkX
         const dz = cz - cameraChunkZ
         const distSq = dx * dx + dz * dz
@@ -487,7 +630,7 @@ useEffect(() => {
       >
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
           <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary" />
-          <h2 className="text-2xl font-bold tracking-tight text-primary">Loading World...</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-primary">{t('world.loading')}</h2>
         </div>
       </Html>
     )
@@ -495,10 +638,17 @@ useEffect(() => {
 
   return (
     <group>
+      <Minimap
+        localMap={localMap}
+        mapVersion={mapVersion}
+        playerRef={playerRef}
+        currentMode={currentMode}
+        mapSize={mapSize}
+      />
       <WorldShadowLight playerRef={playerRef} currentMode={currentMode} />
       <FreeCameraControls
         localMap={localMap}
-        mapSize={MAP_SIZE_BLOCKS}
+        mapSize={mapSize}
         active={currentMode === 'freecam'}
         playerRef={playerRef}
         onLookupBlock={handleLookupBlock}
@@ -509,7 +659,7 @@ useEffect(() => {
         active={currentMode === 'player'}
         playerRef={playerRef}
       />
-      {activeCampusId && <RemotePlayers campusId={activeCampusId} />}
+      {(activeCampusId || isPrivate) && <RemotePlayers campusId={activeCampusId || 'personal'} />}
       {visibleChunks.map(({ cx, cz }) => (
         <ChunkRenderer
           key={`${cx}-${cz}`}

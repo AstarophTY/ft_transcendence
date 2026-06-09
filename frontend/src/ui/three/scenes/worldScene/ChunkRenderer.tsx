@@ -1,9 +1,11 @@
-import { useRef, useMemo, useLayoutEffect } from 'react'
+import { useRef, useMemo, useLayoutEffect, ElementType } from 'react'
 import * as THREE from 'three'
 
 import { Chunk } from '@/types/maps/Chunk.ts'
 import { Block } from '@/types/Block'
 import { LocalMap } from '@/types/maps/LocalMap'
+
+const InstancedMesh = 'instancedMesh' as unknown as ElementType
 
 interface ChunkBlockTypeRendererProps {
   blockType: Exclude<Block, Block.Air>
@@ -66,7 +68,7 @@ const ChunkBlockTypeRenderer = ({
   }, [instances, chunkX, chunkZ, mapSize])
 
   return (
-    <instancedMesh
+    <InstancedMesh
       ref={meshRef}
       args={[geometry, material, instances.length]}
       castShadow={blockType !== Block.Water}
@@ -149,7 +151,10 @@ export const ChunkRenderer = ({
 
   // Optimize: use chunk.version dependency to only recalculate instances if this chunk was modified!
   const instancesByBlock = useMemo(() => {
-    const lists: Record<Exclude<Block, Block.Air>, { x: number; y: number; z: number; r: number }[]> = {} as any
+    const lists: Record<Exclude<Block, Block.Air>, { x: number; y: number; z: number; r: number }[]> = {} as unknown as Record<
+      Exclude<Block, Block.Air>,
+      { x: number; y: number; z: number; r: number }[]
+    >
     const activeBlocks = Object.values(Block).filter(
       (b) => typeof b === 'number' && b !== Block.Air
     ) as Exclude<Block, Block.Air>[]
@@ -175,6 +180,7 @@ export const ChunkRenderer = ({
     }
 
     return lists
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chunk, localMap, chunkX, chunkZ, chunk?.version])
 
   if (!chunk) return null

@@ -7,8 +7,9 @@ import {
   OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
+  WebSocketServer,
 } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { authenticateSocket } from '../friends/socket-auth';
 import { RedisService } from '../redis/redis.service';
 import { WorldBlockDto } from './dto/save-blocks.dto';
@@ -18,7 +19,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 /** World bounds used to reject out-of-range edits (see worldScene constants). */
 const MAP_WIDTH = 512;
 const MAP_HEIGHT = 64;
-const MAX_BLOCK = 12;
+const MAX_BLOCK = 249;
 const MAX_ROTATION = 63; // 2 bits per X/Y/Z axis
 const MAX_BATCH = 4096;
 
@@ -41,6 +42,8 @@ interface PlayerState {
   c?: [number, number, number];
   cr?: number;
   cp?: number;
+  /** Avatar tint (hex color). */
+  skin?: string;
 }
 
 /**
@@ -58,6 +61,8 @@ interface PlayerState {
 export class WorldGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
+  @WebSocketServer() server!: Server;
+
   /** Last known transform of every connected player, per campus room. */
   private readonly players = new Map<string, Map<string, PlayerState>>();
 
@@ -83,6 +88,17 @@ export class WorldGateway
     client.data.userId = auth.userId;
     client.data.username = auth.username;
     client.data.avatar = auth.avatar;
+    // The user's own campus (null for guests/non-42), used to authorize edits.
+    client.data.userCampusId = auth.campusId;
+
+    // Disconnect any existing connection for this user
+    const existingSockets = await this.server.fetchSockets();
+    for (const socket of existingSockets) {
+      if (socket.data.userId === auth.userId && socket.id !== client.id) {
+        socket.emit('auth:kick', { reason: 'concurrent_login' });
+        socket.disconnect(true);
+      }
+    }
   }
 
   handleDisconnect(client: Socket): void {
@@ -92,20 +108,23 @@ export class WorldGateway
   @SubscribeMessage('world:lookup')
   async handleBlockLookup(
     @ConnectedSocket() client: Socket,
-    @MessageBody() body: { campusId?: string; x?: number; y?: number; z?: number; },
+    @MessageBody() body: { campusId?: string; x?: number; y?: number; z?: number },
   ): Promise<void> {
     const campusId = body?.campusId;
     const x = body?.x;
     const y = body?.y;
     const z = body?.z;
 
-    const world = await this.prisma.world.findUnique({
-      where: { campusId: campusId },
+    const world = await this.prisma.world.findFirst({
+      where: {
+        OR: [
+          { campusId: campusId },
+          { userId: campusId },
+        ],
+      },
       select: { id: true },
     });
-    
-    if (!world)
-      return;
+    if (!world) return;
 
     const blocks = await this.prisma.blockLog.findMany({
       where: {
@@ -114,38 +133,27 @@ export class WorldGateway
         worldBlockY: y,
         worldBlockZ: z,
       },
-      orderBy: {
-        date: 'desc',
-      },
+      orderBy: { date: 'desc' },
       select: { date: true, userId: true, placedBlock: true },
       take: 5,
     });
 
-    const userIds = blocks.map(k => {
-      return k.userId;
-    });
-
+    const userIds = blocks.map((k) => k.userId);
     const users = await this.prisma.user.findMany({
-      where: {
-        id: {
-          in: userIds,
-        },
-      },
-      select: {
-        id: true,
-        avatar: true,
-        fortyTwoLogin: true,
-      },
+      where: { id: { in: userIds } },
+      select: { id: true, avatar: true, fortyTwoLogin: true },
     });
 
-    const result = blocks.map(k => {
-      const user = users.find(u => u.id === k.userId);
+    const result = blocks.map((k, index) => {
+      const user = users.find((u) => u.id === k.userId);
+      const previousBlock = blocks[index + 1] ? blocks[index + 1].placedBlock : 0;
       return {
         date: k.date,
         userId: k.userId,
-        placedBlock: k.placedBlock,
         userAvatar: user?.avatar,
         userName: user?.fortyTwoLogin,
+        placedBlock: k.placedBlock,
+        previousBlock,
       };
     });
 
@@ -154,10 +162,10 @@ export class WorldGateway
 
   /** Join a campus world room (leaving any previously joined one). */
   @SubscribeMessage('world:join')
-  handleJoin(
+  async handleJoin(
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { campusId?: string; personalWorld?: boolean },
-  ): void {
+  ): Promise<void> {
     const campusId = body?.campusId;
     const personalWorld = body?.personalWorld;
 
@@ -183,6 +191,10 @@ export class WorldGateway
         .map(([id, state]) => ({ id, ...state }));
       if (others.length > 0) client.emit('world:players', others);
     }
+
+    // Send the campus build budget so the client knows what it can place.
+    const coins = await this.world.getCampusCoins(campusId);
+    if (coins !== null) client.emit('world:coins', { campusId, coins });
   }
 
   /** Leave a campus world room. */
@@ -208,6 +220,7 @@ export class WorldGateway
       c?: unknown;
       cr?: unknown;
       cp?: unknown;
+      skin?: unknown;
     },
   ): void {
     const campusId = body?.campusId;
@@ -234,6 +247,9 @@ export class WorldGateway
       body.cp,
     );
     if (!state) return;
+    if (typeof body.skin === 'string' && body.skin.length <= 9) {
+      state.skin = body.skin;
+    }
 
     if (campusId) {
       let roomPlayers = this.players.get(campusId);
@@ -271,18 +287,40 @@ export class WorldGateway
     const blocks = this.sanitize(body.blocks);
     if (blocks.length === 0) return;
 
-    client.to(room).emit('world:edit', { blocks });
+    // Only 42 accounts (which carry a campus) may build, and a campus world may
+    // only be edited by its own members. Guests/non-42 users have no campus, so
+    // they can't edit anything — including their personal planet.
+    const userCampusId = client.data.userCampusId as string | null;
+    if (!userCampusId) return;
+    if (campusId && campusId !== userCampusId) return;
 
     try {
-      //if (personalWorld) {
-      //  await this.world.saveUserBlocks(client.data.userId, blocks);
-      //} else 
-      if (campusId) {
-        await this.world.saveBlocks(campusId, blocks, client.data.userId);
+      const userId = client.data.userId as string;
+
+      if (personalWorld) {
+        // personalWorld — no economy, just persist and relay
+        await this.world.saveBlocks(userId, blocks, userId);
+        client.to(room).emit('world:edit', { blocks });
+      } else if (campusId) {
+        // Apply the campus-coin economy, then relay only the accepted edits.
+        const { applied, rejected, coins } = await this.world.applyEdits(campusId, blocks, userId);
+        if (applied.length > 0) {
+          client.to(room).emit('world:edit', { blocks: applied });
+        }
+        if (rejected.length > 0) {
+          client.emit('world:revert', { positions: rejected });
+        }
+        client.emit('world:coins', { campusId, coins });
+        client.to(room).emit('world:coins', { campusId, coins });
       }
-    } catch {
-      /* a failed persist should not break the live relay */
+    } catch (error) {
+      console.error('Failed to save world blocks:', error);
     }
+  }
+
+  /** Push an updated coin balance to every client on the campus island. */
+  broadcastCampusCoins(campusId: string, coins: number): void {
+    this.server?.to(this.room(campusId)).emit('world:coins', { campusId, coins });
   }
 
   private room(campusId: string): string {

@@ -8,6 +8,6 @@ import { WorldService } from './world.service';
   imports: [JwtModule.register({})],
   controllers: [WorldController],
   providers: [WorldService, WorldGateway],
-  exports: [WorldService],
+  exports: [WorldService, WorldGateway],
 })
 export class WorldModule {}

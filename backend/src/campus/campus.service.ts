@@ -6,6 +6,7 @@ import {
 import { Campus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { generateWorldProfile } from '../world/world.profile';
+import { WorldGateway } from '../world/world.gateway';
 import { UpdateCampusDto } from './dto/update-campus.dto';
 
 /** A campus together with the accounts attached to it (admin view). */
@@ -34,7 +35,10 @@ const CAMPUS_WITH_MEMBERS = {
  */
 @Injectable()
 export class CampusService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly worldGateway: WorldGateway,
+  ) {}
 
   /** Every approved campus, alphabetical. */
   list(): Promise<Campus[]> {
@@ -90,7 +94,11 @@ export class CampusService {
       }
     }
 
-    return this.prisma.campus.update({ where: { id }, data: rest });
+    const updated = await this.prisma.campus.update({ where: { id }, data: rest });
+    if (dto.coins !== undefined) {
+      this.worldGateway.broadcastCampusCoins(id, updated.coins);
+    }
+    return updated;
   }
 
   /** Admin: delete a campus; its members are detached automatically. */

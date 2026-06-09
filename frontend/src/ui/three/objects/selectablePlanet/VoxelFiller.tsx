@@ -1,6 +1,9 @@
 import * as THREE from 'three'
-import { useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect, useRef, ElementType } from 'react'
 import type { FillerVoxel } from './fillerTypes'
+
+const InstancedMesh = 'instancedMesh' as unknown as ElementType
+const BoxGeometry = 'boxGeometry' as unknown as ElementType
 
 type Props = {
   fillerVoxels: FillerVoxel[]
@@ -36,10 +39,13 @@ const VoxelFiller = ({ fillerVoxels, newScale }: Props) => {
   if (fillerVoxels.length === 0) return null
 
   return (
-    <instancedMesh ref={instancedMeshRef} args={[null as any, null as any, fillerVoxels.length]}>
-      <boxGeometry args={[1, 1, 1]} />
+    <InstancedMesh
+      ref={instancedMeshRef}
+      args={[null as unknown as THREE.BufferGeometry, null as unknown as THREE.Material, fillerVoxels.length]}
+    >
+      <BoxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial />
-    </instancedMesh>
+    </InstancedMesh>
   )
 }
 

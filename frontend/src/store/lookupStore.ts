@@ -6,13 +6,14 @@ export interface LookupRecord {
   userAvatar: string,
   userId: string,
   placedBlock: number
+  previousBlock: number
 }
 
 interface LookupState {
   isOpen: boolean
   isLoading: boolean
   results: LookupRecord[] | null
-  openLookup: () => void
+  openLookup: (loading?: boolean) => void
   closeLookup: () => void
   setResults: (results: LookupRecord[]) => void
 }
@@ -21,7 +22,7 @@ export const useLookupStore = create<LookupState>((set) => ({
   isOpen: false,
   isLoading: false,
   results: null,
-  openLookup: () => set({ isOpen: true, isLoading: true, results: null }),
+  openLookup: (loading = true) => set({ isOpen: true, isLoading: loading, results: null }),
   closeLookup: () => set({ isOpen: false }),
   setResults: (results) => set({ results, isLoading: false })
 }))

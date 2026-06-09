@@ -1,7 +1,8 @@
 import type { StateCreator } from 'zustand'
 import { toast } from 'sonner'
 import { tokenStore, type DirectMessage, type Friendship } from '@/lib/api'
-import { connectSocket, disconnectSocket } from '@/lib/socket'
+import { connectSocket, disconnectSocket } from '@/lib/sockets/socket'
+import { disconnectWorldSocket } from '@/lib/sockets/worldSocket'
 import { useAuth } from '@/store/auth'
 import { useChatChannels } from '@/store/chatChannels'
 import i18n from '@/i18n'
@@ -68,6 +69,14 @@ export const createSocketSlice: StateCreator<
         }
         const name = nameOf(message.senderId)
         if (name) toast.info(i18n.t('friends.notif.message', { name }))
+      })
+      .off('auth:kick')
+      .on('auth:kick', () => {
+        tokenStore.clear()
+        useAuth.setState({ user: null })
+        disconnectSocket()
+        disconnectWorldSocket()
+        toast.error(i18n.t('auth.concurrentLogin', { defaultValue: 'Disconnected: another connection was opened under this account' }))
       })
   },
 

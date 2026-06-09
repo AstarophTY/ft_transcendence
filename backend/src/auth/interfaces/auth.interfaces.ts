@@ -6,6 +6,7 @@ export interface JwtPayload {
   username: string;
   avatar: string | null;
   role: Role;
+  campusId: string | null;
   jti: string;
 }
 
