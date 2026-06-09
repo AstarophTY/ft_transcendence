@@ -40,7 +40,7 @@ export class WorldService {
           },
         },
       });
-
+      
       worlds.push({
         campusId: campus.id,
         label: campus.label,
