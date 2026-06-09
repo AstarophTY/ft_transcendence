@@ -36,7 +36,7 @@ const SceneFrame = () => {
     <>
       <div id="canvas-container" className={`absolute inset-0 z-0 h-full w-full ${isTouch ? 'pointer-events-none' : ''}`}>
         <WebGLErrorBoundary>
-          <Canvas className="h-full w-full" camera={{ position: [0, 1.5, 4], fov: 45 }} shadows>
+          <Canvas className="h-full w-full" camera={{ position: [0, 1.5, 4], fov: 40 }} shadows>
           <Sky sunPosition={[100, 20, 100]} />
           <Environment background={false} preset={undefined}>
             <Sky sunPosition={[100, 20, 100]} />
