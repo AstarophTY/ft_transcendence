@@ -7,7 +7,9 @@ import { Campus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { generateWorldProfile } from '../world/world.profile';
 import { WorldGateway } from '../world/world.gateway';
+import { CreateContestDto } from './dto/create-contest.dto';
 import { UpdateCampusDto } from './dto/update-campus.dto';
+import { UpdateContestDto } from './dto/update-contest.dto';
 
 /** A campus together with the accounts attached to it (admin view). */
 const CAMPUS_WITH_MEMBERS = {
@@ -151,7 +153,7 @@ export class CampusService {
     });
   }
 
-  async createContest(campusId: string, data: any) {
+  async createContest(campusId: string, data: CreateContestDto) {
     return this.prisma.voteContest.create({
       data: {
         campusId,
@@ -164,14 +166,16 @@ export class CampusService {
     });
   }
 
-  async updateContest(contestId: string, data: any) {
-    const updateData = { ...data };
-    if (data.startsAt) updateData.startsAt = new Date(data.startsAt);
-    if (data.endsAt) updateData.endsAt = new Date(data.endsAt);
-
+  async updateContest(contestId: string, data: UpdateContestDto) {
     return this.prisma.voteContest.update({
       where: { id: contestId },
-      data: updateData,
+      data: {
+        title: data.title,
+        description: data.description,
+        isActive: data.isActive,
+        startsAt: data.startsAt ? new Date(data.startsAt) : undefined,
+        endsAt: data.endsAt ? new Date(data.endsAt) : undefined,
+      },
     });
   }
 }

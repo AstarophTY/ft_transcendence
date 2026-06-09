@@ -3,6 +3,7 @@ import { WorldService } from './world.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { AuthUser } from '../auth/interfaces/auth.interfaces';
+import { VoteDto } from './dto/vote.dto';
 
 @Controller('vote')
 @UseGuards(JwtAuthGuard)
@@ -22,9 +23,9 @@ export class VoteController {
   @Post(':contestId/vote')
   async vote(
     @Param('contestId') contestId: string,
-    @Body('userId') targetUserId: string,
+    @Body() dto: VoteDto,
     @CurrentUser() user: AuthUser,
   ) {
-    return this.worldService.vote(user.userId, contestId, targetUserId);
+    return this.worldService.vote(user.userId, contestId, dto.userId);
   }
 }

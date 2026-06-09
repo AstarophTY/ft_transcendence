@@ -15,7 +15,9 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { CampusService } from './campus.service';
+import { CreateContestDto } from './dto/create-contest.dto';
 import { UpdateCampusDto } from './dto/update-campus.dto';
+import { UpdateContestDto } from './dto/update-contest.dto';
 
 @Controller('campus')
 @UseGuards(JwtAuthGuard)
@@ -79,7 +81,7 @@ export class CampusController {
   @Post(':id/contests')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
-  createContest(@Param('id') id: string, @Body() dto: any) {
+  createContest(@Param('id') id: string, @Body() dto: CreateContestDto) {
     return this.campus.createContest(id, dto);
   }
 
@@ -88,7 +90,7 @@ export class CampusController {
   @Roles(Role.ADMIN)
   updateContest(
     @Param('contestId') contestId: string,
-    @Body() dto: any,
+    @Body() dto: UpdateContestDto,
   ) {
     return this.campus.updateContest(contestId, dto);
   }
