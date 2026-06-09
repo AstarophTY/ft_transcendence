@@ -14,6 +14,8 @@ import { useIsTouchDevice } from '@/hooks/use-mobile.tsx'
 import { isEditableTarget } from '@/lib/utils'
 
 import { usePlanetStore } from '@/store/planetStore'
+import { useWorldEconomy } from '@/store/worldEconomy'
+import { isPaidBlock } from '@/config/worldBlocks'
 import { toast } from 'sonner'
 import i18n from '@/i18n'
 
@@ -393,6 +395,30 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
     }
 
     const blocksToUpdate = getAffectedBlocks(centerX, centerY, centerZ, shape, shapeSizeX, shapeSizeY, shapeSizeZ, mapSize)
+
+    // Pre-check: if placing paid blocks in a campus world, make sure we have
+    // enough coins for the entire zone — show a single notification instead of
+    // one per rejected block.
+    if (!isPrivate && tool === Tab.Add && selectedBlock !== null && isPaidBlock(selectedBlock)) {
+      const economy = useWorldEconomy.getState()
+      if (economy.coins !== null && economy.coins <= 0) {
+        toast.error(i18n.t('world.noCoins', { defaultValue: 'Your campus is out of coins' }))
+        return
+      }
+      let needed = 0
+      for (const pos of blocksToUpdate) {
+        const block = localMap.getGlobalBlock(pos.x, pos.y, pos.z)
+        if ((block === Block.Air || block === Block.Water)) needed++
+      }
+      if (economy.coins !== null && needed > economy.coins) {
+        toast.error(i18n.t('world.insufficientCoins', {
+          defaultValue: 'Not enough coins — you need {{needed}} but only have {{coins}}',
+          needed,
+          coins: economy.coins,
+        }))
+        return
+      }
+    }
 
     const mapWidthInChunks = localMap.widthInChunks;
     const mapDepthInChunks = localMap.depthInChunks;
