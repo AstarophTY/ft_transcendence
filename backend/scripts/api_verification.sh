@@ -1,6 +1,8 @@
 #!/usr/bin/env sh
 
-set -euo pipefail
+set -e
+
+source .env
 
 # this script checks if the 42 api credentials are valid
 
@@ -25,6 +27,8 @@ response=$(curl -sS \
   --data-urlencode "client_secret=$CLIENT_SECRET")
 
 echo "$response" | grep -q '"access_token"' || {
-    echo "ERROR: Invalid 42 API credentials" >&2
+    echo -e "\033[31mERROR\033[0m: Invalid 42 API credentials" >&2
     exit 1
 }
+echo -e "\033[32mSUCCESS\033[0m: API check succeeded!"
+exit 0
