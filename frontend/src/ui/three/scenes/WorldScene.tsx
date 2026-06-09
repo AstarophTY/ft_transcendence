@@ -4,7 +4,6 @@ import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { Loader2 } from 'lucide-react'
-
 import { Chunk } from '@/types/maps/Chunk.ts'
 import type { DemoPlanetProfile } from '@/types/Three'
 import { usePlanetStore } from '@/store/planetStore.ts'
@@ -24,7 +23,6 @@ import RemotePlayers from '../objects/RemotePlayers'
 import { ChunkRenderer } from './worldScene/ChunkRenderer'
 import { MAP_SIZE_BLOCKS } from './worldScene/constants'
 import { FreeCameraControls } from './worldScene/FreeCameraControls'
-import { VoteOverlay } from './VoteOverlay'
 import { Block } from '@/types/Block'
 import { BlockMetadata } from '@/config/Block'
 import { LocalMap } from '@/types/maps/LocalMap'
@@ -203,10 +201,10 @@ const WorldScene = () => {
   const activeCampusId = usePlanetStore((state) => state.activeCampusId)
   const worlds = usePlanetStore((state) => state.worlds)
   const renderDistance = usePlanetStore((state) => state.renderDistance)
+  const setContests = usePlanetStore((state) => state.setContests);
   const isPrivate = usePlanetStore((state) => state.isPrivateWorld)
   const mapSize = isPrivate ? 64 : MAP_SIZE_BLOCKS
   const playerRef = useRef<THREE.Group | null>(null)
-
   const inEditor = useEditorStore((state) => state.in_editor)
   const activeEditor = useEditorStore((state) => state.activeEditor)
   const currentMode = inEditor ? 'freecam' : 'player'
@@ -244,7 +242,6 @@ const WorldScene = () => {
 
   const [localMap, setLocalMap] = useState<LocalMap | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
-  const [contests, setContests] = useState<any[]>([])
   const [mapVersion, setMapVersion] = useState(0)
   // Latest map, for the socket listener which is registered once per campus.
   const mapRef = useRef<LocalMap | null>(localMap)
@@ -672,7 +669,6 @@ const WorldScene = () => {
           blockAssets={blockAssets}
         />
       ))}
-      <VoteOverlay contests={contests} onUpdateContests={setContests} isPrivate={isPrivate} />
     </group>
   )
 }

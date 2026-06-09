@@ -42,7 +42,11 @@
     "registerSuccess": "Compte créé !",
     "logoutSuccess": "Déconnecté",
     "sessionExpired": "Session expirée, reconnecte-toi",
-    "concurrentLogin": "Déconnecté : une autre session s'est ouverte sur ce compte"
+    "concurrentLogin": "Déconnecté : une autre session s'est ouverte sur ce compte",
+    "acceptPrivacyPre": "J'ai lu et j'accepte la",
+    "privacyPolicy": "Politique de confidentialité",
+    "mustAcceptPrivacy": "Vous devez accepter la politique de confidentialité pour créer un compte",
+    "signupCancelled": "Inscription annulée, votre compte n'a pas été conservé"
   },
   "friends": {
     "title": "Amis",
@@ -110,7 +114,10 @@
       "DND": "Ne pas déranger",
       "OFFLINE": "Hors ligne"
     },
-    "theme": { "light": "Clair", "dark": "Sombre" },
+    "theme": {
+      "light": "Clair",
+      "dark": "Sombre"
+    },
     "profile": {
       "displayName": "Nom d'affichage",
       "bio": "Bio",
@@ -175,7 +182,9 @@
       "42": "42",
       "local": "Locaux"
     },
-    "chart": { "title": "Inscriptions (14 derniers jours)" },
+    "chart": {
+      "title": "Inscriptions (14 derniers jours)"
+    },
     "edit": {
       "title": "Modifier l'utilisateur",
       "newPassword": "Nouveau mot de passe",
@@ -496,5 +505,55 @@
     "Wool_Colored_White": "Laine blanche",
     "Wool_Colored_Yellow": "Laine jaune"
   },
-  "world.loading": "Chargement du monde..."
+  "world.loading": "Chargement du monde...",
+  "legal": {
+    "privacyTitle": "Politique de confidentialité",
+    "lastUpdated": "Dernière mise à jour : juin 2026",
+    "accept": "Accepter et continuer",
+    "decline": "Refuser",
+    "acceptRequired": "Bienvenue ! Veuillez lire et accepter notre politique de confidentialité pour finaliser la création de votre compte.",
+    "intro": "Cette politique de confidentialité explique quelles données personnelles ft_transcendence collecte lorsque vous créez un compte et utilisez l'application, pourquoi nous les collectons, et les droits dont vous disposez. En créant un compte, vous confirmez avoir lu et accepté cette politique.",
+    "sections": [
+      {
+        "title": "1. Données que nous collectons",
+        "body": "Lors de votre inscription, nous collectons les informations que vous fournissez : votre nom d'utilisateur, votre adresse e-mail et votre mot de passe (stocké uniquement sous forme de hachage salé, jamais en clair). Si vous vous connectez avec votre compte 42, nous recevons votre identifiant 42, votre e-mail et votre photo de profil. Pendant votre utilisation du service, nous stockons aussi les données que vous générez : votre avatar, le temps passé connecté (logtime), les blocs et contributions que vous placez dans le monde partagé, votre liste d'amis, les résultats de vos parties et vos préférences (langue et thème)."
+      },
+      {
+        "title": "2. Utilisation de vos données",
+        "body": "Nous utilisons vos données uniquement pour faire fonctionner le service : vous authentifier, afficher votre profil et votre présence aux autres joueurs, sauvegarder vos contributions au monde et votre progression, gérer vos amitiés et mémoriser vos réglages. Nous ne vendons pas vos données et ne les utilisons pas à des fins publicitaires."
+      },
+      {
+        "title": "3. Base légale",
+        "body": "Nous traitons vos données sur la base du contrat qui vous permet d'utiliser l'application (gestion de votre compte et du jeu) et, le cas échéant, de votre consentement, que vous donnez en acceptant cette politique lors de votre inscription. Vous pouvez retirer votre consentement à tout moment en supprimant votre compte."
+      },
+      {
+        "title": "4. Tiers",
+        "body": "L'authentification peut passer par le service OAuth de 42 si vous choisissez de vous connecter avec 42 ; dans ce cas, 42 traite votre identifiant selon sa propre politique de confidentialité. Nous ne partageons vos données personnelles avec aucun autre tiers, sauf obligation légale."
+      },
+      {
+        "title": "5. Conservation des données",
+        "body": "Nous conservons vos données tant que votre compte existe. Lorsque vous supprimez votre compte, vos données personnelles (profil, e-mail, identifiants) sont effacées. Les données anonymisées ou agrégées, ainsi que les contributions au monde partagé qui ne peuvent pas être reliées à vous, peuvent être conservées."
+      },
+      {
+        "title": "6. Vos droits",
+        "body": "Vous avez le droit d'accéder à vos données personnelles, de les rectifier ou de les supprimer, de vous opposer à leur traitement ou de le limiter, et de demander une copie des données que vous avez fournies. Vous pouvez modifier la plupart des informations depuis les réglages de votre profil, ou nous contacter pour toute autre demande."
+      },
+      {
+        "title": "7. Sécurité",
+        "body": "Les mots de passe sont stockés sous forme de hachages salés et l'accès à l'application est protégé par des jetons d'authentification transmis via une connexion chiffrée. Aucun système ne pouvant être garanti parfaitement sûr, nous appliquons des mesures raisonnables pour protéger vos données."
+      },
+      {
+        "title": "8. Cookies et stockage local",
+        "body": "Nous utilisons le stockage local de votre navigateur pour vous garder connecté et mémoriser des préférences comme la langue choisie. Ces éléments sont strictement nécessaires au fonctionnement de l'application et ne servent pas au suivi ni à la publicité."
+      },
+      {
+        "title": "9. Modifications de cette politique",
+        "body": "Nous pouvons mettre à jour cette politique de confidentialité. La date en haut indique la dernière version. Si une modification affecte significativement vos droits, il pourra vous être demandé de relire et d'accepter la politique mise à jour."
+      },
+      {
+        "title": "10. Contact",
+        "body": "Pour toute question concernant cette politique ou vos données personnelles, veuillez contacter les administrateurs du projet via l'application."
+      }
+    ]
+  }
 }

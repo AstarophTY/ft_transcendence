@@ -28,6 +28,8 @@ interface PlanetStore {
   setRenderDistance: (dist: number) => void
   theme: 'light' | 'dark'
   setTheme: (theme: 'light' | 'dark') => void
+  contests: any[]
+  setContests: (state: any[]) => void
 }
 
 const getInitialRenderDistance = () => {
@@ -94,4 +96,6 @@ export const usePlanetStore = create<PlanetStore>((set, get) => ({
     localStorage.setItem('theme', theme)
     set({ theme })
   },
+  contests: [],
+  setContests: (state) => set({ contests: state }),
 }))

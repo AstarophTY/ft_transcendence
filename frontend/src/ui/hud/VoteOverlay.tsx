@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react'
-import { Html } from '@react-three/drei'
 import { X, User, Trophy, UserPlus, Loader2 } from 'lucide-react'
 import { getUserId } from '@/lib/user'
 import { toast } from 'sonner'
@@ -88,7 +87,7 @@ export const VoteOverlay = ({ contests, onUpdateContests, isPrivate }: VoteOverl
   if (contests.length === 0) return null
 
   return (
-    <Html fullscreen style={{ pointerEvents: 'none' }}>
+    <>
       <div className="absolute left-6 top-24 z-10 w-64 pointer-events-auto">
         <div className="rounded-xl border border-white/10 bg-black/40 p-4 backdrop-blur-md">
           <div className="mb-3 flex items-center gap-2 text-primary">
@@ -186,6 +185,6 @@ export const VoteOverlay = ({ contests, onUpdateContests, isPrivate }: VoteOverl
           </div>
         </div>
       )}
-    </Html>
+      </>
   )
 }
