@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-set -e
+set -euo pipefail
 
 ./scripts/api_verification.sh
 

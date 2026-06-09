@@ -22,8 +22,7 @@ response=$(curl -sS \
   --header "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "grant_type=client_credentials" \
   --data-urlencode "client_id=$CLIENT_ID" \
-  --data-urlencode "client_secret=$CLIENT_SECRET" \
-  --fail)
+  --data-urlencode "client_secret=$CLIENT_SECRET")
 
 echo "$response" | grep -q '"access_token"' || {
     echo "ERROR: Invalid 42 API credentials" >&2
