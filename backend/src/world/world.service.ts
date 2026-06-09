@@ -87,7 +87,15 @@ export class WorldService {
       select: { x: true, y: true, z: true, block: true, rotation: true, block_log: false },
     });
 
-    const campusId = world.campusId;
+    let campusId = world.campusId;
+    if (!campusId && world.userId) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: world.userId },
+        select: { campusId: true },
+      });
+      campusId = user?.campusId;
+    }
+
     const contests = campusId
       ? await this.prisma.voteContest.findMany({
           where: { campusId, isActive: true },

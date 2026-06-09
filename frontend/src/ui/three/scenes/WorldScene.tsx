@@ -672,7 +672,7 @@ const WorldScene = () => {
           blockAssets={blockAssets}
         />
       ))}
-      <VoteOverlay contests={contests} onUpdateContests={setContests} />
+      <VoteOverlay contests={contests} onUpdateContests={setContests} isPrivate={isPrivate} />
     </group>
   )
 }

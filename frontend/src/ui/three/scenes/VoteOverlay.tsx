@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Html } from '@react-three/drei'
-import { X, User, Trophy } from 'lucide-react'
+import { X, User, Trophy, UserPlus, Loader2 } from 'lucide-react'
+import { getUserId } from '@/lib/user'
 import { toast } from 'sonner'
 import i18n from '@/i18n'
 import { api } from '@/lib/api'
@@ -22,12 +23,15 @@ interface Contest {
 interface VoteOverlayProps {
   contests: Contest[]
   onUpdateContests: (contests: any[]) => void
+  isPrivate?: boolean
 }
 
-export const VoteOverlay = ({ contests, onUpdateContests }: VoteOverlayProps) => {
+export const VoteOverlay = ({ contests, onUpdateContests, isPrivate }: VoteOverlayProps) => {
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null)
   const [votedContestIds, setVotedContestIds] = useState<Set<string>>(new Set())
   const [isVoting, setIsVoting] = useState(false)
+  const [isJoining, setIsJoining] = useState(false)
+  const userId = getUserId()
 
   const handleVote = async (contestId: string, targetUserId: string) => {
     if (isVoting) return
@@ -59,6 +63,20 @@ export const VoteOverlay = ({ contests, onUpdateContests }: VoteOverlayProps) =>
       toast.error(i18n.t('world.voteError', { defaultValue: 'Failed to cast vote' }))
     } finally {
       setIsVoting(false)
+    }
+  }
+
+  const handleJoin = async (contestId: string) => {
+    if (isJoining) return
+    setIsJoining(true)
+    try {
+      await api.post(`/vote/join/${contestId}`)
+      toast.success(i18n.t('world.joinSuccess', { defaultValue: 'Joined contest successfully!' }))
+      window.location.reload()
+    } catch (err) {
+      toast.error(i18n.t('world.joinError', { defaultValue: 'Failed to join contest' }))
+    } finally {
+      setIsJoining(false)
     }
   }
 
@@ -104,6 +122,21 @@ export const VoteOverlay = ({ contests, onUpdateContests }: VoteOverlayProps) =>
 
             <h2 className="text-xl font-bold mb-1">{selectedContest.title}</h2>
             <p className="text-sm text-muted-foreground mb-6">{selectedContest.description}</p>
+
+            {isPrivate && !selectedContest.candidates.some(c => c.userId === userId) && (
+              <button
+                onClick={() => handleJoin(selectedContest.id)}
+                disabled={isJoining}
+                className="mb-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 font-bold text-primary-foreground transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
+              >
+                {isJoining ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <UserPlus className="h-5 w-5" />
+                )}
+                Join as Candidate
+              </button>
+            )}
 
             <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
               {selectedContest.candidates.map((candidate) => {
