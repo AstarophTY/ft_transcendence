@@ -25,10 +25,7 @@ import UserBadge from '@/ui/hud/UserBadge.tsx'
 import SettingsDialog from '@/ui/hud/settings/SettingsDialog'
 import AdminDialog from '@/ui/hud/admin/AdminDialog'
 import LegalDialog from '@/ui/hud/LegalDialog'
-<<<<<<< HEAD
-=======
 import { useLegal } from '@/store/legal'
->>>>>>> 4d157b7 (feat(privacy): Add link privacy to menu and connect page)
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/store/auth'
 import { useFriends } from '@/store/friends'
@@ -160,8 +157,6 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
-  const [accepted, setAccepted] = useState(false)
-  const [legalOpen, setLegalOpen] = useState(false)
 
   const passwordValid = PASSWORD_RULES.every((rule) => rule.test(password))
   const passwordInvalid = password.length > 0 && !passwordValid
@@ -170,7 +165,7 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!passwordValid || !passwordsMatch || !accepted) return
+    if (!passwordValid || !passwordsMatch) return
     if (await register(email, username, password)) onSuccess()
   }
 
@@ -239,30 +234,9 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
           <p className="text-xs text-destructive">{t('auth.passwordMismatch')}</p>
         )}
       </div>
-      <div className="flex items-start gap-2">
-        <input
-          id="register-accept"
-          type="checkbox"
-          checked={accepted}
-          onChange={(e) => setAccepted(e.target.checked)}
-          className="mt-0.5 size-4 shrink-0 accent-primary cursor-pointer"
-          required
-        />
-        <Label htmlFor="register-accept" className="text-xs font-normal leading-snug">
-          {t('auth.acceptPrivacyPre')}{' '}
-          <button
-            type="button"
-            onClick={() => setLegalOpen(true)}
-            className="underline underline-offset-2 hover:text-primary"
-          >
-            {t('auth.privacyPolicy')}
-          </button>
-        </Label>
-      </div>
-      <LegalDialog open={legalOpen} onOpenChange={setLegalOpen} />
       <Button
         type="submit"
-        disabled={loading || !passwordValid || !passwordsMatch || !accepted}
+        disabled={loading || !passwordValid || !passwordsMatch}
         className="w-full"
       >
         {loading ? (
@@ -491,33 +465,13 @@ function UserMenu() {
   )
 }
 
-function PrivacyGate() {
-  const requirePrivacy = useAuth((s) => s.requirePrivacy)
-  const acceptPrivacy = useAuth((s) => s.acceptPrivacy)
-  const declinePrivacy = useAuth((s) => s.declinePrivacy)
-
-  return (
-    <LegalDialog
-      open={requirePrivacy}
-      onOpenChange={() => {}}
-      requireAccept
-      onAccept={acceptPrivacy}
-      onDecline={() => void declinePrivacy()}
-    />
-  )
-}
-
 export default function AuthPanel() {
   const user = useAuth((s) => s.user)
 
   return (
     <>
       {user ? <UserMenu /> : <AuthDialog />}
-<<<<<<< HEAD
-      <PrivacyGate />
-=======
       <LegalDialog />
->>>>>>> 4d157b7 (feat(privacy): Add link privacy to menu and connect page)
     </>
   )
 }
