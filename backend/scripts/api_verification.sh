@@ -2,8 +2,6 @@
 
 set -e
 
-source .env
-
 # this script checks if the 42 api credentials are valid
 
 CLIENT_ID="${API_42_CLIENT_ID}"
