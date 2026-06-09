@@ -1,6 +1,6 @@
 import { PointerLockControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
-import React, { useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
 
@@ -133,6 +133,37 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
   const lastSphereKeyRef = useRef<string>('')
   const cubeMaterialRef = useRef<THREE.MeshBasicMaterial>(null)
   const sphereMaterialRef = useRef<THREE.MeshBasicMaterial>(null)
+
+  const claimWallsGroupRef = useRef<THREE.Group>(null)
+  const claimWallMatRefs = useRef<THREE.MeshBasicMaterial[]>([])
+  const claimWallsActiveRef = useRef(false)
+  const claimWallsStartRef = useRef(0)
+
+  const claimBounds = useMemo(() => {
+    const halfSize = mapSize / 2
+    const midX = Math.floor((localMap?.widthInChunks ?? 32) / 2)
+    const midZ = Math.floor((localMap?.depthInChunks ?? 32) / 2)
+    const size = Chunk.WIDTH
+    return {
+      minX: (midX - 2) * size - halfSize,
+      maxX: (midX + 2) * size - halfSize,
+      minZ: (midZ - 2) * size - halfSize,
+      maxZ: (midZ + 2) * size - halfSize,
+    }
+  }, [mapSize, localMap])
+
+  const wallWidth = claimBounds.maxX - claimBounds.minX
+
+  const showClaimWalls = useCallback(() => {
+    if (claimWallsGroupRef.current) {
+      claimWallsGroupRef.current.visible = true
+      for (const mat of claimWallMatRefs.current) {
+        if (mat) mat.opacity = 0.35
+      }
+      claimWallsActiveRef.current = true
+      claimWallsStartRef.current = performance.now()
+    }
+  }, [])
 
   useEffect(() => {
     // The sphere mesh is recreated on (re)activation, so force its geometry to
@@ -347,6 +378,7 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
       const midZ = Math.floor(mapDepthInChunks / 2);
 
       if (bX >= midX - 2 && bX < midX + 2 && bZ >= midZ - 2 && bZ < midZ + 2) {
+        showClaimWalls()
         toast.error(i18n.t('world.claimZone', { defaultValue: 'You cannot place blocks in the claim zone' }))
         return;
       }
@@ -629,6 +661,22 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
     }
 
     camera.position.copy(finalPosition)
+
+    // Claim walls fade animation
+    if (claimWallsActiveRef.current) {
+      const elapsed = performance.now() - claimWallsStartRef.current
+      const duration = 10000
+      if (elapsed >= duration) {
+        if (claimWallsGroupRef.current) claimWallsGroupRef.current.visible = false
+        claimWallsActiveRef.current = false
+      } else {
+        const opacity = 0.35 * (1 - elapsed / duration)
+        for (const mat of claimWallMatRefs.current) {
+          if (mat) mat.opacity = opacity
+        }
+      }
+    }
+
     updatePreview()
   })
 
@@ -643,6 +691,26 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
         <mesh ref={spherePreviewRef}>
           <meshBasicMaterial ref={sphereMaterialRef} color="#fbbf24" opacity={0.4} />
         </mesh>
+      </group>
+      <group ref={claimWallsGroupRef} visible={false}>
+        {[
+          { pos: [0, 32, claimBounds.maxZ] as [number, number, number], rot: [0, Math.PI, 0] as [number, number, number] },
+          { pos: [0, 32, claimBounds.minZ] as [number, number, number], rot: [0, 0, 0] as [number, number, number] },
+          { pos: [claimBounds.maxX, 32, 0] as [number, number, number], rot: [0, -Math.PI / 2, 0] as [number, number, number] },
+          { pos: [claimBounds.minX, 32, 0] as [number, number, number], rot: [0, Math.PI / 2, 0] as [number, number, number] },
+        ].map((wall, i) => (
+          <mesh key={i} position={wall.pos} rotation={wall.rot}>
+            <planeGeometry args={[wallWidth, Chunk.HEIGHT]} />
+            <meshBasicMaterial
+              ref={(el) => { if (el) claimWallMatRefs.current[i] = el }}
+              color="#ff0000"
+              transparent
+              opacity={0.35}
+              side={THREE.DoubleSide}
+              depthWrite={false}
+            />
+          </mesh>
+        ))}
       </group>
     </>
   ) : null
