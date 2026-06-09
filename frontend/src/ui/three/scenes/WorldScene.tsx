@@ -643,7 +643,7 @@ const WorldScene = () => {
         mapVersion={mapVersion}
         playerRef={playerRef}
         currentMode={currentMode}
-        mapSize={MAP_SIZE_BLOCKS}
+        mapSize={mapSize}
       />
       <WorldShadowLight playerRef={playerRef} currentMode={currentMode} />
       <FreeCameraControls
