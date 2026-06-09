@@ -23,4 +23,4 @@ RUN chmod +x ./scripts/*.sh
 
 RUN mkdir -p uploads
 EXPOSE 3000
-ENTRYPOINT ["./scripts/entrypoint.sh"]
+CMD ["node", "dist/main"]

@@ -46,12 +46,17 @@ services:
       - transcendence_net
     restart: "no"
 
+  api-check:
+    build: ./backend
+    command: chmod +x ./scripts/api_verification.sh && sh ./scripts/api_verification.sh
+    env_file: .env
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: transcendence_backend
-    restart: unless-stopped
+    restart: on-failure:5
     env_file: .env
     depends_on:
       postgres:
@@ -59,6 +64,8 @@ services:
       redis:
         condition: service_healthy
       migrate:
+        condition: service_completed_successfully
+      api-check:
         condition: service_completed_successfully
     volumes:
       - uploads:/app/uploads
