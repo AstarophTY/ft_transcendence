@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, Loader2, Lock, LogIn, LogOut, Mail, Rocket, User, UserPlus, X, Users, Settings as SettingsIcon, Shield } from 'lucide-react'
+import { Check, Loader2, Lock, LogIn, LogOut, Mail, Rocket, User, UserPlus, X, Users, Settings as SettingsIcon, Shield, ShieldCheck, FileText } from 'lucide-react'
 
 import { Button } from '@/ui/shadcn/button'
 import {
@@ -25,6 +25,10 @@ import UserBadge from '@/ui/hud/UserBadge.tsx'
 import SettingsDialog from '@/ui/hud/settings/SettingsDialog'
 import AdminDialog from '@/ui/hud/admin/AdminDialog'
 import LegalDialog from '@/ui/hud/LegalDialog'
+<<<<<<< HEAD
+=======
+import { useLegal } from '@/store/legal'
+>>>>>>> 4d157b7 (feat(privacy): Add link privacy to menu and connect page)
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/store/auth'
 import { useFriends } from '@/store/friends'
@@ -363,8 +367,33 @@ function AuthDialog() {
               <RegisterForm onSuccess={() => setDialogOpen(false)} />
             </TabsContent>
           </Tabs>
+          <LegalLinks />
         </DialogContent>
       </Dialog>
+    </div>
+  )
+}
+
+/** Privacy Policy / Terms of Service links opening the legal pop-up. */
+function LegalLinks() {
+  const { t } = useTranslation()
+  const openLegal = useLegal((s) => s.openLegal)
+  return (
+    <div className="flex justify-center gap-4 text-xs text-muted-foreground">
+      <button
+        type="button"
+        onClick={() => openLegal('privacy')}
+        className="underline underline-offset-2 hover:text-foreground"
+      >
+        {t('legal.privacyTitle')}
+      </button>
+      <button
+        type="button"
+        onClick={() => openLegal('terms')}
+        className="underline underline-offset-2 hover:text-foreground"
+      >
+        {t('legal.termsTitle')}
+      </button>
     </div>
   )
 }
@@ -375,6 +404,7 @@ function UserMenu() {
   const { incoming, togglePanel, refresh } = useFriends()
   const openSettings = useSettings((s) => s.setOpen)
   const openAdmin = useAdmin((s) => s.setOpen)
+  const openLegal = useLegal((s) => s.openLegal)
 
   const sceneMode = usePlanetStore((s) => s.sceneMode)
   const setSceneMode = usePlanetStore((s) => s.setSceneMode)
@@ -435,6 +465,17 @@ function UserMenu() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+              <DropdownMenuItem onSelect={() => openLegal('privacy')}>
+                <ShieldCheck className="mr-1.5 size-4" />
+                {t('legal.privacyTitle')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => openLegal('terms')}>
+                <FileText className="mr-1.5 size-4" />
+                {t('legal.termsTitle')}
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
               <DropdownMenuItem variant="destructive" onSelect={() => logout()}>
                 <LogOut className="mr-1.5 size-4" />
                 {t('auth.logout')}
@@ -472,7 +513,11 @@ export default function AuthPanel() {
   return (
     <>
       {user ? <UserMenu /> : <AuthDialog />}
+<<<<<<< HEAD
       <PrivacyGate />
+=======
+      <LegalDialog />
+>>>>>>> 4d157b7 (feat(privacy): Add link privacy to menu and connect page)
     </>
   )
 }

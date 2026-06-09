@@ -511,24 +511,23 @@
   },
   "world.loading": "Loading the world...",
   "legal": {
+    "menuTitle": "Legal",
     "privacyTitle": "Privacy Policy",
+    "termsTitle": "Terms of Service",
     "lastUpdated": "Last updated: June 2026",
-    "accept": "Accept and continue",
-    "decline": "Decline",
-    "acceptRequired": "Welcome! Please review and accept our Privacy Policy to finish creating your account.",
-    "intro": "This Privacy Policy explains what personal data ft_transcendence collects when you create an account and use the application, why we collect it, and the rights you have over it. By creating an account you confirm that you have read and accepted this policy.",
-    "sections": [
+    "privacyIntro": "This Privacy Policy explains what personal data ft_transcendence collects when you use the application, why we collect it, and the rights you have over it.",
+    "privacySections": [
       {
         "title": "1. Data we collect",
-        "body": "When you register we collect the account details you provide: your username, email address and password (stored only as a salted hash, never in clear text). If you sign in with your 42 account, we receive your 42 login, email and profile picture. While you use the service we also store data you generate: your avatar, time spent connected (logtime), the blocks and contributions you place in the shared world, your friends list, game results and your preferences (language and theme)."
+        "body": "When you register we collect your username, email address and password (stored only as a salted hash, never in clear text). If you sign in with your 42 account, we receive your 42 login, email and profile picture. While you use the service we also store data you generate: your avatar, time spent connected (logtime), the blocks and contributions you place in the shared world, your friends list, messages, game results and your preferences (language and theme)."
       },
       {
         "title": "2. How we use your data",
-        "body": "We use your data only to operate the service: to authenticate you, display your profile and presence to other players, save your world contributions and game progress, manage your friendships, and remember your settings. We do not sell your data or use it for advertising."
+        "body": "We use your data only to operate the service: to authenticate you, display your profile and presence to other players, save your world contributions and progress, manage your friendships and chat, and remember your settings. We do not sell your data or use it for advertising."
       },
       {
         "title": "3. Legal basis",
-        "body": "We process your data on the basis of the contract that lets you use the application (managing your account and gameplay) and, where applicable, your consent, which you give by accepting this policy when you sign up. You can withdraw your consent at any time by deleting your account."
+        "body": "We process your data to provide the service you signed up for and, where applicable, on the basis of your consent. You can withdraw consent at any time by deleting your account."
       },
       {
         "title": "4. Third parties",
@@ -536,27 +535,66 @@
       },
       {
         "title": "5. Data retention",
-        "body": "We keep your data for as long as your account exists. When you delete your account, your personal data (profile, email, credentials) is removed. Anonymised or aggregated data, and shared world contributions that cannot be linked back to you, may be retained."
+        "body": "We keep your data for as long as your account exists. When your account is deleted, your personal data (profile, email, credentials) is removed. Anonymised or aggregated data, and shared world contributions that cannot be linked back to you, may be retained."
       },
       {
         "title": "6. Your rights",
-        "body": "You have the right to access, correct or delete your personal data, to object to or restrict its processing, and to request a copy of the data you provided. You can update most information from your profile settings, or contact us for any other request."
+        "body": "You have the right to access, correct or delete your personal data, to object to or restrict its processing, and to request a copy of the data you provided. Most information can be updated from your profile settings."
       },
       {
         "title": "7. Security",
-        "body": "Passwords are stored as salted hashes and access to the application is protected by authentication tokens served over an encrypted connection. While no system can be guaranteed perfectly secure, we apply reasonable measures to protect your data."
+        "body": "Passwords are stored as salted hashes and access to the application is protected by authentication tokens served over an encrypted (HTTPS/WSS) connection. While no system can be guaranteed perfectly secure, we apply reasonable measures to protect your data."
       },
       {
         "title": "8. Cookies and local storage",
         "body": "We use your browser's local storage to keep you signed in and to remember preferences such as your chosen language. These are strictly necessary for the application to work and are not used for tracking or advertising."
       },
       {
-        "title": "9. Changes to this policy",
-        "body": "We may update this Privacy Policy. The date at the top indicates the latest version. If a change significantly affects your rights, you may be asked to review and accept the updated policy."
+        "title": "9. Changes and contact",
+        "body": "We may update this Privacy Policy; the date above indicates the latest version. For any question about your personal data, contact the project administrators through the application."
+      }
+    ],
+    "termsIntro": "These Terms of Service govern your use of ft_transcendence. By creating an account or using the application, you agree to these terms.",
+    "termsSections": [
+      {
+        "title": "1. Acceptance of the terms",
+        "body": "By accessing or using ft_transcendence you agree to be bound by these Terms of Service and by the Privacy Policy. If you do not agree, please do not use the application."
       },
       {
-        "title": "10. Contact",
-        "body": "For any question about this policy or your personal data, please contact the project administrators through the application."
+        "title": "2. Account & eligibility",
+        "body": "ft_transcendence is an educational project intended for 42 students. You must provide accurate information when registering and you are responsible for keeping your credentials secure and for all activity under your account."
+      },
+      {
+        "title": "3. Acceptable use",
+        "body": "You agree not to misuse the service: no cheating or exploiting bugs, no harassment of other users, and no offensive, illegal or infringing content in usernames, chat messages, avatars or world contributions."
+      },
+      {
+        "title": "4. User content",
+        "body": "You remain responsible for the content you create (blocks, messages, avatar, profile). You grant the application the right to store and display this content as part of normal operation. We may moderate or remove content that breaches these terms."
+      },
+      {
+        "title": "5. Virtual coins and items",
+        "body": "Coins are derived from your 42 logtime and are used only to place blocks inside the application. They have no monetary value, cannot be exchanged for money, and are not transferable between accounts."
+      },
+      {
+        "title": "6. Moderation & enforcement",
+        "body": "Administrators may warn, suspend, or delete accounts, and edit or remove world contributions, in order to enforce these terms and keep the shared world usable for everyone."
+      },
+      {
+        "title": "7. Availability & changes",
+        "body": "The service is provided \"as is\" as part of a school project. It may be modified, interrupted or discontinued at any time, and we do not guarantee uninterrupted availability or that data will be retained indefinitely."
+      },
+      {
+        "title": "8. Limitation of liability",
+        "body": "To the extent permitted by law, ft_transcendence and its team are not liable for any loss or damage arising from the use of, or inability to use, this educational application."
+      },
+      {
+        "title": "9. Termination",
+        "body": "You may stop using the service and request deletion of your account at any time. We may suspend or terminate access in case of a breach of these terms."
+      },
+      {
+        "title": "10. Changes and contact",
+        "body": "We may update these Terms of Service; the date above indicates the latest version. For any question, contact the project administrators through the application."
       }
     ]
   }

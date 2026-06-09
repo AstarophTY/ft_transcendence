@@ -514,52 +514,90 @@
   },
   "world.loading": "Cargando el mundo...",
   "legal": {
+    "menuTitle": "Aviso legal",
     "privacyTitle": "Política de privacidad",
+    "termsTitle": "Términos del servicio",
     "lastUpdated": "Última actualización: junio de 2026",
-    "accept": "Aceptar y continuar",
-    "decline": "Rechazar",
-    "acceptRequired": "¡Bienvenido! Revisa y acepta nuestra política de privacidad para terminar de crear tu cuenta.",
-    "intro": "Esta política de privacidad explica qué datos personales recopila ft_transcendence cuando creas una cuenta y usas la aplicación, por qué los recopilamos y los derechos que tienes sobre ellos. Al crear una cuenta confirmas que has leído y aceptado esta política.",
-    "sections": [
+    "privacyIntro": "Esta política de privacidad explica qué datos personales recopila ft_transcendence cuando usas la aplicación, por qué los recopilamos y los derechos que tienes sobre ellos.",
+    "privacySections": [
       {
         "title": "1. Datos que recopilamos",
-        "body": "Al registrarte recopilamos los datos que proporcionas: tu nombre de usuario, tu correo electrónico y tu contraseña (almacenada solo como un hash con sal, nunca en texto plano). Si inicias sesión con tu cuenta de 42, recibimos tu identificador de 42, tu correo y tu foto de perfil. Mientras usas el servicio también almacenamos los datos que generas: tu avatar, el tiempo conectado (logtime), los bloques y contribuciones que colocas en el mundo compartido, tu lista de amigos, los resultados de tus partidas y tus preferencias (idioma y tema)."
+        "body": "Al registrarte recopilamos tu nombre de usuario, tu correo electrónico y tu contraseña (almacenada solo como un hash con sal, nunca en texto plano). Si inicias sesión con tu cuenta de 42, recibimos tu identificador de 42, tu correo y tu foto de perfil. Mientras usas el servicio también almacenamos los datos que generas: tu avatar, el tiempo conectado (logtime), los bloques y contribuciones que colocas en el mundo compartido, tu lista de amigos, tus mensajes, los resultados de tus partidas y tus preferencias (idioma y tema)."
       },
       {
         "title": "2. Cómo usamos tus datos",
-        "body": "Usamos tus datos únicamente para operar el servicio: autenticarte, mostrar tu perfil y tu presencia a otros jugadores, guardar tus contribuciones al mundo y tu progreso, gestionar tus amistades y recordar tus ajustes. No vendemos tus datos ni los usamos con fines publicitarios."
+        "body": "Usamos tus datos únicamente para operar el servicio: autenticarte, mostrar tu perfil y presencia a otros jugadores, guardar tus contribuciones y progreso, gestionar tus amistades y el chat, y recordar tus ajustes. No vendemos tus datos ni los usamos con fines publicitarios."
       },
       {
         "title": "3. Base legal",
-        "body": "Tratamos tus datos sobre la base del contrato que te permite usar la aplicación (gestión de tu cuenta y del juego) y, cuando corresponde, de tu consentimiento, que otorgas al aceptar esta política al registrarte. Puedes retirar tu consentimiento en cualquier momento eliminando tu cuenta."
+        "body": "Tratamos tus datos para prestar el servicio que solicitaste y, cuando corresponde, sobre la base de tu consentimiento. Puedes retirar tu consentimiento en cualquier momento eliminando tu cuenta."
       },
       {
         "title": "4. Terceros",
-        "body": "La autenticación puede realizarse a través del servicio OAuth de 42 si eliges iniciar sesión con 42; en ese caso, 42 trata tu identificador según su propia política de privacidad. No compartimos tus datos personales con ningún otro tercero, salvo obligación legal."
+        "body": "La autenticación puede realizarse mediante el servicio OAuth de 42 si eliges iniciar sesión con 42; en ese caso, 42 trata tu identificador según su propia política de privacidad. No compartimos tus datos con ningún otro tercero, salvo obligación legal."
       },
       {
         "title": "5. Conservación de los datos",
-        "body": "Conservamos tus datos mientras exista tu cuenta. Cuando eliminas tu cuenta, tus datos personales (perfil, correo, credenciales) se eliminan. Los datos anonimizados o agregados, así como las contribuciones al mundo compartido que no puedan vincularse contigo, pueden conservarse."
+        "body": "Conservamos tus datos mientras exista tu cuenta. Cuando se elimina tu cuenta, tus datos personales (perfil, correo, credenciales) se eliminan. Los datos anonimizados o agregados, así como las contribuciones que no puedan vincularse contigo, pueden conservarse."
       },
       {
         "title": "6. Tus derechos",
-        "body": "Tienes derecho a acceder a tus datos personales, rectificarlos o eliminarlos, oponerte a su tratamiento o restringirlo, y solicitar una copia de los datos que proporcionaste. Puedes actualizar la mayoría de la información desde los ajustes de tu perfil, o contactarnos para cualquier otra solicitud."
+        "body": "Tienes derecho a acceder a tus datos, rectificarlos o eliminarlos, oponerte a su tratamiento o restringirlo, y solicitar una copia de los datos que proporcionaste. La mayoría de la información se puede actualizar desde los ajustes de tu perfil."
       },
       {
         "title": "7. Seguridad",
-        "body": "Las contraseñas se almacenan como hashes con sal y el acceso a la aplicación está protegido por tokens de autenticación enviados a través de una conexión cifrada. Aunque ningún sistema puede garantizarse perfectamente seguro, aplicamos medidas razonables para proteger tus datos."
+        "body": "Las contraseñas se almacenan como hashes con sal y el acceso está protegido por tokens de autenticación enviados a través de una conexión cifrada (HTTPS/WSS). Aunque ningún sistema es perfectamente seguro, aplicamos medidas razonables para proteger tus datos."
       },
       {
         "title": "8. Cookies y almacenamiento local",
-        "body": "Usamos el almacenamiento local de tu navegador para mantener tu sesión iniciada y recordar preferencias como el idioma elegido. Son estrictamente necesarios para el funcionamiento de la aplicación y no se utilizan para seguimiento ni publicidad."
+        "body": "Usamos el almacenamiento local de tu navegador para mantener tu sesión y recordar preferencias como el idioma. Son estrictamente necesarios para el funcionamiento y no se usan para seguimiento ni publicidad."
       },
       {
-        "title": "9. Cambios en esta política",
-        "body": "Podemos actualizar esta política de privacidad. La fecha de la parte superior indica la versión más reciente. Si un cambio afecta significativamente a tus derechos, es posible que se te pida revisar y aceptar la política actualizada."
+        "title": "9. Cambios y contacto",
+        "body": "Podemos actualizar esta política; la fecha anterior indica la versión más reciente. Para cualquier pregunta sobre tus datos, contacta con los administradores del proyecto a través de la aplicación."
+      }
+    ],
+    "termsIntro": "Estos términos del servicio rigen tu uso de ft_transcendence. Al crear una cuenta o usar la aplicación, los aceptas.",
+    "termsSections": [
+      {
+        "title": "1. Aceptación de los términos",
+        "body": "Al acceder o usar ft_transcendence aceptas quedar vinculado por estos términos del servicio y por la política de privacidad. Si no estás de acuerdo, no uses la aplicación."
       },
       {
-        "title": "10. Contacto",
-        "body": "Para cualquier pregunta sobre esta política o tus datos personales, contacta con los administradores del proyecto a través de la aplicación."
+        "title": "2. Cuenta y elegibilidad",
+        "body": "ft_transcendence es un proyecto educativo destinado a estudiantes de 42. Debes proporcionar información veraz al registrarte y eres responsable de mantener seguras tus credenciales y de toda la actividad de tu cuenta."
+      },
+      {
+        "title": "3. Uso aceptable",
+        "body": "Te comprometes a no hacer mal uso del servicio: nada de trampas ni explotación de errores, nada de acoso, y ningún contenido ofensivo, ilegal o infractor en nombres de usuario, mensajes, avatares o contribuciones al mundo."
+      },
+      {
+        "title": "4. Contenido del usuario",
+        "body": "Sigues siendo responsable del contenido que creas (bloques, mensajes, avatar, perfil). Concedes a la aplicación el derecho de almacenar y mostrar ese contenido como parte de su funcionamiento. Podemos moderar o eliminar contenido que incumpla estos términos."
+      },
+      {
+        "title": "5. Monedas y objetos virtuales",
+        "body": "Las monedas derivan de tu logtime de 42 y sirven únicamente para colocar bloques en la aplicación. No tienen valor monetario, no pueden cambiarse por dinero y no son transferibles entre cuentas."
+      },
+      {
+        "title": "6. Moderación y aplicación",
+        "body": "Los administradores pueden advertir, suspender o eliminar cuentas, y editar o retirar contribuciones, para hacer cumplir estos términos y mantener el mundo compartido utilizable para todos."
+      },
+      {
+        "title": "7. Disponibilidad y cambios",
+        "body": "El servicio se ofrece «tal cual» como parte de un proyecto escolar. Puede modificarse, interrumpirse o suspenderse en cualquier momento, sin garantía de disponibilidad continua ni de conservación indefinida de los datos."
+      },
+      {
+        "title": "8. Limitación de responsabilidad",
+        "body": "En la medida permitida por la ley, ft_transcendence y su equipo no son responsables de pérdidas o daños derivados del uso, o la imposibilidad de uso, de esta aplicación educativa."
+      },
+      {
+        "title": "9. Cancelación",
+        "body": "Puedes dejar de usar el servicio y solicitar la eliminación de tu cuenta en cualquier momento. Podemos suspender o cancelar el acceso en caso de incumplimiento de estos términos."
+      },
+      {
+        "title": "10. Cambios y contacto",
+        "body": "Podemos actualizar estos términos; la fecha anterior indica la versión más reciente. Para cualquier pregunta, contacta con los administradores del proyecto a través de la aplicación."
       }
     ]
   }
