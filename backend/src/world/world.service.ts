@@ -405,25 +405,15 @@ export class WorldService {
       throw new NotFoundException('User is not a candidate in this contest');
     }
 
-    const existingVote = await this.prisma.vote.findUnique({
+    return this.prisma.vote.upsert({
       where: {
         contestId_voterId: {
           contestId,
           voterId,
         },
       },
-    });
-
-    if (existingVote) {
-      throw new BadRequestException('You have already cast a vote in this contest');
-    }
-
-    return this.prisma.vote.create({
-      data: {
-        contestId,
-        voterId,
-        candidateId: candidate.id,
-      },
+      create: { contestId, voterId, candidateId: candidate.id },
+      update: { candidateId: candidate.id },
     });
   }
 }
