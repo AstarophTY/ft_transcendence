@@ -1,7 +1,9 @@
-import { Controller, Post, Delete, Param, Body, Req } from '@nestjs/common';
+import { Controller, Post, Delete, Param, Body, Req, UseGuards } from '@nestjs/common';
 import { WorldService } from './world.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('vote')
+@UseGuards(JwtAuthGuard)
 export class VoteController {
   constructor(private readonly worldService: WorldService) {}
 

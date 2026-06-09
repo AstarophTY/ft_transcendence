@@ -93,7 +93,7 @@ export class WorldService {
         where: { id: world.userId },
         select: { campusId: true },
       });
-      campusId = user?.campusId;
+      campusId = user?.campusId ?? null;
     }
 
     const contests = campusId
