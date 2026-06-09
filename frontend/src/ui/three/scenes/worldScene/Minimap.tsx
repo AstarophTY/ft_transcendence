@@ -158,8 +158,10 @@ export const Minimap = ({
       calculatePosition={(_, __, size) => [size.width / 2, size.height / 2]}
       style={{ pointerEvents: 'none' }}
     >
-      <div className="absolute top-3 left-3 md:top-3 md:left-3 w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-2 border-border/50 shadow-xl bg-background/80 backdrop-blur-md pointer-events-none">
-        <canvas ref={canvasRef} width={144} height={144} className="w-full h-full" />
+      <div className="absolute top-3 pl-18 lg:pl-3">
+        <div className="w-20 h-20 md:w-36 md:h-36 rounded-full overflow-hidden border-2 border-border/50 shadow-xl bg-background/80 backdrop-blur-md pointer-events-none">
+          <canvas ref={canvasRef} width={144} height={144} className="w-full h-full" />
+        </div>
       </div>
     </Html>
   )
