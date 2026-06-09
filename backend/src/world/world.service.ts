@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { Campus, User, World } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { WorldBlockDto } from './dto/save-blocks.dto';
@@ -93,7 +93,7 @@ export class WorldService {
         where: { id: world.userId },
         select: { campusId: true },
       });
-      campusId = user?.campusId;
+      campusId = user?.campusId ?? null;
     }
 
     const contests = campusId
@@ -357,6 +357,10 @@ export class WorldService {
   }
 
   async joinContest(userId: string, contestId: string) {
+    if (!userId) {
+      throw new BadRequestException('User ID is required');
+    }
+
     const contest = await this.prisma.voteContest.findUnique({
       where: { id: contestId },
     });
