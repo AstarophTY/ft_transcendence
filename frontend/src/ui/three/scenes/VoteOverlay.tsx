@@ -1,9 +1,12 @@
 import { useState, useMemo } from 'react'
+import { Html } from '@react-three/drei'
 import { X, User, Trophy, UserPlus, Loader2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { getUserId } from '@/lib/user'
 import { toast } from 'sonner'
 import i18n from '@/i18n'
 import { api } from '@/lib/api'
+
 
 interface Candidate {
   userId: string
@@ -16,6 +19,7 @@ interface Contest {
   id: string
   title: string
   description: string | null
+  userVotedCandidateId?: string | null
   candidates: Candidate[]
 }
 
@@ -26,42 +30,45 @@ interface VoteOverlayProps {
 }
 
 export const VoteOverlay = ({ contests, onUpdateContests, isPrivate }: VoteOverlayProps) => {
-  const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
-  const [votedContestIds, setVotedContestIds] = useState<Set<string>>(new Set());
-  const [isVoting, setIsVoting] = useState(false);
-  const [isJoining, setIsJoining] = useState(false);
-  const userId = getUserId();
+  const [selectedContest, setSelectedContest] = useState<Contest | null>(null)
+  const [votedCandidateIds, setVotedCandidateIds] = useState<Record<string, string>>({})
+  const [isVoting, setIsVoting] = useState(false)
+  const [isJoining, setIsJoining] = useState(false)
+  const userId = getUserId()
 
   const handleVote = async (contestId: string, targetUserId: string) => {
-    if (isVoting)
-      return;
-    setIsVoting(true);
+    if (isVoting) return
+    setIsVoting(true)
     try {
-      await api.post(`/vote/${contestId}/vote`, { userId: targetUserId });
+      await api.post(`/vote/${contestId}/vote`, { userId: targetUserId })
       
-      setVotedContestIds((prev) => new Set(prev).add(contestId));
-      toast.success(i18n.t('world.voteSuccess', { defaultValue: 'Voted successfully!' }));
+      const previousVotedId = votedCandidateIds[contestId] || selectedContest?.userVotedCandidateId;
+      setVotedCandidateIds((prev) => ({ ...prev, [contestId]: targetUserId }))
+      toast.success(i18n.t('world.voteSuccess', { defaultValue: 'Vote updated successfully!' }))
       
+      // Logic to increment local vote count for immediate feedback
       const updated = contests.map(c => {
         if (c.id === contestId) {
           return {
             ...c,
-            candidates: c.candidates.map(can => 
-              can.userId === targetUserId ? { ...can, votes: can.votes + 1 } : can
-            )
+            userVotedCandidateId: targetUserId,
+            candidates: c.candidates.map(can => {
+              if (can.userId === targetUserId) return { ...can, votes: can.votes + 1 }
+              if (can.userId === previousVotedId) return { ...can, votes: Math.max(0, can.votes - 1) }
+              return can
+            })
           }
         }
-        return c;
+        return c
       })
-      onUpdateContests(updated);
+      onUpdateContests(updated)
       if (selectedContest?.id === contestId) {
-        setSelectedContest(updated.find(u => u.id === contestId) || null);
+        setSelectedContest(updated.find(u => u.id === contestId) || null)
       }
     } catch (err) {
-      console.log(err);
-      toast.error(i18n.t('world.voteError', { defaultValue: 'Failed to vote' }));
+      toast.error(i18n.t('world.voteError', { defaultValue: 'Failed to cast vote' }))
     } finally {
-      setIsVoting(false);
+      setIsVoting(false)
     }
   }
 
@@ -87,8 +94,8 @@ export const VoteOverlay = ({ contests, onUpdateContests, isPrivate }: VoteOverl
   if (contests.length === 0) return null
 
   return (
-    <>
-      <div className="absolute left-6 bottom-6 z-10 w-64 pointer-events-auto">
+    <Html fullscreen style={{ pointerEvents: 'none' }}>
+      <div className="absolute left-6 top-24 z-10 w-64 pointer-events-auto">
         <div className="rounded-xl border border-white/10 bg-black/40 p-4 backdrop-blur-md">
           <div className="mb-3 flex items-center gap-2 text-primary">
             <Trophy className="h-5 w-5" />
@@ -139,32 +146,34 @@ export const VoteOverlay = ({ contests, onUpdateContests, isPrivate }: VoteOverl
 
             <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
               {selectedContest.candidates.map((candidate) => {
-                const percentage = totalVotes > 0 ? (candidate.votes / totalVotes) * 100 : 0
-                const hasVoted = votedContestIds.has(selectedContest.id)
+                const percentage = totalVotes > 0 ? (candidate.votes / totalVotes) * 100 : 0;
+                const currentUserVoteId = votedCandidateIds[selectedContest.id] || selectedContest.userVotedCandidateId;
+                const hasVotedInContest = !!currentUserVoteId;
+                const isThisCandidate = candidate.userId === currentUserVoteId;
 
                 return (
                   <div key={candidate.userId} className="group relative flex flex-col gap-2 rounded-xl bg-white/5 p-4 transition-all hover:bg-white/10">
                     <div className="flex items-center gap-3">
                       {candidate.avatar ? (
-                        <img src={candidate.avatar} className="object-cover h-10 w-10 rounded-full border border-white/20" alt="" />
+                        <img src={candidate.avatar} className={cn("object-cover h-10 w-10 rounded-full border", isThisCandidate ? "border-primary shadow-[0_0_10px_rgba(var(--primary),0.5)]" : "border-white/20")} alt="" />
                       ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-primary">
+                        <div className={cn("flex h-10 w-10 items-center justify-center rounded-full", isThisCandidate ? "bg-primary text-primary-foreground" : "bg-primary/20 text-primary")}>
                           <User className="h-5 w-5" />
                         </div>
                       )}
                       <span className="font-semibold text-lg">{candidate.username}</span>
                       
-                      {!hasVoted && (
+                      {!isThisCandidate && (
                         <button
                           onClick={() => handleVote(selectedContest.id, candidate.userId)}
-                          className="ml-auto rounded-full bg-primary px-4 py-1 text-sm font-bold text-primary-foreground transition-transform active:scale-95"
+                          className="ml-auto rounded-full bg-primary px-4 py-1 text-sm font-bold text-primary-foreground transition-all active:scale-95 hover:brightness-110"
                         >
-                          Vote
+                          {hasVotedInContest ? 'Change' : 'Vote'}
                         </button>
                       )}
                     </div>
                     
-                    {hasVoted && (
+                    {hasVotedInContest && (
                       <div className="mt-2 space-y-1">
                         <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
                           <div 
@@ -185,6 +194,6 @@ export const VoteOverlay = ({ contests, onUpdateContests, isPrivate }: VoteOverl
           </div>
         </div>
       )}
-      </>
+    </Html>
   )
 }

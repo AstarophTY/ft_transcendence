@@ -6,13 +6,13 @@ import MobileVirtualControls from "@/ui/hud/MobileVirtualControls"
 import TakeoffOverlay from "@/ui/hud/TakeoffOverlay"
 import { usePlanetStore } from '@/store/planetStore'
 import { useEditorStore } from '@/store/editorStore'
-import { Badge } from "@/ui/shadcn/badge"
+//import { Badge } from "@/ui/shadcn/badge"
 import { VoteOverlay } from '@/ui/hud/VoteOverlay'
 
 export default function HUDFrame() {
   const sceneMode = usePlanetStore(state => state.sceneMode);
   const editorMode = useEditorStore(state => state.in_editor);
-  const inClaimZone = useEditorStore((state) => state.inClaimZone);
+  //const inClaimZone = useEditorStore((state) => state.inClaimZone);
   const isPrivate = usePlanetStore((state) => state.isPrivateWorld);
   const contests = usePlanetStore((state) => state.contests);
   const setContests = usePlanetStore((state) => state.setContests);
@@ -23,7 +23,7 @@ export default function HUDFrame() {
         <AuthPanel />
         {editorMode ? <EditorMode /> : <></>}
         {sceneMode === 'world' && <MobileVirtualControls />}
-        {sceneMode === 'world' && isPrivate && <VoteOverlay
+        {sceneMode === 'world' && <VoteOverlay
           contests={contests}
           onUpdateContests={setContests}
           isPrivate={isPrivate} />}
