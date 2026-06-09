@@ -14,11 +14,7 @@ import { generateWorldProfile } from './world.profile';
 export class WorldService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * One world profile per campus, alphabetical — this drives the planet
-   * selection menu (one island per campus). Missing worlds are generated lazily
-   * so existing campuses get an island on first view.
-   */
+
   async listWorlds() {
     const campuses = await this.prisma.campus.findMany({
       orderBy: { label: 'asc' },
@@ -32,6 +28,18 @@ export class WorldService {
     const worlds = [];
     for (const campus of campuses) {
       const world = campus.world ?? (await this.createWorld(campus.id));
+      const contests = await this.prisma.voteContest.findMany({
+        where: { campusId: campus.id, isActive: true },
+        include: {
+          candidates: {
+            include: {
+              user: { select: { id: true, username: true, avatar: true } },
+              _count: { select: { Vote: true } },
+            },
+          },
+        },
+      });
+
       worlds.push({
         campusId: campus.id,
         label: campus.label,
@@ -45,6 +53,19 @@ export class WorldService {
         baseHeight: world.baseHeight,
         variationRange: world.variationRange,
         blocks: 'blocks' in world ? world.blocks : [],
+        contests: contests.map((c) => ({
+          id: c.id,
+          title: c.title,
+          description: c.description,
+          startsAt: c.startsAt,
+          endsAt: c.endsAt,
+          candidates: c.candidates.map((can) => ({
+            userId: can.userId,
+            username: can.user.username,
+            avatar: can.user.avatar,
+            votes: can._count.Vote,
+          })),
+        })),
       });
     }
     return worlds;
@@ -65,6 +86,30 @@ export class WorldService {
       where: { worldId: world.id },
       select: { x: true, y: true, z: true, block: true, rotation: true, block_log: false },
     });
+
+    let campusId = world.campusId;
+    if (!campusId && world.userId) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: world.userId },
+        select: { campusId: true },
+      });
+      campusId = user?.campusId;
+    }
+
+    const contests = campusId
+      ? await this.prisma.voteContest.findMany({
+          where: { campusId, isActive: true },
+          include: {
+            candidates: {
+              include: {
+                user: { select: { id: true, username: true, avatar: true } },
+                _count: { select: { Vote: true } },
+              },
+            },
+          },
+        })
+      : [];
+
     return {
       campusId: world.campusId ?? world.userId ?? id,
       seed: world.seed,
@@ -77,6 +122,19 @@ export class WorldService {
       baseHeight: world.baseHeight,
       variationRange: world.variationRange,
       blocks,
+      contests: contests.map((c) => ({
+        id: c.id,
+        title: c.title,
+        description: c.description,
+        startsAt: c.startsAt,
+        endsAt: c.endsAt,
+        candidates: c.candidates.map((can) => ({
+          userId: can.userId,
+          username: can.user.username,
+          avatar: can.user.avatar,
+          votes: can._count.Vote,
+        })),
+      })),
     };
   }
 
@@ -296,5 +354,68 @@ export class WorldService {
       if (!user) throw new NotFoundException('User not found');
     }
     return this.createWorld(worldId, is_personal_planet);
+  }
+
+  async joinContest(userId: string, contestId: string) {
+    const contest = await this.prisma.voteContest.findUnique({
+      where: { id: contestId },
+    });
+    if (!contest || !contest.isActive) {
+      throw new NotFoundException('Active contest not found');
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || user.campusId !== contest.campusId) {
+      throw new Error('User does not belong to this campus');
+    }
+
+    return this.prisma.voteContestCandidate.create({
+      data: {
+        contestId,
+        userId,
+      },
+    });
+  }
+
+  async quitContest(userId: string, contestId: string) {
+    return this.prisma.voteContestCandidate.delete({
+      where: {
+        contestId_userId: {
+          contestId,
+          userId,
+        },
+      },
+    });
+  }
+
+  async vote(voterId: string, contestId: string, targetUserId: string) {
+    const contest = await this.prisma.voteContest.findUnique({
+      where: { id: contestId },
+      include: { candidates: { where: { userId: targetUserId } } },
+    });
+    if (!contest || !contest.isActive) {
+      throw new NotFoundException('Active contest not found');
+    }
+    const candidate = contest.candidates[0];
+    if (!candidate) {
+      throw new NotFoundException('User is not a candidate in this contest');
+    }
+
+    return this.prisma.vote.upsert({
+      where: {
+        contestId_voterId: {
+          contestId,
+          voterId,
+        },
+      },
+      create: {
+        contestId,
+        voterId,
+        candidateId: candidate.id,
+      },
+      update: {
+        candidateId: candidate.id,
+      },
+    });
   }
 }

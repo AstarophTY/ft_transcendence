@@ -19,24 +19,24 @@ model User {
   isVerified    Boolean @default(false)
   world         World?
 
-  displayName       String?
-  bio               String?
-  campusId          String?
-  campus            Campus?    @relation("CampusUsers", fields: [campusId], references: [id])
-  coins             Int        @default(0)
+  displayName          String?
+  bio                  String?
+  campusId             String?
+  campus               Campus?    @relation("CampusUsers", fields: [campusId], references: [id])
+  coins                Int        @default(0)
   /// Coins spent placing paid blocks; subtracted from the logtime-earned total.
-  coinsSpent        Int        @default(0)
-  logtimeHours      Float      @default(0)
-  monthLogtimeHours Float      @default(0)
+  coinsSpent           Int        @default(0)
+  logtimeHours         Float      @default(0)
+  monthLogtimeHours    Float      @default(0)
   fortyTwoAccessToken  String?
   fortyTwoRefreshToken String?
-  language          String?
-  theme             String?
+  language             String?
+  theme                String?
   /// Player avatar tint (hex color), shown on the 3D character.
-  skinColor         String?
-  status            UserStatus @default(ONLINE)
-  statusMessage     String?
-  usernameChangedAt DateTime?
+  skinColor            String?
+  status               UserStatus @default(ONLINE)
+  statusMessage        String?
+  usernameChangedAt    DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -49,6 +49,9 @@ model User {
 
   sentFriendRequests     Friendship[] @relation("FriendRequester")
   receivedFriendRequests Friendship[] @relation("FriendAddressee")
+
+  contestEntries VoteContestCandidate[]
+  contestVotes   Vote[]                 @relation("ContestVotes")
 }
 
 model RefreshToken {
@@ -127,7 +130,66 @@ model Campus {
 
   users User[] @relation("CampusUsers")
 
-  world World?
+  world       World?
+  VoteContest VoteContest[]
+}
+
+model VoteContest {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  campusId    String
+  startsAt    DateTime
+  endsAt      DateTime
+  isActive    Boolean  @default(true)
+
+  campus     Campus                 @relation(fields: [campusId], references: [id], onDelete: Cascade)
+  candidates VoteContestCandidate[]
+  votes      Vote[]
+
+  createdAt DateTime @default(now())
+
+  @@index([campusId])
+}
+
+model VoteContestCandidate {
+  id String @id @default(uuid())
+
+  contestId String
+  userId    String
+
+  contest VoteContest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  Vote      Vote[]
+
+  // User can join a contest only once
+  @@unique([contestId, userId])
+  @@index([userId])
+}
+
+model Vote {
+  id String @id @default(uuid())
+
+  contestId String
+
+  // voter
+  voterId String
+
+  // candidate being voted for
+  candidateId String
+
+  contest   VoteContest          @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  voter     User                 @relation("ContestVotes", fields: [voterId], references: [id], onDelete: Cascade)
+  candidate VoteContestCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  // One vote per user per contest
+  @@unique([contestId, voterId])
+  @@index([candidateId])
+  @@index([contestId])
 }
 
 model World {
