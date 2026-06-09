@@ -48,6 +48,7 @@ services:
 
   api-check:
     build: ./backend
+    container_name: transcendence_api_check
     command: chmod +x ./scripts/api_verification.sh && sh ./scripts/api_verification.sh
     env_file: .env
 
