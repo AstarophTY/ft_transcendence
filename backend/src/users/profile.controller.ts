@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -93,5 +94,12 @@ export class ProfileController {
       dto.currentPassword,
       dto.newPassword,
     );
+  }
+
+  /** Permanently delete the signed-in user's account. */
+  @Delete()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteAccount(@CurrentUser() user: AuthUser): Promise<void> {
+    return this.profile.deleteAccount(user.userId);
   }
 }

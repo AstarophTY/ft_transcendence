@@ -140,7 +140,8 @@ export class AuthService {
     await this.syncFortyTwo(created, profile);
     await this.world.ensureWorld(created.id, true);
     const latestUser = await this.users.findById(created.id);
-    return this.generateTokens(latestUser!);
+    const tokens = await this.generateTokens(latestUser!);
+    return { ...tokens, isNew: true };
   }
 
   /** Keep campus and logtime-coins in sync with 42 on every login. */

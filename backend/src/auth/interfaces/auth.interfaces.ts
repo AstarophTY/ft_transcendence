@@ -20,6 +20,8 @@ export interface AuthUser {
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
+  /** Set only on the 42 OAuth flow when the account was just created. */
+  isNew?: boolean;
 }
 
 export interface FortyTwoProfile {

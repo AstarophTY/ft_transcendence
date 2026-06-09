@@ -69,3 +69,8 @@ export async function changePassword(
 ): Promise<void> {
   await api.patch('/users/me/password', { currentPassword, newPassword })
 }
+
+/** Permanently delete the signed-in user's account (cascades all data). */
+export async function deleteAccount(): Promise<void> {
+  await api.delete('/users/me')
+}
