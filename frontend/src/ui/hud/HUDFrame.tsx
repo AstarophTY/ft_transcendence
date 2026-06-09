@@ -7,11 +7,13 @@ import TakeoffOverlay from "@/ui/hud/TakeoffOverlay"
 import { usePlanetStore } from '@/store/planetStore'
 import { useEditorStore } from '@/store/editorStore'
 import { Badge } from "@/ui/shadcn/badge"
+import { VoteOverlay } from '@/ui/hud/VoteOverlay'
 
 export default function HUDFrame() {
   const sceneMode = usePlanetStore(state => state.sceneMode);
   const editorMode = useEditorStore(state => state.in_editor);
   const inClaimZone = useEditorStore((state) => state.inClaimZone);
+  const isPrivate = usePlanetStore((state) => state.isPrivateWorld);
   return (
     <>
        {sceneMode === 'selection' ? <PlanetQuickSelect /> : <></>}
@@ -20,6 +22,10 @@ export default function HUDFrame() {
         {inClaimZone ?<Badge className="fixed top-6 left-1/2 -translate-x-1/2 bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">ZONE CLAIM</Badge> : <></>}
         {editorMode ? <EditorMode /> : <></>}
         {sceneMode === 'world' && <MobileVirtualControls />}
+        {sceneMode === 'world' && isPrivate && <VoteOverlay
+          contests={usePlanetStore((state) => state.contests)}
+          onUpdateContests={usePlanetStore((state) => state.setContests)}
+          isPrivate={isPrivate} />}
         <TakeoffOverlay />
       </>
   )
