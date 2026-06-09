@@ -69,7 +69,7 @@ export default function EditorMode() {
     useLookupStore.getState().closeLookup()
   })
 
-  const blockMeta = BlockMetadata[selectedBlock as Exclude<Block, Block.Air>]
+  const blockMeta = BlockMetadata[selectedBlock as Exclude<Block, Block.Air | Block.Bedrock>]
   const selectedBlockName = blockMeta?.name || 'unknown'
   const selectedBlockColor = blockMeta?.color || '#ffffff'
   return (

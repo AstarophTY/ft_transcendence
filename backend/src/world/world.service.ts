@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { Campus, User, World } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { WorldBlockDto } from './dto/save-blocks.dto';
-import { AIR, isPaidBlock } from './world.blocks';
+import { AIR, isPaidBlock, VALID_BLOCKS } from './world.blocks';
 import { generateWorldProfile } from './world.profile';
 
 /**
@@ -139,6 +139,7 @@ export class WorldService {
   }
 
   async saveBlocks(id: string, blocks: WorldBlockDto[], userId: string): Promise<void> {
+    blocks = blocks.filter((b) => VALID_BLOCKS.has(b.block));
     if (blocks.length === 0)
       return;
 
@@ -245,6 +246,12 @@ export class WorldService {
       const rejected: { x: number; y: number; z: number }[] = [];
 
       for (const b of blocks) {
+        // Reject blocks that are not in the valid catalog
+        if (!VALID_BLOCKS.has(b.block)) {
+          rejected.push({ x: b.x, y: b.y, z: b.z });
+          continue;
+        }
+
         // Protect the 4x4 chunks at the center of campus worlds
         const chunkSize = 16;
         const centerX = Math.floor(world.widthInChunks / 2);

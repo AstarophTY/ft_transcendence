@@ -15,7 +15,7 @@ export class WorldBlockDto {
   @IsInt() x!: number;
   @IsInt() y!: number;
   @IsInt() z!: number;
-  @IsInt() @Min(0) @Max(12) block!: number;
+  @IsInt() @Min(0) @Max(249) block!: number;
   @IsOptional() @IsInt() @Min(0) @Max(63) rotation?: number;
 }
 

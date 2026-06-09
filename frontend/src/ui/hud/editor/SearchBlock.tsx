@@ -6,6 +6,7 @@ import { ScrollArea } from '@/ui/shadcn/scroll-area.tsx';
 import { BlocksList } from '@/config/Block.ts';
 import { isPaidBlock } from '@/config/worldBlocks.ts';
 import { useEditorStore } from '@/store/editorStore.ts';
+import { usePlanetStore } from '@/store/planetStore.ts';
 import { motion, useDragControls } from 'motion/react';
 import { GripHorizontal, X, Coins } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile.tsx';
@@ -233,6 +234,7 @@ export function SearchBlock() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const { selectedBlock, setSelectedBlock, setCatalogOpen } = useEditorStore();
   const coins = useWorldEconomy((s) => s.coins);
+  const isPrivateWorld = usePlanetStore((s) => s.isPrivateWorld);
   const dragControls = useDragControls();
   const isMobile = useIsMobile();
 
@@ -414,7 +416,7 @@ export function SearchBlock() {
                 <div
                   className="h-20 w-full flex items-center justify-center border-b bg-muted/10 relative"
                 >
-                  {!isPaidBlock(block.id) && (
+                  {!isPrivateWorld && !isPaidBlock(block.id) && (
                     <span
                       title={t('editor.economy.freeBlock')}
                       className="absolute top-1 left-1 px-1.5 py-0.5 rounded-full bg-green-500/85 text-white text-[10px] font-bold uppercase tracking-wide leading-none shadow-sm select-none"

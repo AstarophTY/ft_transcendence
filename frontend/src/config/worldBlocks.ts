@@ -13,7 +13,6 @@ export const FREE_BLOCKS: ReadonlySet<Block> = new Set([
   Block.Leaves,
   Block.Water,
   Block.Sand,
-  Block.Bedrock,
   Block.Gravel,
   Block.Sandstone,
 ])
