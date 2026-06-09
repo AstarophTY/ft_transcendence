@@ -14,6 +14,8 @@ import { useIsTouchDevice } from '@/hooks/use-mobile.tsx'
 import { isEditableTarget } from '@/lib/utils'
 
 import { usePlanetStore } from '@/store/planetStore'
+import { toast } from 'sonner'
+import i18n from '@/i18n'
 
 interface FreeCameraControlsProps {
   localMap: LocalMap
@@ -206,20 +208,6 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
         const y = Math.floor(blockPos.y)
         const z = Math.floor(blockPos.z + halfSize)
 
-        const isPrivate = usePlanetStore.getState().isPrivateWorld;
-        const midX = Math.floor(localMap.widthInChunks / 2);
-        const midZ = Math.floor(localMap.depthInChunks / 2);
-
-        if (!isPrivate) {
-          const bX = Math.floor(x / Chunk.WIDTH);
-          const bZ = Math.floor(z / Chunk.WIDTH);
-
-          if (bX >= midX - 2 && bX < midX + 2 && bZ >= midZ - 2 && bZ < midZ + 2) {
-            previewGroupRef.current.visible = false;
-            return;
-          }
-        }
-
         if (x >= 0 && x < mapSize && y >= 0 && y < 64 && z >= 0 && z < mapSize) {
             targetX = x - halfSize + 0.5
             targetY = y + 0.5
@@ -359,6 +347,7 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
       const midZ = Math.floor(mapDepthInChunks / 2);
 
       if (bX >= midX - 2 && bX < midX + 2 && bZ >= midZ - 2 && bZ < midZ + 2) {
+        toast.error(i18n.t('world.claimZone', { defaultValue: 'You cannot place blocks in the claim zone' }))
         return;
       }
     }

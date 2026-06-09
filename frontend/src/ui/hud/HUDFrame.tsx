@@ -21,7 +21,6 @@ export default function HUDFrame() {
        {sceneMode === 'selection' ? <PlanetQuickSelect /> : <></>}
         <SocialPanel />
         <AuthPanel />
-        {inClaimZone ?<Badge className="fixed top-6 left-1/2 -translate-x-1/2 bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">ZONE CLAIM</Badge> : <></>}
         {editorMode ? <EditorMode /> : <></>}
         {sceneMode === 'world' && <MobileVirtualControls />}
         {sceneMode === 'world' && isPrivate && <VoteOverlay
