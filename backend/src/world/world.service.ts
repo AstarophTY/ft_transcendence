@@ -31,7 +31,7 @@ export class WorldService {
       const contests = await this.prisma.voteContest.findMany({
         where: { campusId: campus.id, isActive: true },
         include: {
-          candidates: { 
+          candidates: {
             include: {
               user: { select: { id: true, username: true, avatar: true } },
               _count: { select: { Vote: true } },
