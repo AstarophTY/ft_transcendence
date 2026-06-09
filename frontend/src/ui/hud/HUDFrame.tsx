@@ -14,6 +14,8 @@ export default function HUDFrame() {
   const editorMode = useEditorStore(state => state.in_editor);
   const inClaimZone = useEditorStore((state) => state.inClaimZone);
   const isPrivate = usePlanetStore((state) => state.isPrivateWorld);
+  const contests = usePlanetStore((state) => state.contests);
+  const setContests = usePlanetStore((state) => state.setContests);
   return (
     <>
        {sceneMode === 'selection' ? <PlanetQuickSelect /> : <></>}
@@ -23,8 +25,8 @@ export default function HUDFrame() {
         {editorMode ? <EditorMode /> : <></>}
         {sceneMode === 'world' && <MobileVirtualControls />}
         {sceneMode === 'world' && isPrivate && <VoteOverlay
-          contests={usePlanetStore((state) => state.contests)}
-          onUpdateContests={usePlanetStore((state) => state.setContests)}
+          contests={contests}
+          onUpdateContests={setContests}
           isPrivate={isPrivate} />}
         <TakeoffOverlay />
       </>
