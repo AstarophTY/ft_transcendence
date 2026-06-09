@@ -24,7 +24,7 @@ import RemotePlayers from '../objects/RemotePlayers'
 import { ChunkRenderer } from './worldScene/ChunkRenderer'
 import { MAP_SIZE_BLOCKS } from './worldScene/constants'
 import { FreeCameraControls } from './worldScene/FreeCameraControls'
-import { VoteOverlay } from './worldScene/VoteOverlay'
+import { VoteOverlay } from './VoteOverlay'
 import { Block } from '@/types/Block'
 import { BlockMetadata } from '@/config/Block'
 import { LocalMap } from '@/types/maps/LocalMap'
@@ -269,7 +269,7 @@ const WorldScene = () => {
       setMapVersion((v) => v + 1)
       const isPrivateWorld = usePlanetStore.getState().isPrivateWorld
       getWorld(isPrivateWorld ? getUserId() : activeCampusId)
-        .then((detail) => {
+        .then((detail: any) => {
           if (cancelled) return
           setContests(detail.contests || [])
           for (const b of detail.blocks) applyWorldBlock(map, b)

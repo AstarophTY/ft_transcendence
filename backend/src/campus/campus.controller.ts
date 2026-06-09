@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   Patch,
+  Post,
   UseGuards,
 } from '@nestjs/common';
 import { Campus, Role } from '@prisma/client';
@@ -66,5 +67,29 @@ export class CampusController {
     @Param('userId') userId: string,
   ): Promise<void> {
     return this.campus.removeMember(id, userId);
+  }
+
+  @Get(':id/contests')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  listContests(@Param('id') id: string) {
+    return this.campus.listContests(id);
+  }
+
+  @Post(':id/contests')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  createContest(@Param('id') id: string, @Body() dto: any) {
+    return this.campus.createContest(id, dto);
+  }
+
+  @Patch(':id/contests/:contestId')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  updateContest(
+    @Param('contestId') contestId: string,
+    @Body() dto: any,
+  ) {
+    return this.campus.updateContest(contestId, dto);
   }
 }

@@ -143,4 +143,35 @@ export class CampusService {
       data: { campusId: campus.id },
     });
   }
+
+  async listContests(campusId: string) {
+    return this.prisma.voteContest.findMany({
+      where: { campusId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async createContest(campusId: string, data: any) {
+    return this.prisma.voteContest.create({
+      data: {
+        campusId,
+        title: data.title,
+        description: data.description,
+        startsAt: new Date(data.startsAt),
+        endsAt: new Date(data.endsAt),
+        isActive: true,
+      },
+    });
+  }
+
+  async updateContest(contestId: string, data: any) {
+    const updateData = { ...data };
+    if (data.startsAt) updateData.startsAt = new Date(data.startsAt);
+    if (data.endsAt) updateData.endsAt = new Date(data.endsAt);
+
+    return this.prisma.voteContest.update({
+      where: { id: contestId },
+      data: updateData,
+    });
+  }
 }

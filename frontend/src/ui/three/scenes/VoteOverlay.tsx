@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { Html } from '@react-three/drei'
-import { X, User, CheckCircle2, Trophy } from 'lucide-react'
+import { X, User, Trophy } from 'lucide-react'
 import { toast } from 'sonner'
 import i18n from '@/i18n'
 import { api } from '@/lib/api'

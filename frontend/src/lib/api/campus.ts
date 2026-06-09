@@ -7,6 +7,16 @@ export interface Campus {
   coins: number
 }
 
+export interface VoteContest {
+  id: string
+  campusId: string
+  title: string
+  description: string | null
+  startsAt: string
+  endsAt: string
+  isActive: boolean
+}
+
 export interface CampusMember {
   id: string
   username: string
@@ -55,4 +65,26 @@ export async function removeCampusMember(
   userId: string,
 ): Promise<void> {
   await api.delete(`/campus/${campusId}/members/${userId}`)
+}
+
+export async function listCampusContests(id: string): Promise<VoteContest[]> {
+  const { data } = await api.get<VoteContest[]>(`/campus/${id}/contests`)
+  return data
+}
+
+export async function createCampusContest(
+  id: string,
+  body: { title: string; description?: string; startsAt: string; endsAt: string },
+): Promise<VoteContest> {
+  const { data } = await api.post<VoteContest>(`/campus/${id}/contests`, body)
+  return data
+}
+
+export async function updateCampusContest(
+  campusId: string,
+  contestId: string,
+  body: Partial<VoteContest>,
+): Promise<VoteContest> {
+  const { data } = await api.patch<VoteContest>(`/campus/${campusId}/contests/${contestId}`, body)
+  return data
 }

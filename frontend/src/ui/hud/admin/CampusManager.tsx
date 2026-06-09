@@ -16,6 +16,7 @@ import { Input } from '@/ui/shadcn/input.tsx'
 import { Badge } from '@/ui/shadcn/badge.tsx'
 import { ScrollArea } from '@/ui/shadcn/scroll-area.tsx'
 import Avatar from '@/ui/hud/friends/Avatar.tsx'
+import { CampusContestManager } from '@/ui/three/scenes/CampusContestManager'
 import { useAdmin } from '@/store/admin.ts'
 import type { CampusWithMembers } from '@/lib/api/campus.ts'
 import { cn } from '@/lib/utils.ts'
@@ -173,6 +174,8 @@ function CampusRow({ campus }: { campus: CampusWithMembers }) {
             </div>
           </div>
 
+          <CampusContestManager campusId={campus.id} />
+
           {/* Members and their earned coins. */}
           <ul className="flex flex-col gap-1">
             {campus.users.length === 0 ? (
@@ -229,7 +232,7 @@ export default function CampusManager() {
 
   return (
     <div className="rounded-lg border">
-      <ScrollArea className="max-h-[40vh]">
+      <ScrollArea className="max-h-[40vh] overflow-y-scroll overflow-x-hidden [scrollbar-width:none]">
         <ul className="divide-y">
           {campuses.map((c) => (
             <CampusRow key={c.id} campus={c} />

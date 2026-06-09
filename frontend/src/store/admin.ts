@@ -15,10 +15,14 @@ import {
 } from '@/lib/api/admin'
 import {
   deleteCampus,
+  listCampusContests,
+  createCampusContest,
+  updateCampusContest,
   listManagedCampuses,
   removeCampusMember,
   updateCampus,
   type CampusWithMembers,
+  type VoteContest,
 } from '@/lib/api/campus'
 import type { UserRole } from '@/lib/api'
 import { toMessage } from '@/lib/apiError'
@@ -30,6 +34,7 @@ interface AdminState {
   signups: SignupPoint[]
   users: AdminUser[]
   campuses: CampusWithMembers[]
+  contests: Record<string, VoteContest[]>
   loading: boolean
   editing: AdminUser | null
 
@@ -43,6 +48,9 @@ interface AdminState {
   saveCampus: (id: string, body: { label?: string; coins?: number; seed?: string; regenerate?: boolean }) => Promise<boolean>
   removeCampus: (campus: CampusWithMembers) => Promise<void>
   detachMember: (campusId: string, userId: string) => Promise<void>
+  loadContests: (campusId: string) => Promise<void>
+  createContest: (campusId: string, body: { title: string; description?: string; startsAt: string; endsAt: string }) => Promise<void>
+  toggleContest: (campusId: string, contestId: string, active: boolean) => Promise<void>
 }
 
 export const useAdmin = create<AdminState>((set, get) => ({
@@ -51,6 +59,7 @@ export const useAdmin = create<AdminState>((set, get) => ({
   signups: [],
   users: [],
   campuses: [],
+  contests: {},
   loading: false,
   editing: null,
 
@@ -146,6 +155,33 @@ export const useAdmin = create<AdminState>((set, get) => ({
     try {
       await removeCampusMember(campusId, userId)
       await get().load()
+    } catch (error) {
+      toast.error(toMessage(error))
+    }
+  },
+
+  loadContests: async (campusId) => {
+    try {
+      const list = await listCampusContests(campusId)
+      set((s) => ({ contests: { ...s.contests, [campusId]: list } }))
+    } catch (error) {
+      toast.error(toMessage(error))
+    }
+  },
+
+  createContest: async (campusId, body) => {
+    try {
+      await createCampusContest(campusId, body)
+      await get().loadContests(campusId)
+    } catch (error) {
+      toast.error(toMessage(error))
+    }
+  },
+
+  toggleContest: async (campusId, contestId, isActive) => {
+    try {
+      await updateCampusContest(campusId, contestId, { isActive })
+      await get().loadContests(campusId)
     } catch (error) {
       toast.error(toMessage(error))
     }
