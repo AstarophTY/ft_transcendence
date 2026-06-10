@@ -12,6 +12,7 @@ import { GripHorizontal, X, Coins } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile.tsx';
 import { useTranslation } from 'react-i18next';
 import { useWorldEconomy } from '@/store/worldEconomy.ts';
+import { Block } from '@/types/Block';
 import {
   Select,
   SelectContent,
@@ -249,6 +250,7 @@ export function SearchBlock() {
   const filteredBlocks = useMemo(() => {
     const term = searchTerm.toLowerCase();
     return BlocksList.filter((block) => {
+      if (block.id === Block.Bedrock) return false;
       const matchesSearch =
         block.name.toLowerCase().includes(term) ||
         blockLabel(block.name).toLowerCase().includes(term);

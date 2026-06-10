@@ -1,6 +1,9 @@
 /** Air / empty block. */
 export const AIR = 0;
 
+/** Bedrock — may only be placed by terrain generation, never by players/API. */
+export const BEDROCK = 9;
+
 /**
  * All valid block IDs, mirroring the frontend `Block` enum.
  * Blocks not in this set are rejected server-side.

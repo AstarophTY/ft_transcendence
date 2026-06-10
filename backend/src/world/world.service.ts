@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { Campus, User, World } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { WorldBlockDto } from './dto/save-blocks.dto';
-import { AIR, isPaidBlock, VALID_BLOCKS } from './world.blocks';
+import { AIR, BEDROCK, isPaidBlock, VALID_BLOCKS } from './world.blocks';
 import { generateWorldProfile } from './world.profile';
 
 /**
@@ -139,7 +139,7 @@ export class WorldService {
   }
 
   async saveBlocks(id: string, blocks: WorldBlockDto[], userId: string): Promise<void> {
-    blocks = blocks.filter((b) => VALID_BLOCKS.has(b.block));
+    blocks = blocks.filter((b) => VALID_BLOCKS.has(b.block) && b.block !== BEDROCK);
     if (blocks.length === 0)
       return;
 
@@ -248,6 +248,12 @@ export class WorldService {
       for (const b of blocks) {
         // Reject blocks that are not in the valid catalog
         if (!VALID_BLOCKS.has(b.block)) {
+          rejected.push({ x: b.x, y: b.y, z: b.z });
+          continue;
+        }
+
+        // Bedrock may only be placed by terrain generation
+        if (b.block === BEDROCK) {
           rejected.push({ x: b.x, y: b.y, z: b.z });
           continue;
         }

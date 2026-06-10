@@ -3,7 +3,7 @@ import blockColors from "./block_colors.json";
 
 const colors = blockColors as Record<string, string>;
 
-export const BlockMetadata: Record<Exclude<Block, Block.Air | Block.Bedrock>, BlockMeta> = {
+export const BlockMetadata: Record<Exclude<Block, Block.Air>, BlockMeta> = {
   [Block.Stone]: { id: Block.Stone, name: "Stone", color: colors.stone || "#808080", category: "gray" },
   [Block.Dirt]: { id: Block.Dirt, name: "Dirt", color: colors.dirt || "#8b4513", category: "brown" },
   [Block.Grass]: { id: Block.Grass, name: "Grass", color: "#7ca75e", category: "green" },
@@ -12,6 +12,7 @@ export const BlockMetadata: Record<Exclude<Block, Block.Air | Block.Bedrock>, Bl
   [Block.Water]: { id: Block.Water, name: "Water_Still", color: "#2a5eff", category: "blue" },
   [Block.Sand]: { id: Block.Sand, name: "Sand", color: colors.sand || "#f4a460", category: "yellow" },
   [Block.Glass]: { id: Block.Glass, name: "Glass", color: "#add8e6", category: "blue" },
+  [Block.Bedrock]: { id: Block.Bedrock, name: "Bedrock", color: colors.bedrock || "#404040", category: "gray" },
   [Block.Furnace]: { id: Block.Furnace, name: "Furnace", color: colors.furnace || "#404040", category: "gray" },
   [Block.Pumpkin]: { id: Block.Pumpkin, name: "Pumpkin", color: colors.pumpkin || "#404040", category: "orange" },
   [Block.Plank]: { id: Block.Plank, name: "Planks_Oak", color: colors.planks_oak || "#404040", category: "brown" },
