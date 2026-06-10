@@ -247,7 +247,17 @@ export const VoteOverlay = ({ contests, onUpdateContests, isPrivate }: VoteOverl
           </motion.div>
         </div>
       )}
-      <VotePreview userId={previewUserId} onClose={() => setPreviewUserId(null)} />
+      <VotePreview 
+        userId={previewUserId} 
+        onClose={() => setPreviewUserId(null)}
+        canVote={selectedContest ? !votedContestIds.has(selectedContest.id) : false}
+        onVote={() => {
+          if (selectedContest && previewUserId) {
+            handleVote(selectedContest.id, previewUserId)
+          }
+        }}
+        isVoting={isVoting}
+      />
       </>
   )
 }

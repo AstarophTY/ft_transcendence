@@ -14,6 +14,9 @@ import { useTranslation } from 'react-i18next'
 interface VotePreviewProps {
   userId: string | null
   onClose: () => void
+  onVote?: () => void
+  canVote?: boolean
+  isVoting?: boolean
 }
 
 const BASE_MAP = new Map<string, {block: Block, rotation: number}>()
@@ -142,7 +145,7 @@ const PreviewMap = ({ editedBlocks }: { editedBlocks: any[] }) => {
   )
 }
 
-export const VotePreview = ({ userId, onClose }: VotePreviewProps) => {
+export const VotePreview = ({ userId, onClose, onVote, canVote, isVoting }: VotePreviewProps) => {
   const { t } = useTranslation()
   const dragControls = useDragControls()
   const isMobile = useIsMobile()
@@ -185,12 +188,20 @@ export const VotePreview = ({ userId, onClose }: VotePreviewProps) => {
           onPointerDown={(e) => !isMobile && dragControls.start(e)}
         >
           <div className="flex items-center gap-2">
-            <GripHorizontal className="h-5 w-5 text-muted-foreground" />
+            <GripHorizontal className="h-5 w-5 text-primary" />
             <h2 className="text-xl font-bold select-none">{t('vote.previewTitle', { defaultValue: 'World Preview' })}</h2>
           </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {canVote && onVote && (
+              <Button disabled={isVoting} onClick={onVote} size="sm" className="max-md:h-8 max-md:text-xs">
+                {isVoting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {t('vote.vote', { defaultValue: 'Vote' })}
+              </Button>
+            )}
+            <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         <div className="flex-1 relative overflow-hidden rounded-b-xl max-md:rounded-none">
