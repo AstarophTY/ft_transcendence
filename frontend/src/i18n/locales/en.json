@@ -515,6 +515,7 @@
     "Wool_Colored_Yellow": "Wool Colored Yellow"
   },
   "world.loading": "Loading the world...",
+  "world.connectionLost": "Connection lost. Returning to planet selection.",
   "legal": {
     "menuTitle": "Legal",
     "privacyTitle": "Privacy Policy",

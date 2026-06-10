@@ -511,6 +511,7 @@
     "Wool_Colored_Yellow": "Laine jaune"
   },
   "world.loading": "Chargement du monde...",
+  "world.connectionLost": "Connexion perdue. Retour à la sélection des planètes.",
   "legal": {
     "menuTitle": "Mentions légales",
     "privacyTitle": "Politique de confidentialité",

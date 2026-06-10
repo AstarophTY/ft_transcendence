@@ -266,7 +266,7 @@ const WorldScene = () => {
       setMapVersion((v) => v + 1)
       const isPrivateWorld = usePlanetStore.getState().isPrivateWorld
       getWorld(isPrivateWorld ? getUserId() : activeCampusId)
-        .then((detail: any) => {
+        .then((detail) => {
           if (cancelled) return
           setContests(detail.contests || [])
           for (const b of detail.blocks) applyWorldBlock(map, b)
@@ -339,13 +339,20 @@ const WorldScene = () => {
     }
     socket.on('world:revert', onRevert)
 
+    const onDisconnect = (reason: string) => {
+      if (reason === 'io client disconnect') return
+      toast.error(i18n.t('world.connectionLost', { defaultValue: 'Connection lost. Returning to planet selection.' }))
+      usePlanetStore.getState().setSceneMode('selection')
+    }
+    socket.on('disconnect', onDisconnect)
+
     return () => {
       socket.emit('world:leave', { campusId: activeCampusId, personalWorld: isPrivate })
       socket.off('world:edit', onRemoteEdit)
-
       socket.off('world:lookup:res', onLookupResponse)
       socket.off('world:coins', onCoins)
       socket.off('world:revert', onRevert)
+      socket.off('disconnect', onDisconnect)
     }
   }, [activeCampusId, isPrivate])
 

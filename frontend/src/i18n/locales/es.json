@@ -518,6 +518,7 @@
     "Wool_Colored_Yellow": "Lana amarilla"
   },
   "world.loading": "Cargando el mundo...",
+  "world.connectionLost": "Conexión perdida. Volviendo a la selección de planetas.",
   "legal": {
     "menuTitle": "Aviso legal",
     "privacyTitle": "Política de privacidad",
