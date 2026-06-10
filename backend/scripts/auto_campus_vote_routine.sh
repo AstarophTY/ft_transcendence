@@ -6,6 +6,9 @@ set -e
 
 VOTE_DURATION="3 days"
 
+# clear campus list
+echo "" > /var/tmp/campuses.lst
+
 echo -e "\n\n"
 date
 
@@ -34,6 +37,7 @@ echo "$campuses" | while IFS= read -r campus; do
 	result=$(psql $DATABASE_URL -c "$query")
 	if [[ "$result" == "INSERT 0 1" ]]; then
 		echo -e "\033[32mSUCCESS\033[0m: Added vote for campus $campus"
+		echo "$campus" >> /var/tmp/campuses.lst
 	else
 		echo -e "\033[31mERROR\033[0m: Could not create vote contest for campus id: '$campus'" >&2
 		exit 1

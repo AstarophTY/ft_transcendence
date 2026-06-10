@@ -8,6 +8,9 @@ chmod +x /opt/auto_campus_vote_routine.sh
 cp ./scripts/campus_process_winner.sh /opt/campus_process_winner.sh
 chmod +x /opt/campus_process_winner.sh
 
+cp ./scripts/process_all_winners.sh /opt/process_all_winners.sh
+chmod +x /opt/process_all_winners.sh
+
 crontab ./scripts/vote.crontab
 crond &
 
