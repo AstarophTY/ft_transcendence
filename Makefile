@@ -40,7 +40,7 @@ ps:
 	docker compose ps
 
 dev: ssl
-	HOST_IP=$(HOST_IP) docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d postgres redis nginx-dev
+	HOST_IP=$(HOST_IP) docker compose -f compose.yaml -f compose-compose.dev.yaml up -d postgres redis nginx-dev
 	@echo "Waiting for PostgreSQL to be ready..."
 	@until docker compose exec -T postgres pg_isready -U $(POSTGRES_USER) -d $(POSTGRES_DB) >/dev/null 2>&1; do \
 		sleep 1; \
