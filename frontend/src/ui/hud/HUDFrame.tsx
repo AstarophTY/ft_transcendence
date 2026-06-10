@@ -7,7 +7,7 @@ import TakeoffOverlay from "@/ui/hud/TakeoffOverlay"
 import { usePlanetStore } from '@/store/planetStore'
 import { useEditorStore } from '@/store/editorStore'
 //import { Badge } from "@/ui/shadcn/badge"
-import { VoteOverlay } from '@/ui/hud/VoteOverlay'
+import { VoteOverlay, type Contest } from '@/ui/hud/VoteOverlay'
 
 export default function HUDFrame() {
   const sceneMode = usePlanetStore(state => state.sceneMode);
@@ -24,8 +24,8 @@ export default function HUDFrame() {
         {editorMode ? <EditorMode /> : <></>}
         {sceneMode === 'world' && <MobileVirtualControls />}
         {sceneMode === 'world' && <VoteOverlay
-          contests={contests}
-          onUpdateContests={setContests}
+          contests={contests as Contest[]}
+          onUpdateContests={setContests as (contests: Contest[]) => void}
           isPrivate={isPrivate} />}
         <TakeoffOverlay />
       </>

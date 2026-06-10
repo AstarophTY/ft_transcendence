@@ -25,7 +25,7 @@ interface Contest {
 
 interface VoteOverlayProps {
   contests: Contest[]
-  onUpdateContests: (contests: any[]) => void
+  onUpdateContests: (contests: Contest[]) => void
   isPrivate?: boolean
 }
 

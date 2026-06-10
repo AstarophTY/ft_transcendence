@@ -28,8 +28,8 @@ interface PlanetStore {
   setRenderDistance: (dist: number) => void
   theme: 'light' | 'dark'
   setTheme: (theme: 'light' | 'dark') => void
-  contests: any[]
-  setContests: (state: any[]) => void
+  contests: unknown[]
+  setContests: (state: unknown[]) => void
 }
 
 const getInitialRenderDistance = () => {

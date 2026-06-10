@@ -282,7 +282,7 @@ const WorldScene = () => {
     return () => {
       cancelled = true
     }
-  }, [activeCampusId, profile])
+  }, [activeCampusId, profile, setContests])
 
   useEffect(() => {
     if (!activeCampusId && !isPrivate) return

@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unknown-property */
 import { useEffect, useState, useMemo } from 'react'
 import { motion, useDragControls } from 'motion/react'
 import { X, Loader2, GripHorizontal } from 'lucide-react'
@@ -8,7 +9,7 @@ import { OrbitControls, Center } from '@react-three/drei'
 import * as THREE from 'three'
 import { api } from '@/lib/api'
 import { BlockMetadata } from '@/config/Block.ts'
-import { Block } from '@/types/Block.ts'
+import { Block, BlockMeta } from '@/types/Block.ts'
 import { useTranslation } from 'react-i18next'
 
 interface VotePreviewProps {
@@ -17,6 +18,14 @@ interface VotePreviewProps {
   onVote?: () => void
   canVote?: boolean
   isVoting?: boolean
+}
+
+interface EditedBlock {
+  x: number
+  y: number
+  z: number
+  block: Block
+  rotation?: number
 }
 
 const BASE_MAP = new Map<string, {block: Block, rotation: number}>()
@@ -33,7 +42,7 @@ for (let x = 0; x < 64; x++) {
 }
 
 const TEXTURE_MATERIALS = new Map<Exclude<Block, Block.Air>, THREE.Material[]>()
-const getBlockMaterials = (blockType: Exclude<Block, Block.Air>, meta: any) => {
+const getBlockMaterials = (blockType: Exclude<Block, Block.Air>, meta: BlockMeta) => {
   if (TEXTURE_MATERIALS.has(blockType)) return TEXTURE_MATERIALS.get(blockType)!
   
   const textureLoader = new THREE.TextureLoader()
@@ -86,7 +95,7 @@ const getBlockMaterials = (blockType: Exclude<Block, Block.Air>, meta: any) => {
   return mats
 }
 
-const PreviewMap = ({ editedBlocks }: { editedBlocks: any[] }) => {
+const PreviewMap = ({ editedBlocks }: { editedBlocks: EditedBlock[] }) => {
   const instances = useMemo(() => {
     const map = new Map(BASE_MAP)
 
@@ -129,7 +138,7 @@ const PreviewMap = ({ editedBlocks }: { editedBlocks: any[] }) => {
          const materials = getBlockMaterials(blockId as Exclude<Block, Block.Air>, meta)
          
          return (
-           <instancedMesh key={blockId} args={[undefined as any, undefined as any, matrices.length]} material={materials}
+           <instancedMesh key={blockId} args={[undefined as unknown as THREE.BufferGeometry, undefined as unknown as THREE.Material, matrices.length]} material={materials}
              ref={(mesh) => {
                if (mesh) {
                  matrices.forEach((mat, i) => mesh.setMatrixAt(i, mat))
@@ -149,7 +158,7 @@ export const VotePreview = ({ userId, onClose, onVote, canVote, isVoting }: Vote
   const { t } = useTranslation()
   const dragControls = useDragControls()
   const isMobile = useIsMobile()
-  const [blocks, setBlocks] = useState<any[] | null>(null)
+  const [blocks, setBlocks] = useState<EditedBlock[] | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
