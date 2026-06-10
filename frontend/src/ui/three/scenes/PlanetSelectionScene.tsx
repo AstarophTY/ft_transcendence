@@ -95,6 +95,12 @@ const PlanetSelectionScene = () => {
     const handleWheel = (event: WheelEvent) => {
       if (usePlanetStore.getState().sceneMode !== 'selection') return
       if (planetMaps.length === 0) return
+
+      const canvasContainer = document.getElementById('canvas-container')
+      if (canvasContainer && !canvasContainer.contains(event.target as Node)) {
+        return
+      }
+
       event.preventDefault()
 
       const delta = event.deltaY !== 0 ? event.deltaY : event.deltaX
