@@ -58,19 +58,26 @@ function userFromToken(accessToken: string): AuthUser | null {
 async function hydrateUser(): Promise<void> {
   try {
     const me = await getMe()
-    useAuth.setState((s) =>
-      s.user
-        ? {
-            user: {
-              ...s.user,
-              email: me.email,
-              username: me.username,
-              avatar: me.avatar,
-              role: me.role,
-            },
-          }
-        : s,
-    )
+    useAuth.setState((s) => {
+      if (!s.user) return s
+      // The JWT is the source of truth for authorization. If the role in the
+      // DB disagrees with the JWT, force the user to re-authenticate so they
+      // get a token that carries the correct role.
+      if (me.role !== s.user.role) {
+        tokenStore.clear()
+        toast.error(i18n.t('auth.roleChanged', { defaultValue: 'Your role has been updated — please log in again' }))
+        return { user: null }
+      }
+      return {
+        user: {
+          ...s.user,
+          email: me.email,
+          username: me.username,
+          avatar: me.avatar,
+          role: me.role,
+        },
+      }
+    })
   } catch {
     // Keep the token-derived user if the profile fetch fails.
   }

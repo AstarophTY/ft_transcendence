@@ -59,11 +59,15 @@ export class AdminService {
     if (adminId === userId) {
       throw new BadRequestException('You cannot change your own role');
     }
-    return this.prisma.user.update({
+    const user = await this.prisma.user.update({
       where: { id: userId },
       data: { role },
       select: ADMIN_USER_SELECT,
     });
+    // Invalidate all refresh tokens so the user must log in again and get a JWT
+    // that carries the new role.
+    await this.prisma.refreshToken.deleteMany({ where: { userId } });
+    return user;
   }
 
   /** New-account counts for each of the last `days` days (oldest first). */

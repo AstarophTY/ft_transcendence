@@ -47,6 +47,7 @@
     "logoutSuccess": "Déconnecté",
     "sessionExpired": "Session expirée, reconnecte-toi",
     "concurrentLogin": "Déconnecté : une autre session s'est ouverte sur ce compte",
+    "roleChanged": "Ton rôle a été mis à jour — reconnecte-toi",
     "acceptPrivacyPre": "J'ai lu et j'accepte la",
     "privacyPolicy": "Politique de confidentialité",
     "mustAcceptPrivacy": "Vous devez accepter la politique de confidentialité pour créer un compte",

@@ -71,12 +71,15 @@ export const createSocketSlice: StateCreator<
         if (name) toast.info(i18n.t('friends.notif.message', { name }))
       })
       .off('auth:kick')
-      .on('auth:kick', () => {
+      .on('auth:kick', ({ reason }: { reason?: string }) => {
         tokenStore.clear()
         useAuth.setState({ user: null })
         disconnectSocket()
         disconnectWorldSocket()
-        toast.error(i18n.t('auth.concurrentLogin', { defaultValue: 'Disconnected: another connection was opened under this account' }))
+        const msg = reason === 'role_changed'
+          ? i18n.t('auth.roleChanged', { defaultValue: 'Your role has been updated — please log in again' })
+          : i18n.t('auth.concurrentLogin', { defaultValue: 'Disconnected: another connection was opened under this account' })
+        toast.error(msg)
       })
   },
 

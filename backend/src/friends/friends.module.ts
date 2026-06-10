@@ -21,6 +21,6 @@ import { RequestsService } from './requests.service';
     PresenceService,
     FriendsGateway,
   ],
-  exports: [FriendsService],
+  exports: [FriendsService, FriendsGateway],
 })
 export class FriendsModule {}

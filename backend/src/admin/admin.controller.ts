@@ -15,6 +15,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { AuthUser } from '../auth/interfaces/auth.interfaces';
+import { FriendsGateway } from '../friends/friends.gateway';
 import { AdminUser } from '../users/users.select';
 import { AdminService, AdminStats, SignupPoint } from './admin.service';
 import { AdminResetPasswordDto } from './dto/admin-reset-password.dto';
@@ -25,7 +26,10 @@ import { SetRoleDto } from './dto/set-role.dto';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.ADMIN)
 export class AdminController {
-  constructor(private readonly admin: AdminService) {}
+  constructor(
+    private readonly admin: AdminService,
+    private readonly gateway: FriendsGateway,
+  ) {}
 
   @Get('stats')
   stats(): Promise<AdminStats> {
@@ -60,12 +64,15 @@ export class AdminController {
   }
 
   @Patch('users/:id/role')
-  setRole(
+  async setRole(
     @CurrentUser() admin: AuthUser,
     @Param('id') id: string,
     @Body() dto: SetRoleDto,
   ): Promise<AdminUser> {
-    return this.admin.setRole(admin.userId, id, dto.role);
+    const user = await this.admin.setRole(admin.userId, id, dto.role);
+    // Force the affected user to re-authenticate so their JWT reflects the new role.
+    this.gateway.emitToUser(id, 'auth:kick', { reason: 'role_changed' });
+    return user;
   }
 
   @Delete('users/:id')

@@ -47,6 +47,7 @@
     "logoutSuccess": "Sesión cerrada",
     "sessionExpired": "Sesión expirada, inicia sesión de nuevo",
     "concurrentLogin": "Desconectado: se abrió otra sesión con esta cuenta",
+    "roleChanged": "Tu rol ha sido actualizado — inicia sesión de nuevo",
     "acceptPrivacyPre": "He leído y acepto la",
     "privacyPolicy": "Política de privacidad",
     "mustAcceptPrivacy": "Debes aceptar la política de privacidad para crear una cuenta",

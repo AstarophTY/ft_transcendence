@@ -43,6 +43,7 @@
     "logoutSuccess": "Logged out",
     "sessionExpired": "Session expired, please log in again",
     "concurrentLogin": "Disconnected: another connection was opened under this account",
+    "roleChanged": "Your role has been updated — please log in again",
     "acceptPrivacyPre": "I have read and accept the",
     "privacyPolicy": "Privacy Policy",
     "mustAcceptPrivacy": "You must accept the Privacy Policy to create an account",
