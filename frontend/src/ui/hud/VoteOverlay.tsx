@@ -10,13 +10,14 @@ import { useIsMobile } from '@/hooks/use-mobile.tsx'
 import { Button } from '@/ui/shadcn/button.tsx'
 import { useTranslation } from 'react-i18next'
 import { getWorldSocket } from '@/lib/sockets/worldSocket'
-
+import { VotePreview } from '@/ui/hud/VotePreview.tsx'
 
 interface Candidate {
   userId: string
   username: string
   avatar: string | null
   votes: number
+  isVoted: boolean
 }
 
 interface Contest {
@@ -31,26 +32,21 @@ interface VoteOverlayProps {
   onUpdateContests: (contests: any[]) => void
   isPrivate?: boolean
 }
-
+ 
 export const VoteOverlay = ({ contests, onUpdateContests, isPrivate }: VoteOverlayProps) => {
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
   const [votedContestIds, setVotedContestIds] = useState<Set<string>>(new Set());
   const [isVoting, setIsVoting] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+  const [previewUserId, setPreviewUserId] = useState<string | null>(null);
   const userId = getUserId();
   const { t } = useTranslation();
   const dragControls = useDragControls();
   const isMobile = useIsMobile();
   const socket = getWorldSocket();
 
-  const handlePreview = (contestId: string, targetUserId: string) => {
-    if (!socket) return
-    try {
-      socket.emit('vote:preview', { contestsId: contestId, userId: targetUserId });
-    } catch (err) {
-      console.log(err);
-      toast.error(i18n.t('world.voteError', { defaultValue: 'Failed to vote' }));
-    }
+  const handlePreview = (targetUserId: string) => {
+    setPreviewUserId(targetUserId);
   }
 
   const handleVote = async (contestId: string, targetUserId: string) => {
@@ -66,7 +62,7 @@ export const VoteOverlay = ({ contests, onUpdateContests, isPrivate }: VoteOverl
           return {
             ...c,
             candidates: c.candidates.map(can => 
-              can.userId === targetUserId ? { ...can, votes: can.votes + 1 } : can
+              can.userId === targetUserId && !can.isVoted ? { ...can, votes: can.votes + 1, isVoted: true } : can
             )
           }
         }
@@ -206,7 +202,7 @@ export const VoteOverlay = ({ contests, onUpdateContests, isPrivate }: VoteOverl
                   return (
                     <div key={candidate.userId} className="group relative flex flex-col gap-2 rounded-xl bg-white/5 p-4 transition-all hover:bg-white/10">
                       <div className="flex justify-between items-center">
-                        <div className="flex items-center"> 
+                        <div className="flex items-center gap-3"> 
                         {candidate.avatar ? (
                           <img src={candidate.avatar} className="object-cover h-10 w-10 rounded-full border border-white/20" alt="" />
                         ) : (
@@ -217,7 +213,7 @@ export const VoteOverlay = ({ contests, onUpdateContests, isPrivate }: VoteOverl
                           <span className="font-semibold text-lg">{candidate.username}</span>
                         </div>
                         <div className="flex items-center gap-3">
-                            <Button onClick={() => handlePreview(selectedContest.id, candidate.userId)}>
+                            <Button onClick={() => handlePreview(candidate.userId)}>
                               {t('vote.preview')}
                             </Button>
                           {!hasVoted && (
@@ -251,6 +247,7 @@ export const VoteOverlay = ({ contests, onUpdateContests, isPrivate }: VoteOverl
           </motion.div>
         </div>
       )}
+      <VotePreview userId={previewUserId} onClose={() => setPreviewUserId(null)} />
       </>
   )
 }
