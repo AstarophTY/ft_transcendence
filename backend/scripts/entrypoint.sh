@@ -2,6 +2,10 @@
 
 set -e
 
+cp ./scripts/auto_campus_vote_routine.sh /opt/auto_campus_vote_routine.sh
+chmod +x /opt/auto_campus_vote_routine.sh
+
 crontab ./scripts/vote.crontab
+crond &
 
 exec node dist/main.js

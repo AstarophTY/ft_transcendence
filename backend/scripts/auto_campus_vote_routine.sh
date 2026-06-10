@@ -6,12 +6,15 @@ set -e
 
 VOTE_DURATION="3 days"
 
+echo -e "\n\n"
+date
 
-echo "\033[35mINFO\033[0m: DATABASE_URL = '$DATABASE_URL'"
-echo "\033[35mINFO\033[0m: VOTE_DURATION = '$VOTE_DURATION'"
+echo -e "\033[35mINFO\033[0m: DATABASE_URL = '$DATABASE_URL'"
+echo -e "\033[35mINFO\033[0m: VOTE_DURATION = '$VOTE_DURATION'"
 
 query="SELECT id FROM \"Campus\";"
-campuses=$(docker exec transcendence_postgres psql $DATABASE_URL -c "$query" | grep -v "id" | grep -v "\-\-" | grep -v '\([0-9][0-9]* row\|\([0-9][0-9]* rows\)\)')
+campuses=$(psql $DATABASE_URL -c "$query" | grep -v "id" | grep -v "\-\-" | grep -v '\([0-9][0-9]* row\|\([0-9][0-9]* rows\)\)')
+echo $campuses
 
 
 echo "$campuses" | while IFS= read -r campus; do
@@ -28,11 +31,12 @@ echo "$campuses" | while IFS= read -r campus; do
 		NOW()
 	);"
 
-	result=$(docker exec transcendence_postgres psql $DATABASE_URL -c "$query")
+	result=$(psql $DATABASE_URL -c "$query")
 	if [[ "$result" == "INSERT 0 1" ]]; then
-		echo "\033[32mSUCCESS\033[0m: Added vote for campus $campus"
+		echo -e "\033[32mSUCCESS\033[0m: Added vote for campus $campus"
 	else
-		echo "\033[31mERROR\033[0m: Could not create vote contest for campus id: '$campus'" >&2
+		echo -e "\033[31mERROR\033[0m: Could not create vote contest for campus id: '$campus'" >&2
 		exit 1
 	fi
 done
+echo "Processed $(echo $campuses | wc -l) campuses!"
