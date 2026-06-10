@@ -108,7 +108,8 @@ export const useAdmin = create<AdminState>((set, get) => ({
 
   saveUser: async (id, body) => {
     try {
-      await updateAdminUser(id, body)
+      const updated = await updateAdminUser(id, body)
+      set({ editing: updated })
       toast.success(i18n.t('settings.saved'))
       await get().load()
       return true

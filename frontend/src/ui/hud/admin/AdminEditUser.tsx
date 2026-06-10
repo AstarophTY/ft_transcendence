@@ -43,7 +43,7 @@ export default function AdminEditUser() {
     void saveUser(editing.id, {
       displayName,
       bio,
-      email,
+      ...(email ? { email } : {}),
       campus,
       status,
       statusMessage,

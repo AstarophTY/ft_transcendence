@@ -101,7 +101,9 @@ export class AdminService {
       where: { id: userId },
       data: {
         ...rest,
-        ...(campus ? { campus: this.campusRelation(campus) } : {}),
+        ...(campus !== undefined
+          ? { campus: campus ? this.campusRelation(campus) : { disconnect: true } }
+          : {}),
       },
       select: ADMIN_USER_SELECT,
     });

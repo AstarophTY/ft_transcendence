@@ -120,7 +120,7 @@ function UsersTab({ users }: { users: AdminUser[] }) {
 
 export default function AdminDialog() {
   const { t } = useTranslation()
-  const { open, setOpen, stats, signups, users, loading } =
+  const { open, setOpen, stats, signups, users, loading, editing } =
     useAdmin()
 
   return (
@@ -169,7 +169,7 @@ export default function AdminDialog() {
           </Tabs>
         )}
 
-        <AdminEditUser />
+        {editing && <AdminEditUser key={editing.id} />}
       </DialogContent>
     </Dialog>
   )
