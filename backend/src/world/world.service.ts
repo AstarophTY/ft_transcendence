@@ -151,10 +151,43 @@ export class WorldService {
     }
 
     await this.prisma.$transaction(async (tx) => {
-      for (const b of blocks) {
-        const rotation = b.rotation ?? 0;
+      const existing = await tx.worldBlock.findMany({
+        where: {
+          worldId: world.id,
+          OR: blocks.map((b) => ({ x: b.x, y: b.y, z: b.z })),
+        },
+        select: { x: true, y: true, z: true },
+      });
 
-        await tx.worldBlock.upsert({
+      const existingSet = new Set(existing.map((e) => `${e.x},${e.y},${e.z}`));
+
+      const updates: WorldBlockDto[] = [];
+      const creates: WorldBlockDto[] = [];
+
+      for (const b of blocks) {
+        const key = `${b.x},${b.y},${b.z}`;
+        if (existingSet.has(key)) {
+          updates.push(b);
+        } else {
+          creates.push(b);
+        }
+      }
+
+      if (creates.length > 0) {
+        await tx.worldBlock.createMany({
+          data: creates.map((b) => ({
+            worldId: world.id,
+            x: b.x,
+            y: b.y,
+            z: b.z,
+            block: b.block,
+            rotation: b.rotation ?? 0,
+          })),
+        });
+      }
+
+      for (const b of updates) {
+        await tx.worldBlock.update({
           where: {
             worldId_x_y_z: {
               worldId: world.id,
@@ -163,34 +196,24 @@ export class WorldService {
               z: b.z,
             },
           },
-          create: {
-            worldId: world.id,
-            x: b.x,
-            y: b.y,
-            z: b.z,
+          data: {
             block: b.block,
-            rotation,
-            block_log: {
-              create: {
-                userId,
-                date: new Date(),
-                placedBlock: b.block,
-              },
-            },
-          },
-          update: {
-            block: b.block,
-            rotation,
-            block_log: {
-              create: {
-                userId,
-                date: new Date(),
-                placedBlock: b.block,
-              },
-            },
+            rotation: b.rotation ?? 0,
           },
         });
       }
+
+      await tx.blockLog.createMany({
+        data: blocks.map((b) => ({
+          userId,
+          date: new Date(),
+          placedBlock: b.block,
+          worldBlockWorldId: world.id,
+          worldBlockX: b.x,
+          worldBlockY: b.y,
+          worldBlockZ: b.z,
+        })),
+      });
     }, {
       timeout: 10000, // Increase timeout for large batches
     });
@@ -286,26 +309,54 @@ export class WorldService {
         applied.push(b);
       }
 
+      const updates: WorldBlockDto[] = [];
+      const creates: WorldBlockDto[] = [];
+
       for (const b of applied) {
-        const rotation = b.rotation ?? 0;
-        await tx.worldBlock.upsert({
-          where: {
-            worldId_x_y_z: { worldId: world.id, x: b.x, y: b.y, z: b.z },
-          },
-          create: {
+        const key = `${b.x},${b.y},${b.z}`;
+        if (prev.has(key)) {
+          updates.push(b);
+        } else {
+          creates.push(b);
+        }
+      }
+
+      if (creates.length > 0) {
+        await tx.worldBlock.createMany({
+          data: creates.map((b) => ({
             worldId: world.id,
             x: b.x,
             y: b.y,
             z: b.z,
             block: b.block,
-            rotation,
-            block_log: { create: { userId, date: new Date(), placedBlock: b.block } },
+            rotation: b.rotation ?? 0,
+          })),
+        });
+      }
+
+      for (const b of updates) {
+        await tx.worldBlock.update({
+          where: {
+            worldId_x_y_z: { worldId: world.id, x: b.x, y: b.y, z: b.z },
           },
-          update: {
+          data: {
             block: b.block,
-            rotation,
-            block_log: { create: { userId, date: new Date(), placedBlock: b.block } },
+            rotation: b.rotation ?? 0,
           },
+        });
+      }
+
+      if (applied.length > 0) {
+        await tx.blockLog.createMany({
+          data: applied.map((b) => ({
+            userId,
+            date: new Date(),
+            placedBlock: b.block,
+            worldBlockWorldId: world.id,
+            worldBlockX: b.x,
+            worldBlockY: b.y,
+            worldBlockZ: b.z,
+          })),
         });
       }
 

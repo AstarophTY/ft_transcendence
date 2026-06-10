@@ -315,6 +315,7 @@ export class WorldGateway
       }
     } catch (error) {
       console.error('Failed to save world blocks:', error);
+      client.emit('world:revert', { positions: blocks.map((b) => ({ x: b.x, y: b.y, z: b.z })) });
     }
   }
 
