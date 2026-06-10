@@ -4,4 +4,4 @@ set -e
 
 crontab ./scripts/vote.crontab
 
-exec node dist/main
+exec node dist/main.js

@@ -21,10 +21,6 @@ COPY prisma ./prisma
 COPY scripts ./scripts
 RUN chmod +x ./scripts/*.sh
 
-RUN mkdir -p /opt
-COPY ./scripts/auto_campus_vote_routine.sh /opt/auto_campus_vote_routine.sh
-RUN chmod +x /opt/auto_campus_vote_routine.sh
-
 RUN mkdir -p uploads
 EXPOSE 3000
-ENTRYPOINT ["./scripts/entrypoint.sh"]
+CMD ["sh", "./scripts/entrypoint.sh"]
