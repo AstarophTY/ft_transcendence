@@ -125,9 +125,24 @@ const generateLocalMap = (profile: DemoPlanetProfile, mapSize: number) => {
 
 /** Apply a persisted/edited block to the map, including its orientation. */
 const applyWorldBlock = (map: LocalMap, b: WorldBlock) => {
+  const midX = Math.floor(map.widthInChunks / 2)
+  const midZ = Math.floor(map.depthInChunks / 2)
+  const chunkSize = 16
+  const minX = (midX - 2) * chunkSize
+  const maxX = (midX + 2) * chunkSize
+  const minZ = (midZ - 2) * chunkSize
+  const maxZ = (midZ + 2) * chunkSize
+
+  let targetY = b.y
+  if (b.x >= minX && b.x < maxX && b.z >= minZ && b.z < maxZ) {
+    targetY = b.y + 7
+  }
+
+  if (targetY < 0 || targetY >= Chunk.HEIGHT) return
+
   // setGlobalBlock resets the rotation, so set the block first.
-  map.setGlobalBlock(b.x, b.y, b.z, b.block)
-  if (b.rotation) map.setGlobalBlockRotation(b.x, b.y, b.z, b.rotation)
+  map.setGlobalBlock(b.x, targetY, b.z, b.block)
+  if (b.rotation) map.setGlobalBlockRotation(b.x, targetY, b.z, b.rotation)
 }
 
 const DirectionalLight = 'directionalLight' as unknown as React.ElementType

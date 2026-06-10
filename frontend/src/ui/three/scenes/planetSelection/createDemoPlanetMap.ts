@@ -40,14 +40,27 @@ export const createDemoPlanetMap = (profile: DemoPlanetProfile) => {
 
   // Build a lookup map of user edits to overlay on the procedural surface
   const editsMap = new Map<string, Block>()
+  const midX = Math.floor(CHUNKS_PER_SIDE / 2)
+  const midZ = Math.floor(CHUNKS_PER_SIDE / 2)
+  const chunkSize = Chunk.WIDTH
+  const minX = (midX - 2) * chunkSize
+  const maxX = (midX + 2) * chunkSize
+  const minZ = (midZ - 2) * chunkSize
+  const maxZ = (midZ + 2) * chunkSize
+
   if (profile.blocks) {
     for (const b of profile.blocks) {
+      let targetY = b.y
+      if (b.x >= minX && b.x < maxX && b.z >= minZ && b.z < maxZ) {
+        targetY = b.y + 7
+      }
+
       if (
         b.x >= 0 && b.x < mapSize &&
-        b.y >= 0 && b.y < Chunk.HEIGHT &&
+        targetY >= 0 && targetY < Chunk.HEIGHT &&
         b.z >= 0 && b.z < mapSize
       ) {
-        editsMap.set(`${b.x},${b.y},${b.z}`, b.block)
+        editsMap.set(`${b.x},${targetY},${b.z}`, b.block)
       }
     }
   }
