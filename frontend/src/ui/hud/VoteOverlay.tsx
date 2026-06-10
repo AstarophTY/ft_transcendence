@@ -4,7 +4,7 @@ import { getUserId } from '@/lib/user'
 import { ScrollArea } from '@/ui/shadcn/scroll-area.tsx'
 import { toast } from 'sonner'
 import i18n from '@/i18n'
-import { api } from '@/lib/api'
+
 import { motion, useDragControls } from 'motion/react';
 import { useIsMobile } from '@/hooks/use-mobile.tsx'
 import { Button } from '@/ui/shadcn/button.tsx'
@@ -54,7 +54,7 @@ export const VoteOverlay = ({ contests, onUpdateContests, isPrivate }: VoteOverl
       return;
     setIsVoting(true);
     try {
-      await socket.emit('vote:vote', { contestsId: contestId, userId: targetUserId });
+      socket.emit('vote:cast', { contestId, targetUserId });
       setVotedContestIds((prev) => new Set(prev).add(contestId));
       toast.success(i18n.t('world.voteSuccess', { defaultValue: 'Voted successfully!' }));
       const updated = contests.map(c => {
@@ -84,7 +84,7 @@ export const VoteOverlay = ({ contests, onUpdateContests, isPrivate }: VoteOverl
     if (isJoining) return
     setIsJoining(true)
     try {
-      await api.post(`/vote/join/${contestId}`)
+      socket?.emit('vote:join', { contestId })
       toast.success(i18n.t('world.joinSuccess', { defaultValue: 'Joined contest successfully!' }))
       window.location.reload()
     } catch (err) {

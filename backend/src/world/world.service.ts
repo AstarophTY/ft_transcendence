@@ -459,25 +459,34 @@ export class WorldService {
   async vote(voterId: string, contestId: string, targetUserId: string) {
     const contest = await this.prisma.voteContest.findUnique({
       where: { id: contestId },
-      include: { candidates: { where: { userId: targetUserId } } },
+      select: { id: true, isActive: true },
     });
+
     if (!contest || !contest.isActive) {
       throw new NotFoundException('Active contest not found');
     }
-    const candidate = contest.candidates[0];
+
+    // targetUserId is the user being voted for (the candidate's userId).
+    const candidate = await this.prisma.voteContestCandidate.findUnique({
+      where: {
+        // @@unique([contestId, userId])
+        contestId_userId: { contestId, userId: targetUserId },
+      },
+      select: { id: true },
+    });
+
     if (!candidate) {
       throw new NotFoundException('User is not a candidate in this contest');
     }
 
     return this.prisma.vote.upsert({
       where: {
-        contestId_voterId: {
-          contestId,
-          voterId,
-        },
+        // @@unique([contestId, voterId])
+        contestId_voterId: { contestId, voterId },
       },
       create: { contestId, voterId, candidateId: candidate.id },
       update: { candidateId: candidate.id },
     });
   }
+
 }

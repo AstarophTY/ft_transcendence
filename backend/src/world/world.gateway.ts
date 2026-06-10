@@ -63,6 +63,115 @@ export class WorldGateway
 {
   @WebSocketServer() server!: Server;
 
+  /** Join a vote contest (creates the participant row). */
+  @SubscribeMessage('vote:join')
+  async handleVoteJoin(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: { contestId: string },
+  ): Promise<void> {
+    const contestId = body?.contestId;
+    const userId = client.data.userId as string | undefined;
+    if (!contestId || !userId) {
+      client.emit('vote:error', { message: 'Invalid payload' });
+      return;
+    }
+
+    try {
+      await this.world.joinContest(userId, contestId);
+      client.emit('vote:joined', { contestId, userId });
+
+      // Optionally broadcast new candidate list/tallies.
+      const winners = await this.getContestResultsForContestId(contestId);
+      this.server.to(this.roomForContest(contestId)).emit('vote:updated', winners);
+    } catch (e) {
+      client.emit('vote:error', { message: (e as Error).message });
+    }
+  }
+
+  /** Quit a vote contest (removes the participant row). */
+  @SubscribeMessage('vote:quit')
+  async handleVoteQuit(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: { contestId: string },
+  ): Promise<void> {
+    const contestId = body?.contestId;
+    const userId = client.data.userId as string | undefined;
+    if (!contestId || !userId) {
+      client.emit('vote:error', { message: 'Invalid payload' });
+      return;
+    }
+
+    try {
+      await this.world.quitContest(userId, contestId);
+      client.emit('vote:quit:done', { contestId, userId });
+
+      const results = await this.getContestResultsForContestId(contestId);
+      this.server.to(this.roomForContest(contestId)).emit('vote:updated', results);
+    } catch (e) {
+      client.emit('vote:error', { message: (e as Error).message });
+    }
+  }
+
+  /** Cast (or update) a vote for a candidate (by candidate userId). */
+  @SubscribeMessage('vote:cast')
+  async handleVoteCast(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: { contestId: string; targetUserId: string },
+  ): Promise<void> {
+    const contestId = body?.contestId;
+    const targetUserId = body?.targetUserId;
+    const voterId = client.data.userId as string | undefined;
+
+    if (!contestId || !targetUserId || !voterId) {
+      client.emit('vote:error', { message: 'Invalid payload' });
+      return;
+    }
+
+    try {
+      const vote = await this.world.vote(voterId, contestId, targetUserId);
+      client.emit('vote:cast:res', { contestId, vote });
+
+      const results = await this.getContestResultsForContestId(contestId);
+      this.server.to(this.roomForContest(contestId)).emit('vote:updated', results);
+    } catch (e) {
+      client.emit('vote:error', { message: (e as Error).message });
+    }
+  }
+
+  private roomForContest(contestId: string): string {
+    // Keep it simple: scope vote updates to the contest room itself.
+    return `vote:${contestId}`;
+  }
+
+  /** Compute the current contest view to broadcast to clients. */
+  private async getContestResultsForContestId(contestId: string) {
+    const contest = await this.prisma.voteContest.findUnique({
+      where: { id: contestId },
+      include: {
+        candidates: {
+          include: {
+            user: { select: { id: true, username: true, avatar: true } },
+            _count: { select: { Vote: true } },
+          },
+        },
+      },
+    });
+
+    if (!contest) return { contestId, candidates: [] };
+
+    return {
+      contestId,
+      isActive: contest.isActive,
+      winnerId: contest.winnerId,
+      candidates: contest.candidates.map((c) => ({
+        userId: c.userId,
+        username: c.user.username,
+        avatar: c.user.avatar,
+        votes: c._count.Vote,
+      })),
+    };
+  }
+
   /** Last known transform of every connected player, per campus room. */
   private readonly players = new Map<string, Map<string, PlayerState>>();
 
