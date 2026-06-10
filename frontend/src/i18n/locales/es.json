@@ -9,6 +9,10 @@
     "USER": "Usuario",
     "ADMIN": "Administrador"
   },
+  "vote": {
+    "preview": "Regardar",
+    "vote": "Votar"
+  },
   "auth": {
     "signIn": "Iniciar sesión",
     "title": "Bienvenido a ft_transcendence",

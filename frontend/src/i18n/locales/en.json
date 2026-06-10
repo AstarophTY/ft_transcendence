@@ -221,6 +221,10 @@
       "regenerateConfirm": "Are you sure you want to regenerate this planet? This will erase all block edits made by players."
     }
   },
+  "vote": {
+    "preview": "Preview",
+    "vote": "Vote"
+  },
   "editor": {
     "catalog": {
       "title": "Block Catalog",
