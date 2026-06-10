@@ -1,1 +1,2 @@
 0 9 1-7 * 1 /opt/auto_campus_vote_routine.sh >> /var/log/campus_routine.log
+0 9 4-10 * 4 /opt/campus_process_winner.sh >> /var/log/campus_winner.log

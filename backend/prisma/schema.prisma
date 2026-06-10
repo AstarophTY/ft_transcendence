@@ -141,6 +141,8 @@ model VoteContest {
   campusId    String
   startsAt    DateTime
   endsAt      DateTime
+  winnerId    String?
+  winner      User?    @relation(fields: [winnerId], references: [id], onDelete: SetNull)
   isActive    Boolean  @default(true)
 
   campus     Campus                 @relation(fields: [campusId], references: [id], onDelete: Cascade)
