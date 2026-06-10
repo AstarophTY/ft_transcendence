@@ -7,7 +7,7 @@ set -e
 VOTE_DURATION="3 days"
 
 # clear campus list
-echo "" > /var/tmp/campuses.lst
+cat /dev/null > /var/tmp/campuses.lst
 
 echo -e "\n\n"
 date
