@@ -52,6 +52,7 @@ model User {
 
   contestEntries VoteContestCandidate[]
   contestVotes   Vote[]                 @relation("ContestVotes")
+  voteContests   VoteContest[]
 }
 
 model RefreshToken {
