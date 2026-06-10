@@ -1,4 +1,5 @@
 import { LayersPlus, LayersMinus, Rotate3D, Box, Circle, ScanSearch } from 'lucide-react'
+import { Separator } from '@/ui/shadcn/separator'
 import { Button } from '@/ui/shadcn/button.tsx'
 import { ToolBarProps } from "@/types/Editor.ts"
 import { Tab, Shape } from "@/types/Editor.ts"
@@ -35,7 +36,7 @@ export default function ToolBar({ updateCurrenTool, currentTool, updateCurrentSh
         </Button>
         <ShortcutKey k="1" />
       </div>
-      
+      <Separator></Separator>
       <div className="flex items-center lg:gap-3">
         <Button variant="ghost" size="icon" className={getButtonClass(currentTool === Tab.Add)} onClick={() => updateCurrenTool(Tab.Add)}>
           <LayersPlus />
