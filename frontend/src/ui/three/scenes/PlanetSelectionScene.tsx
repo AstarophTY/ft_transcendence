@@ -4,6 +4,7 @@ import { useEffect, useMemo } from 'react'
 
 import { usePlanetStore } from '@/store/planetStore.ts'
 import { listWorlds } from '@/lib/api/world'
+import { useAuth } from '@/store/auth'
 
 import { WHEEL_SENSITIVITY } from './planetSelection/constants'
 import { createDemoPlanetMap } from './planetSelection/createDemoPlanetMap'
@@ -65,11 +66,13 @@ const CameraController = () => {
 }
 
 const PlanetSelectionScene = () => {
+  const user = useAuth((state) => state.user)
   const worlds = usePlanetStore((state) => state.worlds)
   const setWorlds = usePlanetStore((state) => state.setWorlds)
 
   // One island per campus, loaded from the backend.
   useEffect(() => {
+    if (!user) return
     let cancelled = false
     listWorlds()
       .then((data) => {
@@ -81,7 +84,7 @@ const PlanetSelectionScene = () => {
     return () => {
       cancelled = true
     }
-  }, [setWorlds])
+  }, [setWorlds, user])
 
   const planetMaps = useMemo(
     () => worlds.map((world) => createDemoPlanetMap(world)),

@@ -3,6 +3,22 @@ import axios, {
   type AxiosRequestConfig,
   type InternalAxiosRequestConfig,
 } from 'axios'
+import { toast } from 'sonner'
+import i18n from '@/i18n'
+
+let sessionExpiredToastShown = false
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('unhandledrejection', (event) => {
+    const reason = event.reason
+    if (reason && typeof reason === 'object' && 'response' in reason) {
+      const response = (reason as any).response
+      if (response && response.status === 401) {
+        event.preventDefault()
+      }
+    }
+  })
+}
 
 const ACCESS_KEY = 'ft_access_token'
 const REFRESH_KEY = 'ft_refresh_token'
@@ -38,7 +54,10 @@ export function setUnauthorizedHandler(handler: () => void): void {
   onUnauthorized = handler
 }
 
-api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
+  if (refreshing) {
+    await refreshing
+  }
   const token = tokenStore.access
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
@@ -48,7 +67,7 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
 let refreshing: Promise<string | null> | null = null
 
-async function refreshAccessToken(): Promise<string | null> {
+export async function refreshAccessToken(): Promise<string | null> {
   const refreshToken = tokenStore.refresh
   if (!refreshToken) return null
   try {
@@ -76,11 +95,21 @@ api.interceptors.response.use(
     }
 
     original._retry = true
-    refreshing ??= refreshAccessToken()
+    if (!refreshing) {
+      refreshing = refreshAccessToken().finally(() => {
+        refreshing = null
+      })
+    }
     const newToken = await refreshing
-    refreshing = null
 
     if (!newToken) {
+      if (!sessionExpiredToastShown) {
+        sessionExpiredToastShown = true
+        toast.error(i18n.t('auth.sessionExpired', { defaultValue: 'Session expired, please log in again' }))
+        setTimeout(() => {
+          sessionExpiredToastShown = false
+        }, 5000)
+      }
       onUnauthorized?.()
       return Promise.reject(error)
     }
