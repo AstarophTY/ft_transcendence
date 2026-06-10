@@ -8,6 +8,7 @@ import { useAuth } from '@/store/auth'
 
 import { WHEEL_SENSITIVITY } from './planetSelection/constants'
 import { createDemoPlanetMap } from './planetSelection/createDemoPlanetMap'
+import { toast } from 'sonner'
 import PlanetRail from './planetSelection/PlanetRail'
 
 const CameraController = () => {
@@ -76,15 +77,18 @@ const PlanetSelectionScene = () => {
     let cancelled = false
     listWorlds()
       .then((data) => {
-        if (!cancelled) setWorlds(data)
+        if (!cancelled) {
+          setWorlds(data)
+        }
       })
-      .catch(() => {
-        /* keep the menu empty if the worlds cannot be loaded */
+      .catch((err) => {
+        console.error('PlanetSelectionScene: Failed to load worlds:', err)
+        toast.error('Failed to load worlds: ' + (err.response?.data?.message || err.message || err))
       })
     return () => {
       cancelled = true
     }
-  }, [setWorlds, user])
+  }, [setWorlds, user?.userId])
 
   const planetMaps = useMemo(
     () => worlds.map((world) => createDemoPlanetMap(world)),
