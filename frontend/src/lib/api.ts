@@ -12,8 +12,8 @@ if (typeof window !== 'undefined') {
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason
     if (reason && typeof reason === 'object' && 'response' in reason) {
-      const response = (reason as any).response
-      if (response && response.status === 401) {
+      const response = (reason as Record<string, unknown>).response
+      if (response && typeof response === 'object' && 'status' in response && response.status === 401) {
         event.preventDefault()
       }
     }
