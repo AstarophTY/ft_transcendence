@@ -27,7 +27,7 @@ import SeasonDialog from '@/ui/hud/SeasonDialog'
 import AdminDialog from '@/ui/hud/admin/AdminDialog'
 import LegalDialog from '@/ui/hud/LegalDialog'
 import { useLegal } from '@/store/legal'
-import { cn, PASSWORD_RULES, validateUsername } from '@/lib/utils'
+import { cn, PASSWORD_RULES, validateUsername, validateEmail } from '@/lib/utils'
 import { useAuth } from '@/store/auth'
 import { useFriends } from '@/store/friends'
 import { useSettings } from '@/store/settings'
@@ -96,8 +96,16 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
+  const isEmailValid = validateEmail(email)
+  const isPasswordValid = password.length >= 8
+  const canSubmit = isEmailValid && isPasswordValid && !loading
+
+  const emailInvalid = email.length > 0 && !isEmailValid
+  const passwordInvalid = password.length > 0 && !isPasswordValid
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!canSubmit) return
     if (await login(email, password)) onSuccess()
   }
 
@@ -114,6 +122,7 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
           placeholder={t('auth.emailPlaceholder')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          aria-invalid={emailInvalid || undefined}
           required
         />
       </div>
@@ -128,10 +137,11 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
           placeholder={t('auth.passwordPlaceholder')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          aria-invalid={passwordInvalid || undefined}
           required
         />
       </div>
-      <Button type="submit" disabled={loading} className="w-full">
+      <Button type="submit" disabled={!canSubmit} className="w-full">
         {loading ? (
           <Loader2 className="size-4 animate-spin" />
         ) : (

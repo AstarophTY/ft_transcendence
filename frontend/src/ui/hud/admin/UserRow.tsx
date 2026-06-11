@@ -3,6 +3,7 @@ import { Pencil, Shield, ShieldOff, Trash2 } from 'lucide-react'
 import { Button } from '@/ui/shadcn/button.tsx'
 import { Badge } from '@/ui/shadcn/badge.tsx'
 import { useAdmin } from '@/store/admin.ts'
+import { useAuth } from '@/store/auth.ts'
 import Avatar from '@/ui/hud/friends/Avatar.tsx'
 import type { AdminUser } from '@/lib/api/admin.ts'
 import type { UserStatus } from '@/lib/api/account.ts'
@@ -17,6 +18,8 @@ const STATUS_COLOR: Record<UserStatus, string> = {
 export default function UserRow({ user }: { user: AdminUser }) {
   const { t, i18n } = useTranslation()
   const { changeRole, removeUser, setEditing } = useAdmin()
+  const me = useAuth((s) => s.user)
+  const isMe = me?.userId === user.id
   const isAdmin = user.role === 'ADMIN'
   const is42 = Boolean(user.fortyTwoLogin)
 
@@ -82,6 +85,7 @@ export default function UserRow({ user }: { user: AdminUser }) {
           size="icon"
           title={isAdmin ? t('admin.demote') : t('admin.promote')}
           onClick={() => changeRole(user.id, isAdmin ? 'USER' : 'ADMIN')}
+          disabled={isMe}
         >
           {isAdmin ? <ShieldOff className="size-4" /> : <Shield className="size-4" />}
         </Button>
@@ -91,6 +95,7 @@ export default function UserRow({ user }: { user: AdminUser }) {
           className="text-destructive"
           title={t('admin.delete')}
           onClick={() => void removeUser(user)}
+          disabled={isMe}
         >
           <Trash2 className="size-4" />
         </Button>

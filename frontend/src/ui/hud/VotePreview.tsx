@@ -169,9 +169,8 @@ export const VotePreview = ({ userId, onClose, onVote, canVote, isVoting }: Vote
        if (!active) return
        setBlocks(res.data.blocks || [])
        setLoading(false)
-    }).catch(err => {
+    }).catch(() => {
        if (!active) return
-       console.error(err)
        setBlocks([])
        setLoading(false)
     })

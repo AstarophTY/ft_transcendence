@@ -1,6 +1,7 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useEffect, useMemo } from 'react'
+import { AxiosError } from 'axios'
 
 import { usePlanetStore } from '@/store/planetStore.ts'
 import { listWorlds } from '@/lib/api/world'
@@ -82,7 +83,7 @@ const PlanetSelectionScene = () => {
         }
       })
       .catch((err) => {
-        console.error('PlanetSelectionScene: Failed to load worlds:', err)
+        if (err instanceof AxiosError && err.response?.status === 401) return
         toast.error('Failed to load worlds: ' + (err.response?.data?.message || err.message || err))
       })
     return () => {
