@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Send } from 'lucide-react'
 import { Button } from '@/ui/shadcn/button.tsx'
 import { Input } from '@/ui/shadcn/input.tsx'
@@ -19,11 +20,12 @@ interface ChannelChatProps {
 export default function ChannelChat({
   messages,
   onSend,
-  placeholder = 'Message…',
-  emptyText = 'Aucun message pour l\'instant',
+  placeholder,
+  emptyText,
   disabled,
-  disabledText = 'Non disponible',
+  disabledText,
 }: ChannelChatProps) {
+  const { t } = useTranslation()
   const myId = useAuth((s) => s.user?.userId)
   const [draft, setDraft] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -44,7 +46,9 @@ export default function ChannelChat({
       {/* Messages */}
       <div className="flex-1 space-y-1.5 overflow-y-auto p-3">
         {messages.length === 0 ? (
-          <p className="pt-8 text-center text-sm text-muted-foreground">{emptyText}</p>
+          <p className="pt-8 text-center text-sm text-muted-foreground">
+            {emptyText ?? t('chat.empty')}
+          </p>
         ) : (
           messages.map((m) => {
             const mine = m.senderId === myId
@@ -78,14 +82,14 @@ export default function ChannelChat({
       {/* Input or disabled hint */}
       {disabled ? (
         <p className="border-t p-3 text-center text-xs text-muted-foreground">
-          {disabledText}
+          {disabledText ?? t('chat.unavailable')}
         </p>
       ) : (
         <form onSubmit={submit} className="flex gap-2 border-t p-3">
           <Input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder={placeholder}
+            placeholder={placeholder ?? t('chat.placeholder')}
             autoComplete="off"
           />
           <Button type="submit" size="icon" disabled={!draft.trim()}>

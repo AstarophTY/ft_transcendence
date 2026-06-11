@@ -1,7 +1,9 @@
+import { useTranslation } from 'react-i18next'
 import { useChatChannels } from '@/store/chatChannels.ts'
 import ChannelChat from './ChannelChat.tsx'
 
 export default function ChatTab() {
+  const { t } = useTranslation()
   const serverMessages = useChatChannels((s) => s.serverMessages)
   const sendServer     = useChatChannels((s) => s.sendServer)
 
@@ -10,7 +12,7 @@ export default function ChatTab() {
       <ChannelChat
         messages={serverMessages}
         onSend={sendServer}
-        placeholder="Message à tous…"
+        placeholder={t('chat.serverPlaceholder')}
       />
     </div>
   )
