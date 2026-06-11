@@ -446,6 +446,40 @@ When we detect that the user is on a mobile device, we implement joysticks and a
 
 ---
 
+## Utility scripts & Docker checks
+
+When configuring the `.env` file with the 42 api key, the docker rule `api-check` validate the given app id and secret in order to avoid users stock at the login.
+
+This ensures container validity and provides good visual alerts and logging.
+
+Multiple system administration scripts are provided with this project such as
+
+| script path usage                                       | description                                        |
+|---------------------------------------------------------|----------------------------------------------------|
+| `/scripts/become_admin.sh <username>`                   | `give administrator rights to the user`            |
+| `/scripts/backend/api_verification.sh`                  | `tests & validate the 42 app token`                |
+| `/scripts/backend/auto_campus_vote_routine.sh`          | `create a vote for each campus in database`        |
+| `/scripts/backend/campus_process_winner.sh <campus id>` | `process the winner of the campus id`              |
+| `/scripts/backend/process_all_winners.sh`               | `process winners for all campuses (after routine)` |
+
+### Vote System Logging
+
+Vote logs are stored in `/var/log/`. For the campus routine, everything is stored in `/var/log/campus_routine.log` and for the winner calculation it is stored in `/var/log/campus_winner.log`.
+
+These can be read using the command `docker exec -it transcendence_backend cat /var/log/campus_winner.log`
+
+---
+
+## Vote Contest System
+
+Every first monday of each month, the `auto_campus_vote_routine.sh` script is called and creates a new vote contest for all campuses. During 3 days after the start of the vote, users can submit their private planet and others can vote for the best planet created inside of the campus.
+The winner gets his planet shown at the center of his campus for the rest of the month.
+
+This system provides competition and entertain the builders creativity.s 
+
+
+---
+
 ## API surface (selected)
 
 > All routes are prefixed with `/api`. Protected routes require a Bearer JWT.
