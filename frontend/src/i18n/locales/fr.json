@@ -51,7 +51,8 @@
   },
   "vote": {
     "preview": "Regarder",
-    "vote": "Voter"
+    "vote": "Voter",
+    "previewTitle": "Aperçu 3D de l'île"
   },
   "auth": {
     "signIn": "Se connecter",
@@ -386,7 +387,8 @@
       "in": "dans",
       "created": "Saison ouverte",
       "finalized": "Saison finalisée — îles gagnantes copiées"
-    }
+    },
+    "preview3d": "Aperçu 3D"
   },
   "blocks": {
     "Stone": "Pierre",

@@ -181,7 +181,7 @@ export const VotePreview = ({ userId, onClose, onVote, canVote, isVoting }: Vote
   if (!userId) return null
 
   return (
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vh] max-w-[800px] z-[60] max-md:fixed max-md:bottom-0 max-md:inset-x-0 max-md:top-auto max-md:left-auto max-md:translate-x-0 max-md:translate-y-0 max-md:w-full max-md:h-[80vh]">
+    <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vh] max-w-[800px] z-[60] max-md:bottom-0 max-md:inset-x-0 max-md:top-auto max-md:left-auto max-md:translate-x-0 max-md:translate-y-0 max-md:w-full max-md:h-[80vh]">
       <motion.div 
         key={isMobile ? 'mobile' : 'desktop'}
         drag={!isMobile}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
-import { CalendarClock, Check, Eye, Loader2, Medal, Trophy } from 'lucide-react'
+import { Box, CalendarClock, Check, Eye, Loader2, Medal, Trophy } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,7 @@ import { usePlanetStore } from '@/store/planetStore.ts'
 import { getUserId } from '@/lib/user.ts'
 import type { BallotCandidate, SeasonPhase } from '@/lib/api/season.ts'
 import { cn } from '@/lib/utils.ts'
+import { VotePreview } from './VotePreview.tsx'
 
 const PHASE_VARIANT: Record<SeasonPhase, 'secondary' | 'warning' | 'default'> = {
   UPCOMING: 'secondary',
@@ -59,6 +61,7 @@ function CandidateRow({
   canVote,
   onVote,
   onVisit,
+  onPreview,
 }: {
   candidate: BallotCandidate
   isWinning: boolean
@@ -67,6 +70,7 @@ function CandidateRow({
   canVote: boolean
   onVote: () => void
   onVisit: () => void
+  onPreview: () => void
 }) {
   const { t } = useTranslation()
   const initial = candidate.username.charAt(0).toUpperCase()
@@ -100,6 +104,9 @@ function CandidateRow({
         </span>
       </div>
       <div className="ml-auto flex shrink-0 items-center gap-1.5">
+        <Button variant="ghost" size="sm" className="gap-1.5" onClick={onPreview}>
+          <Box className="size-4" /> {t('season.preview3d')}
+        </Button>
         <Button variant="ghost" size="sm" className="gap-1.5" onClick={onVisit}>
           <Eye className="size-4" /> {t('season.visit')}
         </Button>
@@ -131,6 +138,9 @@ export default function SeasonDialog() {
   const myId = getUserId()
   const visitIsland = usePlanetStore((s) => s.visitIsland)
   const visitCampus = usePlanetStore((s) => s.visitCampus)
+  // Floating, draggable 3D preview of a candidate's island, shown above the
+  // ballot without leaving it. `canVote` lets the user vote straight from it.
+  const [preview, setPreview] = useState<{ userId: string; canVote: boolean } | null>(null)
 
   const visit = (userId: string) => {
     visitIsland(userId)
@@ -149,8 +159,18 @@ export default function SeasonDialog() {
   const showPodium = phase === 'VOTE' || phase === 'ENDED'
 
   return (
+    <>
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-lg">
+      <DialogContent
+        className="max-w-lg"
+        // The 3D preview floats above the dialog in its own portal; interacting
+        // with it must not dismiss the ballot behind it.
+        onInteractOutside={(e) => {
+          if ((e.target as HTMLElement | null)?.closest('[data-vote-preview]')) {
+            e.preventDefault()
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Trophy className="size-5 text-yellow-500" />
@@ -261,6 +281,16 @@ export default function SeasonDialog() {
                           canVote={ballot.canVote && campus.isOwn}
                           onVote={() => void vote(candidate.userId)}
                           onVisit={() => visit(candidate.userId)}
+                          onPreview={() =>
+                            setPreview({
+                              userId: candidate.userId,
+                              canVote:
+                                ballot.canVote &&
+                                campus.isOwn &&
+                                !ballot.myVoteCandidateId &&
+                                candidate.userId !== myId,
+                            })
+                          }
                         />
                       ))
                     )}
@@ -329,5 +359,21 @@ export default function SeasonDialog() {
         )}
       </DialogContent>
     </Dialog>
+    {preview &&
+      createPortal(
+        <div data-vote-preview>
+          <VotePreview
+            userId={preview.userId}
+            canVote={preview.canVote}
+            onVote={() => {
+              void vote(preview.userId)
+              setPreview(null)
+            }}
+            onClose={() => setPreview(null)}
+          />
+        </div>,
+        document.body,
+      )}
+    </>
   )
 }

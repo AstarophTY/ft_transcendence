@@ -280,7 +280,8 @@
   },
   "vote": {
     "preview": "Preview",
-    "vote": "Vote"
+    "vote": "Vote",
+    "previewTitle": "3D Island Preview"
   },
   "editor": {
     "catalog": {
@@ -390,7 +391,8 @@
       "in": "in",
       "created": "Season opened",
       "finalized": "Season finalized — winning islands copied"
-    }
+    },
+    "preview3d": "3D Preview"
   },
   "blocks": {
     "Stone": "Stone",
