@@ -183,7 +183,14 @@
       "fortyTwo": "Usuario 42",
       "email42Hint": "Las cuentas 42 no pueden cambiar su correo.",
       "siteLogtime": "Logtime",
-      "siteLogtimeHint": "Logtime 42 total desde la creación de la cuenta"
+      "siteLogtimeHint": "Logtime 42 total desde la creación de la cuenta",
+      "dangerZone": "Zona de peligro",
+      "deleteHint": "Elimina permanentemente tu cuenta y todos sus datos. Esta acción no se puede deshacer.",
+      "deleteAccount": "Eliminar mi cuenta",
+      "deleteConfirmTitle": "¿Eliminar tu cuenta?",
+      "deleteConfirmBody": "Esto eliminará de forma permanente tu cuenta, amigos, mensajes y mundos. Esta acción no se puede deshacer.",
+      "deleteCancel": "Cancelar",
+      "deleteConfirm": "Eliminar permanentemente"
     },
     "security": {
       "current": "Contraseña actual",
