@@ -370,6 +370,21 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
     const centerY = Math.floor(blockPos.y)
     const centerZ = Math.floor(blockPos.z + halfSize)
 
+    // Lookup is a single-block, read-only action: always inspect the exact block
+    // under the cursor and ignore the active shape size. Running it through the
+    // area loop below made a non-1 shape (e.g. a cube) query a corner cell with
+    // no history, so it appeared to "only work on certain blocks". It also runs
+    // before the claim-zone guard so history can be inspected anywhere.
+    //
+    // The history window is an in-game HUD overlay: we keep pointer lock so the
+    // cursor never pops out (which felt like leaving the game window) and the
+    // camera stays controllable. Close it with Escape (see EditorMode hotkeys),
+    // or just aim at another block to re-query it.
+    if (tool === Tab.Lookup && e.button === 0) {
+      onLookupBlock(centerX, centerY, centerZ)
+      return
+    }
+
     // Check if interaction is in protected 4x4 central chunks of campus worlds
     const isPrivate = usePlanetStore.getState().isPrivateWorld;
     if (!isPrivate) {
@@ -448,8 +463,6 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
         if (block === Block.Air || block === Block.Water) {
           onUpdateBlock(x, y, z, selectedBlock)
         }
-      } else if (tool === Tab.Lookup) {
-        onLookupBlock(x, y, z)
       } else if (tool === Tab.RotateX || tool === Tab.RotateY || tool === Tab.RotateZ) {
         const block = localMap.getGlobalBlock(x, y, z)
         if (block !== Block.Air && block !== Block.Bedrock) {

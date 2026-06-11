@@ -451,9 +451,13 @@ export class WorldGateway
   /** Keep only well-formed, in-bounds edits and cap the batch size. */
   private sanitize(raw: unknown): WorldBlockDto[] {
     if (!Array.isArray(raw)) return [];
-    const blocks: WorldBlockDto[] = [];
+    // Collapse to one entry per position, keeping the latest edit. Overlapping
+    // brush strokes (cube/sphere) coalesced into a single batch can repeat the
+    // same cell; left as duplicates they would violate the WorldBlock primary
+    // key in `createMany` and roll back the whole save, so some placed blocks
+    // would end up with no history ("nobody placed this").
+    const byPos = new Map<string, WorldBlockDto>();
     for (const item of raw) {
-      if (blocks.length >= MAX_BATCH) break;
       if (!item || typeof item !== 'object') continue;
       const { x, y, z, block, rotation } = item as Record<string, unknown>;
       if (
@@ -476,7 +480,7 @@ export class WorldGateway
           (rotation as number) <= MAX_ROTATION
             ? (rotation as number)
             : 0;
-        blocks.push({
+        byPos.set(`${x as number},${y as number},${z as number}`, {
           x: x as number,
           y: y as number,
           z: z as number,
@@ -485,6 +489,8 @@ export class WorldGateway
         });
       }
     }
-    return blocks;
+    // Cap on the de-duplicated count so the limit can't silently drop placed
+    // blocks that only looked like overflow because of repeats.
+    return [...byPos.values()].slice(0, MAX_BATCH);
   }
 }
