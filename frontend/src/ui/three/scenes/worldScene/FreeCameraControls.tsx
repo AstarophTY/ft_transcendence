@@ -499,6 +499,14 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
     const handleKeyUp = (event: KeyboardEvent) => {
       keysRef.current[event.code] = false
     }
+    // Drop every held key when focus is lost or pointer lock exits — the browser
+    // skips the matching `keyup`, which would otherwise leave the camera drifting.
+    const releaseAllKeys = () => {
+      keysRef.current = {}
+    }
+    const handleVisibility = () => {
+      if (document.hidden) releaseAllKeys()
+    }
     const handleMouseDown = (e: MouseEvent) => {
       if (!active) return
       if (!controlsRef.current?.isLocked) {
@@ -547,11 +555,16 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
     const handlePointerLockChange = () => {
       if (!document.pointerLockElement) {
         lastUnlockTime = performance.now()
+        // Freeing the cursor means the user stopped flying the camera: release
+        // any held key so it doesn't keep drifting while they use the UI.
+        releaseAllKeys()
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
+    window.addEventListener('blur', releaseAllKeys)
+    document.addEventListener('visibilitychange', handleVisibility)
     window.addEventListener('mousedown', handleMouseDown)
     gl.domElement.addEventListener('click', handleClick)
     window.addEventListener('wheel', handleWheel)
@@ -560,6 +573,8 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
+      window.removeEventListener('blur', releaseAllKeys)
+      document.removeEventListener('visibilitychange', handleVisibility)
       window.removeEventListener('mousedown', handleMouseDown)
       gl.domElement.removeEventListener('click', handleClick)
       window.removeEventListener('wheel', handleWheel)

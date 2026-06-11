@@ -34,6 +34,16 @@ export const usePlayerInput = ({ active, domElement, controlsRef, keysRef }: Par
     const handleKeyUp = (e: KeyboardEvent) => {
       keysRef.current[e.code] = false
     }
+    // Release every held key. The browser does not deliver a `keyup` once the
+    // window loses focus (alt-tab, a modal stealing focus, switching tabs) or
+    // when pointer lock exits, so without this a key held at that moment would
+    // stay "down" forever and the avatar would walk on its own.
+    const releaseAllKeys = () => {
+      keysRef.current = {}
+    }
+    const handleVisibility = () => {
+      if (document.hidden) releaseAllKeys()
+    }
     const handleClick = (e: MouseEvent) => {
       if (active && e.target === domElement) {
         if (performance.now() - lastUnlockTime < 1250) {
@@ -47,17 +57,24 @@ export const usePlayerInput = ({ active, domElement, controlsRef, keysRef }: Par
     const handlePointerLockChange = () => {
       if (!document.pointerLockElement) {
         lastUnlockTime = performance.now()
+        // Freeing the cursor (Esc/Ctrl/E or the browser's own Escape) means the
+        // player is no longer driving: drop any held key so movement stops.
+        releaseAllKeys()
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
+    window.addEventListener('blur', releaseAllKeys)
+    document.addEventListener('visibilitychange', handleVisibility)
     domElement.addEventListener('click', handleClick)
     document.addEventListener('pointerlockchange', handlePointerLockChange)
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
+      window.removeEventListener('blur', releaseAllKeys)
+      document.removeEventListener('visibilitychange', handleVisibility)
       domElement.removeEventListener('click', handleClick)
       document.removeEventListener('pointerlockchange', handlePointerLockChange)
     }
