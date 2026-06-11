@@ -87,7 +87,7 @@ export function LookupBlock() {
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center gap-2">
                         <UserBadge user={{
-                                username: record.userName,
+                                username: record.userName || t('editor.history.deletedAccount'),
                                 userId: record.userId,
                                 avatar: record.userAvatar,
                                 email: null,

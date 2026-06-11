@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, Loader2, Lock, LogIn, LogOut, Mail, Rocket, User, UserPlus, X, Users, Settings as SettingsIcon, Shield, ShieldCheck, FileText } from 'lucide-react'
+import { Check, Loader2, Lock, LogIn, LogOut, Mail, Rocket, User, UserPlus, X, Users, Settings as SettingsIcon, Shield, ShieldCheck, FileText, Trophy } from 'lucide-react'
 
 import { Button } from '@/ui/shadcn/button'
 import {
@@ -23,6 +23,7 @@ import { Label } from '@/ui/shadcn/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/shadcn/tabs'
 import UserBadge from '@/ui/hud/UserBadge.tsx'
 import SettingsDialog from '@/ui/hud/settings/SettingsDialog'
+import SeasonDialog from '@/ui/hud/SeasonDialog'
 import AdminDialog from '@/ui/hud/admin/AdminDialog'
 import LegalDialog from '@/ui/hud/LegalDialog'
 import { useLegal } from '@/store/legal'
@@ -30,6 +31,7 @@ import { cn } from '@/lib/utils'
 import { useAuth } from '@/store/auth'
 import { useFriends } from '@/store/friends'
 import { useSettings } from '@/store/settings'
+import { useSeason } from '@/store/season'
 import { useAdmin } from '@/store/admin'
 import { usePlanetStore } from '@/store/planetStore'
 import { useEditorStore } from '@/store/editorStore'
@@ -377,6 +379,8 @@ function UserMenu() {
   const { user, logout } = useAuth()
   const { incoming, togglePanel, refresh } = useFriends()
   const openSettings = useSettings((s) => s.setOpen)
+  const openSeason = useSeason((s) => s.setOpen)
+  const loadSeason = useSeason((s) => s.loadCurrent)
   const openAdmin = useAdmin((s) => s.setOpen)
   const openLegal = useLegal((s) => s.openLegal)
 
@@ -397,6 +401,15 @@ function UserMenu() {
   useEffect(() => {
     if (user) void refresh()
   }, [user, refresh])
+
+  // Keep the running season fresh so world-edit gating knows the current phase.
+  // Phases change on minute boundaries, so a slow poll keeps the HUD in sync.
+  useEffect(() => {
+    if (!user) return
+    void loadSeason()
+    const id = setInterval(() => void loadSeason(), 60_000)
+    return () => clearInterval(id)
+  }, [user, loadSeason])
 
   if (!user) return null
 
@@ -419,6 +432,10 @@ function UserMenu() {
               <DropdownMenuItem onSelect={() => togglePanel()}>
                 <Users className="mr-1.5 size-4" />
                 {t('friends.title')} {incoming.length > 0 && `(${incoming.length})`}
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => openSeason(true)}>
+                <Trophy className="mr-1.5 size-4" />
+                {t('season.menu')}
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => openSettings(true)}>
                 <SettingsIcon className="mr-1.5 size-4" />
@@ -459,6 +476,7 @@ function UserMenu() {
         </DropdownMenu>
         
         <SettingsDialog />
+        <SeasonDialog />
         {user.role === 'ADMIN' && <AdminDialog />}
       </div>
     </>

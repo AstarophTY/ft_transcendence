@@ -1,3 +1,4 @@
+import { forwardRef, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import {
@@ -12,6 +13,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { authenticateSocket } from '../friends/socket-auth';
 import { RedisService } from '../redis/redis.service';
+import { SeasonPhase, SeasonService } from '../season/season.service';
 import { WorldBlockDto } from './dto/save-blocks.dto';
 import { WorldService } from './world.service';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -63,115 +65,6 @@ export class WorldGateway
 {
   @WebSocketServer() server!: Server;
 
-  /** Join a vote contest (creates the participant row). */
-  @SubscribeMessage('vote:join')
-  async handleVoteJoin(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() body: { contestId: string },
-  ): Promise<void> {
-    const contestId = body?.contestId;
-    const userId = client.data.userId as string | undefined;
-    if (!contestId || !userId) {
-      client.emit('vote:error', { message: 'Invalid payload' });
-      return;
-    }
-
-    try {
-      await this.world.joinContest(userId, contestId);
-      client.emit('vote:joined', { contestId, userId });
-
-      // Optionally broadcast new candidate list/tallies.
-      const winners = await this.getContestResultsForContestId(contestId);
-      this.server.to(this.roomForContest(contestId)).emit('vote:updated', winners);
-    } catch (e) {
-      client.emit('vote:error', { message: (e as Error).message });
-    }
-  }
-
-  /** Quit a vote contest (removes the participant row). */
-  @SubscribeMessage('vote:quit')
-  async handleVoteQuit(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() body: { contestId: string },
-  ): Promise<void> {
-    const contestId = body?.contestId;
-    const userId = client.data.userId as string | undefined;
-    if (!contestId || !userId) {
-      client.emit('vote:error', { message: 'Invalid payload' });
-      return;
-    }
-
-    try {
-      await this.world.quitContest(userId, contestId);
-      client.emit('vote:quit:done', { contestId, userId });
-
-      const results = await this.getContestResultsForContestId(contestId);
-      this.server.to(this.roomForContest(contestId)).emit('vote:updated', results);
-    } catch (e) {
-      client.emit('vote:error', { message: (e as Error).message });
-    }
-  }
-
-  /** Cast (or update) a vote for a candidate (by candidate userId). */
-  @SubscribeMessage('vote:cast')
-  async handleVoteCast(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() body: { contestId: string; targetUserId: string },
-  ): Promise<void> {
-    const contestId = body?.contestId;
-    const targetUserId = body?.targetUserId;
-    const voterId = client.data.userId as string | undefined;
-
-    if (!contestId || !targetUserId || !voterId) {
-      client.emit('vote:error', { message: 'Invalid payload' });
-      return;
-    }
-
-    try {
-      const vote = await this.world.vote(voterId, contestId, targetUserId);
-      client.emit('vote:cast:res', { contestId, vote });
-
-      const results = await this.getContestResultsForContestId(contestId);
-      this.server.to(this.roomForContest(contestId)).emit('vote:updated', results);
-    } catch (e) {
-      client.emit('vote:error', { message: (e as Error).message });
-    }
-  }
-
-  private roomForContest(contestId: string): string {
-    // Keep it simple: scope vote updates to the contest room itself.
-    return `vote:${contestId}`;
-  }
-
-  /** Compute the current contest view to broadcast to clients. */
-  private async getContestResultsForContestId(contestId: string) {
-    const contest = await this.prisma.voteContest.findUnique({
-      where: { id: contestId },
-      include: {
-        candidates: {
-          include: {
-            user: { select: { id: true, username: true, avatar: true } },
-            _count: { select: { Vote: true } },
-          },
-        },
-      },
-    });
-
-    if (!contest) return { contestId, candidates: [] };
-
-    return {
-      contestId,
-      isActive: contest.isActive,
-      winnerId: contest.winnerId,
-      candidates: contest.candidates.map((c) => ({
-        userId: c.userId,
-        username: c.user.username,
-        avatar: c.user.avatar,
-        votes: c._count.Vote,
-      })),
-    };
-  }
-
   /** Last known transform of every connected player, per campus room. */
   private readonly players = new Map<string, Map<string, PlayerState>>();
 
@@ -181,6 +74,8 @@ export class WorldGateway
     private readonly redis: RedisService,
     private readonly config: ConfigService,
     private readonly world: WorldService,
+    @Inject(forwardRef(() => SeasonService))
+    private readonly season: SeasonService,
   ) {}
 
   async handleConnection(client: Socket): Promise<void> {
@@ -198,7 +93,14 @@ export class WorldGateway
     client.data.username = auth.username;
     client.data.avatar = auth.avatar;
     // The user's own campus (null for guests/non-42), used to authorize edits.
-    client.data.userCampusId = auth.campusId;
+    // Read it live from the DB rather than the JWT: an admin may have changed
+    // the user's campus after the token was issued, and we want edits to be
+    // authorized without forcing the user to log in again.
+    const user = await this.prisma.user.findUnique({
+      where: { id: auth.userId },
+      select: { campusId: true },
+    });
+    client.data.userCampusId = user?.campusId ?? auth.campusId;
 
     // Disconnect any existing connection for this user
     const existingSockets = await this.server.fetchSockets();
@@ -250,7 +152,7 @@ export class WorldGateway
     const userIds = blocks.map((k) => k.userId);
     const users = await this.prisma.user.findMany({
       where: { id: { in: userIds } },
-      select: { id: true, avatar: true, fortyTwoLogin: true },
+      select: { id: true, avatar: true, fortyTwoLogin: true, username: true },
     });
 
     const result = blocks.map((k, index) => {
@@ -260,7 +162,10 @@ export class WorldGateway
         date: k.date,
         userId: k.userId,
         userAvatar: user?.avatar,
-        userName: user?.fortyTwoLogin,
+        // A deleted author no longer resolves: leave the name null so the
+        // client shows the "deleted account" label. Otherwise prefer the 42
+        // login, falling back to the local username (password accounts).
+        userName: user ? (user.fortyTwoLogin ?? user.username) : null,
         placedBlock: k.placedBlock,
         previousBlock,
       };
@@ -403,6 +308,19 @@ export class WorldGateway
     if (!userCampusId) return;
     if (campusId && campusId !== userCampusId) return;
 
+    // Building (campus + personal islands) is only allowed during a season's
+    // BUILD phase, which freezes islands for the vote. Outside a build phase —
+    // including when no season is configured at all — worlds are read-only and
+    // can only be visited.
+    const phase = await this.season.currentPhase();
+    if (phase !== SeasonPhase.BUILD) {
+      client.emit('world:revert', {
+        positions: blocks.map((b) => ({ x: b.x, y: b.y, z: b.z })),
+      });
+      client.emit('world:locked', { phase });
+      return;
+    }
+
     try {
       const userId = client.data.userId as string;
 
@@ -431,6 +349,29 @@ export class WorldGateway
   /** Push an updated coin balance to every client on the campus island. */
   broadcastCampusCoins(campusId: string, coins: number): void {
     this.server?.to(this.room(campusId)).emit('world:coins', { campusId, coins });
+  }
+
+  /**
+   * Tell every connected client to reload its world. Emitted after a season
+   * rollover wipes the blocks and reseeds the planets, so players see the reset
+   * (and the new campus capitals) without a manual refresh.
+   */
+  broadcastWorldReset(): void {
+    this.server?.emit('world:reset');
+  }
+
+  /**
+   * Update the campus a connected user is authorized to build on, live. Called
+   * when an admin attaches/detaches the user so already-open sockets pick up the
+   * change without a reconnect (pass `null` to revoke edit rights).
+   */
+  async setUserCampus(userId: string, campusId: string | null): Promise<void> {
+    const sockets = await this.server.fetchSockets();
+    for (const socket of sockets) {
+      if (socket.data.userId === userId) {
+        socket.data.userCampusId = campusId;
+      }
+    }
   }
 
   private room(campusId: string): string {

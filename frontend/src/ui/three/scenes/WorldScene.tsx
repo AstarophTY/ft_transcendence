@@ -17,7 +17,8 @@ import i18n from '@/i18n'
 import { usePlayerAppearance } from '../objects/player/playerAppearance'
 import { useWorldEconomy } from '@/store/worldEconomy'
 import { isPaidBlock } from '@/config/worldBlocks'
-import { canEditCurrentWorld } from '@/lib/permissions'
+import { canEditCurrentWorld, useCanEditCurrentWorld } from '@/lib/permissions'
+import { useSeason } from '@/store/season'
 import Player from '../objects/Player'
 import RemotePlayers from '../objects/RemotePlayers'
 import { ChunkRenderer } from './worldScene/ChunkRenderer'
@@ -30,6 +31,37 @@ import { IslandMap, BiomeType, getBiomeBlock } from '@/generation'
 import { useLookupStore, LookupRecord } from '@/store/lookupStore.ts'
 import { Minimap } from './worldScene/Minimap'
 import { useTranslation } from 'react-i18next'
+
+// Horizontal reach of a tree canopy, in blocks (matches the ±2 leaf offset loop below).
+const TREE_CANOPY_RADIUS = 2
+
+// Deterministic per-column spawn test for a tree trunk.
+const treeHashAt = (worldX: number, worldZ: number): number =>
+  Math.abs(Math.sin(worldX * 12.9898 + worldZ * 78.233) * 43758.5453) % 1
+
+/**
+ * A tree may only grow on ground that stays level across the whole canopy footprint.
+ * This makes generation adapt to the terrain: trees never sit on cliffs or slopes, so
+ * their canopy can no longer overhang a drop and read as "floating" blocks.
+ */
+const isGroundFlatForTree = (
+  islandMap: IslandMap,
+  worldX: number,
+  worldZ: number,
+  height: number,
+  mapSize: number
+): boolean => {
+  for (let dz = -TREE_CANOPY_RADIUS; dz <= TREE_CANOPY_RADIUS; dz++) {
+    for (let dx = -TREE_CANOPY_RADIUS; dx <= TREE_CANOPY_RADIUS; dx++) {
+      const nx = worldX + dx
+      const nz = worldZ + dz
+      if (nx < 0 || nx >= mapSize || nz < 0 || nz >= mapSize) return false
+      // Allow only a 1-block height difference under the canopy footprint.
+      if (Math.abs(islandMap.getHeightAt(nx, nz) - height) > 1) return false
+    }
+  }
+  return true
+}
 
 const generateLocalMap = (profile: DemoPlanetProfile, mapSize: number) => {
   const widthInChunks = mapSize / Chunk.WIDTH
@@ -74,39 +106,50 @@ const generateLocalMap = (profile: DemoPlanetProfile, mapSize: number) => {
       }
 
       if (!isPrivate) {
-        // Pass 2: Spawn trees in Forest biome (using deterministic hash coordinate positioning)
-        for (let x = 2; x < Chunk.WIDTH - 2; x++) {
-          for (let z = 2; z < Chunk.WIDTH - 2; z++) {
-            const worldX = chunkX * Chunk.WIDTH + x
-            const worldZ = chunkZ * Chunk.WIDTH + z
+        // Pass 2: Spawn trees in the Forest biome using deterministic, global-coordinate
+        // positioning. We scan one canopy radius beyond the chunk so a tree rooted in a
+        // neighbouring chunk still drops the part of its canopy that overlaps this chunk —
+        // trees stay whole across chunk borders instead of being clipped.
+        for (let lz = -TREE_CANOPY_RADIUS; lz < Chunk.WIDTH + TREE_CANOPY_RADIUS; lz++) {
+          for (let lx = -TREE_CANOPY_RADIUS; lx < Chunk.WIDTH + TREE_CANOPY_RADIUS; lx++) {
+            const worldX = chunkX * Chunk.WIDTH + lx
+            const worldZ = chunkZ * Chunk.WIDTH + lz
+            if (worldX < 0 || worldX >= mapSize || worldZ < 0 || worldZ >= mapSize) continue
+
+            if (islandMap.getBiomeAt(worldX, worldZ) !== BiomeType.Forest) continue
+
+            const hash = treeHashAt(worldX, worldZ)
+            // 2% chance to spawn a tree in the forest biome
+            if (hash >= 0.02) continue
+
             const height = islandMap.getHeightAt(worldX, worldZ)
-            const biome = islandMap.getBiomeAt(worldX, worldZ)
+            // Only grow on flat ground so the canopy never overhangs a cliff/slope.
+            if (!isGroundFlatForTree(islandMap, worldX, worldZ, height, mapSize)) continue
 
-            if (biome === BiomeType.Forest) {
-              const hash = (Math.abs(Math.sin(worldX * 12.9898 + worldZ * 78.233) * 43758.5453) % 1)
-              
-              // 2% chance to spawn a tree in forest biome
-              if (hash < 0.02) {
-                const treeHeight = 4 + Math.floor(hash * 100) % 2 // 4 or 5 blocks tall
-                
-                // Place wood trunk
-                for (let ty = 1; ty <= treeHeight; ty++) {
-                  chunk.setBlock(x, height + ty, z, Block.Wood)
-                }
+            const treeHeight = 4 + Math.floor(hash * 100) % 2 // 4 or 5 blocks tall
 
-                // Place leaves canopy
-                for (let dy = -2; dy <= 2; dy++) {
-                  for (let dx = -2; dx <= 2; dx++) {
-                    for (let dz = -2; dz <= 2; dz++) {
-                      const ly = height + treeHeight + dy
-                      if (ly < 1 || ly >= Chunk.HEIGHT) continue
+            // Place wood trunk (only when the trunk column lies inside this chunk).
+            if (lx >= 0 && lx < Chunk.WIDTH && lz >= 0 && lz < Chunk.WIDTH) {
+              for (let ty = 1; ty <= treeHeight; ty++) {
+                chunk.setBlock(lx, height + ty, lz, Block.Wood)
+              }
+            }
 
-                      const dist = Math.abs(dx) + Math.abs(dy) + Math.abs(dz)
-                      if (dist <= 3 && !(dx === 0 && dz === 0 && dy <= 0)) {
-                        if (chunk.getBlock(x + dx, ly, z + dz) === Block.Air) {
-                          chunk.setBlock(x + dx, ly, z + dz, Block.Leaves)
-                        }
-                      }
+            // Place leaves canopy, clamping each leaf to the current chunk's bounds.
+            for (let dy = -2; dy <= 2; dy++) {
+              for (let dx = -2; dx <= 2; dx++) {
+                for (let dz = -2; dz <= 2; dz++) {
+                  const cx = lx + dx
+                  const cz = lz + dz
+                  if (cx < 0 || cx >= Chunk.WIDTH || cz < 0 || cz >= Chunk.WIDTH) continue
+
+                  const ly = height + treeHeight + dy
+                  if (ly < 1 || ly >= Chunk.HEIGHT) continue
+
+                  const dist = Math.abs(dx) + Math.abs(dy) + Math.abs(dz)
+                  if (dist <= 3 && !(dx === 0 && dz === 0 && dy <= 0)) {
+                    if (chunk.getBlock(cx, ly, cz) === Block.Air) {
+                      chunk.setBlock(cx, ly, cz, Block.Leaves)
                     }
                   }
                 }
@@ -125,24 +168,15 @@ const generateLocalMap = (profile: DemoPlanetProfile, mapSize: number) => {
 
 /** Apply a persisted/edited block to the map, including its orientation. */
 const applyWorldBlock = (map: LocalMap, b: WorldBlock) => {
-  const midX = Math.floor(map.widthInChunks / 2)
-  const midZ = Math.floor(map.depthInChunks / 2)
-  const chunkSize = 16
-  const minX = (midX - 2) * chunkSize
-  const maxX = (midX + 2) * chunkSize
-  const minZ = (midZ - 2) * chunkSize
-  const maxZ = (midZ + 2) * chunkSize
-
-  let targetY = b.y
-  if (b.x >= minX && b.x < maxX && b.z >= minZ && b.z < maxZ) {
-    targetY = b.y + 7
-  }
-
-  if (targetY < 0 || targetY >= Chunk.HEIGHT) return
+  // Blocks are stored at their final world height: the backend already drops a
+  // winning island's floor onto the flat capital surface when copying it to the
+  // claim zone (see SeasonService.translateToCapital). So place them as-is — any
+  // extra vertical offset here would leave the central island floating.
+  if (b.y < 0 || b.y >= Chunk.HEIGHT) return
 
   // setGlobalBlock resets the rotation, so set the block first.
-  map.setGlobalBlock(b.x, targetY, b.z, b.block)
-  if (b.rotation) map.setGlobalBlockRotation(b.x, targetY, b.z, b.rotation)
+  map.setGlobalBlock(b.x, b.y, b.z, b.block)
+  if (b.rotation) map.setGlobalBlockRotation(b.x, b.y, b.z, b.rotation)
 }
 
 const DirectionalLight = 'directionalLight' as unknown as React.ElementType
@@ -215,8 +249,8 @@ const WorldScene = () => {
   const { camera } = useThree()
   const activeCampusId = usePlanetStore((state) => state.activeCampusId)
   const worlds = usePlanetStore((state) => state.worlds)
+  const worldEpoch = usePlanetStore((state) => state.worldEpoch)
   const renderDistance = usePlanetStore((state) => state.renderDistance)
-  const setContests = usePlanetStore((state) => state.setContests);
   const isPrivate = usePlanetStore((state) => state.isPrivateWorld)
   const mapSize = isPrivate ? PRIVATE_MAP_SIZE : MAP_SIZE_BLOCKS
   const playerRef = useRef<THREE.Group | null>(null)
@@ -225,6 +259,9 @@ const WorldScene = () => {
   const currentMode = inEditor ? 'freecam' : 'player'
   const lastLookupTime = useRef<number>(0)
   const LOOKUP_COOLDOWN = 200
+  // Reactive edit rights: re-renders when the season phase flips (e.g. when the
+  // build window opens/closes), so the effect below runs without a page refresh.
+  const canEdit = useCanEditCurrentWorld()
 
   useHotkeys('c', () => {
     // Only 42 accounts may freecam, and only on their own campus/personal planet.
@@ -232,16 +269,21 @@ const WorldScene = () => {
     activeEditor(!inEditor)
   })
 
-  // Leave freecam if the user loses edit rights (e.g. flies to another campus).
+  // Leave freecam if the user loses edit rights (e.g. flies to another campus,
+  // or the season's build phase ends).
   useEffect(() => {
-    if (inEditor && !canEditCurrentWorld()) activeEditor(false)
-  }, [inEditor, isPrivate, activeCampusId, activeEditor])
+    if (inEditor && !canEdit) activeEditor(false)
+  }, [inEditor, canEdit, activeEditor])
+
+  const visitUserId = usePlanetStore((state) => state.visitUserId)
+  // The island currently shown when private: a visited user's, else our own.
+  const privateOwnerId = visitUserId ?? getUserId()
 
   // Generation profile of the selected campus world.
   const profile = useMemo(() => {
     if (isPrivate) {
       return {
-        seed: getUserId() || 'private-world',
+        seed: privateOwnerId || 'private-world',
         widthInChunks: 4,
         depthInChunks: 4,
         scale: 0.05,
@@ -253,7 +295,7 @@ const WorldScene = () => {
       }
     }
     return worlds.find((w) => w.campusId === activeCampusId) ?? worlds[0] ?? null
-  }, [worlds, activeCampusId, isPrivate])
+  }, [worlds, activeCampusId, isPrivate, privateOwnerId])
 
   const [localMap, setLocalMap] = useState<LocalMap | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
@@ -280,10 +322,10 @@ const WorldScene = () => {
       setLocalMap(map)
       setMapVersion((v) => v + 1)
       const isPrivateWorld = usePlanetStore.getState().isPrivateWorld
-      getWorld(isPrivateWorld ? getUserId() : activeCampusId)
+      const ownerId = usePlanetStore.getState().visitUserId ?? getUserId()
+      getWorld(isPrivateWorld ? ownerId : activeCampusId)
         .then((detail) => {
           if (cancelled) return
-          setContests(detail.contests || [])
           for (const b of detail.blocks) applyWorldBlock(map, b)
           setMapVersion((v) => v + 1)
           setIsLoaded(true)
@@ -297,7 +339,7 @@ const WorldScene = () => {
     return () => {
       cancelled = true
     }
-  }, [activeCampusId, profile, setContests])
+  }, [activeCampusId, profile, worldEpoch])
 
   useEffect(() => {
     if (!activeCampusId && !isPrivate) return
@@ -361,6 +403,21 @@ const WorldScene = () => {
     }
     socket.on('disconnect', onDisconnect)
 
+    // The server freezes building outside a season's BUILD phase.
+    const onLocked = () => {
+      toast.error(i18n.t('season.buildLocked'))
+    }
+    socket.on('world:locked', onLocked)
+
+    // A new season reset every world: refetch the (reseeded) planets and the
+    // current world's blocks, and refresh the phase so edit gating updates.
+    const onReset = () => {
+      void usePlanetStore.getState().reloadWorlds()
+      void useSeason.getState().loadCurrent()
+      toast.info(i18n.t('season.worldReset'))
+    }
+    socket.on('world:reset', onReset)
+
     return () => {
       socket.emit('world:leave', { campusId: activeCampusId, personalWorld: isPrivate })
       socket.off('world:edit', onRemoteEdit)
@@ -368,6 +425,8 @@ const WorldScene = () => {
       socket.off('world:coins', onCoins)
       socket.off('world:revert', onRevert)
       socket.off('disconnect', onDisconnect)
+      socket.off('world:locked', onLocked)
+      socket.off('world:reset', onReset)
     }
   }, [activeCampusId, isPrivate])
 

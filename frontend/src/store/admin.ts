@@ -14,15 +14,13 @@ import {
   type SignupPoint,
 } from '@/lib/api/admin'
 import {
+  addCampusMember,
+  createCampus,
   deleteCampus,
-  listCampusContests,
-  createCampusContest,
-  updateCampusContest,
   listManagedCampuses,
   removeCampusMember,
   updateCampus,
   type CampusWithMembers,
-  type VoteContest,
 } from '@/lib/api/campus'
 import type { UserRole } from '@/lib/api'
 import { toMessage } from '@/lib/apiError'
@@ -34,7 +32,6 @@ interface AdminState {
   signups: SignupPoint[]
   users: AdminUser[]
   campuses: CampusWithMembers[]
-  contests: Record<string, VoteContest[]>
   loading: boolean
   editing: AdminUser | null
 
@@ -45,12 +42,11 @@ interface AdminState {
   removeUser: (user: AdminUser) => Promise<void>
   saveUser: (id: string, body: AdminUserUpdate) => Promise<boolean>
   resetPassword: (id: string, newPassword: string) => Promise<boolean>
+  createCampus: (label: string) => Promise<boolean>
   saveCampus: (id: string, body: { label?: string; coins?: number; seed?: string; regenerate?: boolean }) => Promise<boolean>
   removeCampus: (campus: CampusWithMembers) => Promise<void>
+  attachMember: (campusId: string, userId: string) => Promise<void>
   detachMember: (campusId: string, userId: string) => Promise<void>
-  loadContests: (campusId: string) => Promise<void>
-  createContest: (campusId: string, body: { title: string; description?: string; startsAt: string; endsAt: string }) => Promise<void>
-  toggleContest: (campusId: string, contestId: string, active: boolean) => Promise<void>
 }
 
 export const useAdmin = create<AdminState>((set, get) => ({
@@ -59,7 +55,6 @@ export const useAdmin = create<AdminState>((set, get) => ({
   signups: [],
   users: [],
   campuses: [],
-  contests: {},
   loading: false,
   editing: null,
 
@@ -130,6 +125,18 @@ export const useAdmin = create<AdminState>((set, get) => ({
     }
   },
 
+  createCampus: async (label) => {
+    try {
+      const campus = await createCampus(label)
+      toast.success(i18n.t('admin.campus.created', { label: campus.label }))
+      await get().load()
+      return true
+    } catch (error) {
+      toast.error(toMessage(error))
+      return false
+    }
+  },
+
   saveCampus: async (id, body) => {
     try {
       await updateCampus(id, body)
@@ -152,37 +159,19 @@ export const useAdmin = create<AdminState>((set, get) => ({
     }
   },
 
-  detachMember: async (campusId, userId) => {
+  attachMember: async (campusId, userId) => {
     try {
-      await removeCampusMember(campusId, userId)
+      await addCampusMember(campusId, userId)
       await get().load()
     } catch (error) {
       toast.error(toMessage(error))
     }
   },
 
-  loadContests: async (campusId) => {
+  detachMember: async (campusId, userId) => {
     try {
-      const list = await listCampusContests(campusId)
-      set((s) => ({ contests: { ...s.contests, [campusId]: list } }))
-    } catch (error) {
-      toast.error(toMessage(error))
-    }
-  },
-
-  createContest: async (campusId, body) => {
-    try {
-      await createCampusContest(campusId, body)
-      await get().loadContests(campusId)
-    } catch (error) {
-      toast.error(toMessage(error))
-    }
-  },
-
-  toggleContest: async (campusId, contestId, isActive) => {
-    try {
-      await updateCampusContest(campusId, contestId, { isActive })
-      await get().loadContests(campusId)
+      await removeCampusMember(campusId, userId)
+      await get().load()
     } catch (error) {
       toast.error(toMessage(error))
     }

@@ -5,11 +5,11 @@ import {
 } from '@nestjs/common';
 import { Campus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { FriendsGateway } from '../friends/friends.gateway';
 import { generateWorldProfile } from '../world/world.profile';
 import { WorldGateway } from '../world/world.gateway';
-import { CreateContestDto } from './dto/create-contest.dto';
+import { CreateCampusDto } from './dto/create-campus.dto';
 import { UpdateCampusDto } from './dto/update-campus.dto';
-import { UpdateContestDto } from './dto/update-contest.dto';
 
 /** A campus together with the accounts attached to it (admin view). */
 const CAMPUS_WITH_MEMBERS = {
@@ -40,6 +40,7 @@ export class CampusService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly worldGateway: WorldGateway,
+    private readonly friendsGateway: FriendsGateway,
   ) {}
 
   /** Every approved campus, alphabetical. */
@@ -58,6 +59,24 @@ export class CampusService {
       totalCoins:
         campus.coins + campus.users.reduce((sum, u) => sum + u.coins, 0),
     }));
+  }
+
+  /**
+   * Admin: create a campus from just a name, along with its planet. Members can
+   * then be attached one by one.
+   */
+  async create(dto: CreateCampusDto): Promise<Campus> {
+    const label = dto.label.trim();
+    const clash = await this.prisma.campus.findUnique({ where: { label } });
+    if (clash) {
+      throw new ConflictException('A campus with this name already exists');
+    }
+
+    const campus = await this.prisma.campus.create({ data: { label } });
+    await this.prisma.world.create({
+      data: { campusId: campus.id, ...generateWorldProfile(campus.id) },
+    });
+    return campus;
   }
 
   /** Admin: rename a campus and/or set its coin balance. */
@@ -109,12 +128,36 @@ export class CampusService {
     await this.prisma.campus.delete({ where: { id } });
   }
 
+  /** Admin: attach a single user to a campus. */
+  async addMember(campusId: string, userId: string): Promise<void> {
+    const campus = await this.requireCampus(campusId);
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { campusId },
+    });
+
+    // Let the user build right away, without re-logging in: authorize their open
+    // world sockets and push the new campus to their client.
+    await this.worldGateway.setUserCampus(userId, campusId);
+    this.friendsGateway.emitToUser(userId, 'campus:assigned', {
+      campusId,
+      label: campus.label,
+    });
+  }
+
   /** Admin: detach a single member from a campus. */
   async removeMember(campusId: string, userId: string): Promise<void> {
-    await this.prisma.user.updateMany({
+    const { count } = await this.prisma.user.updateMany({
       where: { id: userId, campusId },
       data: { campusId: null },
     });
+    if (count === 0) return;
+
+    // Revoke build rights live, mirroring addMember.
+    await this.worldGateway.setUserCampus(userId, null);
+    this.friendsGateway.emitToUser(userId, 'campus:removed', { campusId });
   }
 
   private async requireCampus(id: string): Promise<Campus> {
@@ -143,39 +186,6 @@ export class CampusService {
     await this.prisma.user.update({
       where: { id: userId },
       data: { campusId: campus.id },
-    });
-  }
-
-  async listContests(campusId: string) {
-    return this.prisma.voteContest.findMany({
-      where: { campusId },
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  async createContest(campusId: string, data: CreateContestDto) {
-    return this.prisma.voteContest.create({
-      data: {
-        campusId,
-        title: data.title,
-        description: data.description,
-        startsAt: new Date(data.startsAt),
-        endsAt: new Date(data.endsAt),
-        isActive: true,
-      },
-    });
-  }
-
-  async updateContest(contestId: string, data: UpdateContestDto) {
-    return this.prisma.voteContest.update({
-      where: { id: contestId },
-      data: {
-        title: data.title,
-        description: data.description,
-        isActive: data.isActive,
-        startsAt: data.startsAt ? new Date(data.startsAt) : undefined,
-        endsAt: data.endsAt ? new Date(data.endsAt) : undefined,
-      },
     });
   }
 }

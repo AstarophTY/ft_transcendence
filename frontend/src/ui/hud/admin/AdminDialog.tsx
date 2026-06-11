@@ -20,6 +20,7 @@ import SignupsChart from './SignupsChart.tsx'
 import UserRow from './UserRow.tsx'
 import AdminEditUser from './AdminEditUser.tsx'
 import CampusManager from './CampusManager.tsx'
+import SeasonAdminPanel from './SeasonAdminPanel.tsx'
 
 type RoleFilter = 'all' | 'admin' | 'user'
 type TypeFilter = 'all' | '42' | 'local'
@@ -136,7 +137,7 @@ export default function AdminDialog() {
           </div>
         ) : (
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="overview">{t('admin.tabs.overview')}</TabsTrigger>
               <TabsTrigger value="users">
                 {t('admin.tabs.users')}
@@ -146,6 +147,9 @@ export default function AdminDialog() {
               </TabsTrigger>
               <TabsTrigger value="campus">
                 {t('admin.tabs.campus')}
+              </TabsTrigger>
+              <TabsTrigger value="season">
+                {t('admin.tabs.season')}
               </TabsTrigger>
             </TabsList>
 
@@ -165,6 +169,10 @@ export default function AdminDialog() {
                 </p>
                 <CampusManager />
               </section>
+            </TabsContent>
+
+            <TabsContent value="season" className="mt-4">
+              <SeasonAdminPanel />
             </TabsContent>
           </Tabs>
         )}
