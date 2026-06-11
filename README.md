@@ -532,7 +532,6 @@ This system provides competition and entertain the builders creativity.s
 ### Prerequisites
 - **Docker** & **Docker Compose** v2
 - **make**
-- (optional, for `make dev`) **Node.js ≥ 20** and **npm**
 - A **42 OAuth application** (client id / secret) — required for 42 login and logtime.
 
 ### 1. Configure environment
@@ -577,7 +576,6 @@ This generates a self-signed SSL certificate (`scripts/gen-ssl.sh`) and runs
 | `make ps` | List container status |
 | `make clean` | Stop + remove volumes & prune |
 | `make re` | Full rebuild (clean + up) |
-| `make dev` | Local dev mode (Postgres/Redis in Docker, backend & frontend with hot-reload) |
 
 ---
 
