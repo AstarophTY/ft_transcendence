@@ -39,6 +39,8 @@ interface AuthState {
   loginWith42: () => void
   acceptPrivacy: () => void
   declinePrivacy: () => Promise<void>
+  /** Permanently delete the signed-in account, then drop the local session. */
+  deleteMyAccount: () => Promise<boolean>
 }
 
 function userFromToken(accessToken: string): AuthUser | null {
@@ -178,5 +180,18 @@ export const useAuth = create<AuthState>((set) => ({
     tokenStore.clear()
     set({ user: null })
     toast.success(i18n.t('auth.signupCancelled'))
+  },
+
+  deleteMyAccount: async () => {
+    try {
+      await deleteAccount()
+    } catch (error) {
+      toast.error(toMessage(error))
+      return false
+    }
+    tokenStore.clear()
+    set({ user: null, requirePrivacy: false })
+    toast.success(i18n.t('auth.accountDeleted'))
+    return true
   },
 }))

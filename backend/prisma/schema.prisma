@@ -50,9 +50,9 @@ model User {
   sentFriendRequests     Friendship[] @relation("FriendRequester")
   receivedFriendRequests Friendship[] @relation("FriendAddressee")
 
-  contestEntries VoteContestCandidate[]
-  contestVotes   Vote[]                 @relation("ContestVotes")
-  voteContests   VoteContest[]
+  seasonVotesCast     SeasonVote[] @relation("SeasonVoter")
+  seasonVotesReceived SeasonVote[] @relation("SeasonCandidate")
+  seasonCampusVotes   SeasonCampusVote[] @relation("SeasonCampusVoter")
 }
 
 model RefreshToken {
@@ -131,68 +131,101 @@ model Campus {
 
   users User[] @relation("CampusUsers")
 
-  world       World?
-  VoteContest VoteContest[]
+  world         World?
+  seasonVotes   SeasonVote[]
+  seasonResults SeasonResult[]
+  seasonCampusVotes SeasonCampusVote[]
 }
 
-model VoteContest {
-  id          String   @id @default(uuid())
-  title       String
-  description String?
+/// Lifecycle of the single global season. Phases are derived from the
+/// timestamps below; admins "fast-forward" by setting a timestamp to now().
+enum SeasonPhase {
+  UPCOMING
+  BUILD
+  DELAY
+  VOTE
+  ENDED
+}
+
+/// A global building+voting season shared by every campus. At most one season
+/// is *running* at a time, plus an optional *queued* next season scheduled to
+/// start later (its world reset only fires once its build phase begins).
+model Season {
+  id            String    @id @default(uuid())
+  title         String
+  buildStartsAt DateTime
+  buildEndsAt   DateTime
+  /// When the vote opens (= buildEndsAt + configured delay).
+  voteStartsAt  DateTime
+  /// When the vote closes.
+  voteEndsAt    DateTime
+  /// Set once results are computed and winning islands copied to claim zones.
+  finalizedAt   DateTime?
+  /// When the season was activated (its world rollover ran). Null while it is
+  /// still queued/scheduled — activation happens lazily at buildStartsAt.
+  startedAt     DateTime?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+
+  votes       SeasonVote[]
+  results     SeasonResult[]
+  campusVotes SeasonCampusVote[]
+}
+
+/// One ballot per voter per season. Voters and the islands they vote for share
+/// the same campus.
+model SeasonVote {
+  id          String @id @default(uuid())
+  seasonId    String
   campusId    String
-  startsAt    DateTime
-  endsAt      DateTime
-  winnerId    String?
-  winner      User?    @relation(fields: [winnerId], references: [id], onDelete: SetNull)
-  isActive    Boolean  @default(true)
-
-  campus     Campus                 @relation(fields: [campusId], references: [id], onDelete: Cascade)
-  candidates VoteContestCandidate[]
-  votes      Vote[]
-
-  createdAt DateTime @default(now())
-
-  @@index([campusId])
-}
-
-model VoteContestCandidate {
-  id String @id @default(uuid())
-
-  contestId String
-  userId    String
-
-  contest VoteContest @relation(fields: [contestId], references: [id], onDelete: Cascade)
-  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  Vote      Vote[]
-
-  // User can join a contest only once
-  @@unique([contestId, userId])
-  @@index([userId])
-}
-
-model Vote {
-  id String @id @default(uuid())
-
-  contestId String
-
-  // voter
-  voterId String
-
-  // candidate being voted for
+  voterId     String
   candidateId String
 
-  contest   VoteContest          @relation(fields: [contestId], references: [id], onDelete: Cascade)
-  voter     User                 @relation("ContestVotes", fields: [voterId], references: [id], onDelete: Cascade)
-  candidate VoteContestCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  season    Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  campus    Campus @relation(fields: [campusId], references: [id], onDelete: Cascade)
+  voter     User   @relation("SeasonVoter", fields: [voterId], references: [id], onDelete: Cascade)
+  candidate User   @relation("SeasonCandidate", fields: [candidateId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
-  // One vote per user per contest
-  @@unique([contestId, voterId])
+  // One vote per user per season
+  @@unique([seasonId, voterId])
+  @@index([seasonId, campusId])
   @@index([candidateId])
-  @@index([contestId])
+}
+
+/// One campus-level ballot per campus-less voter per season. Accounts without a
+/// campus can't vote for an island, so they vote for the campus they think is
+/// best instead — this drives the end-of-season campus podium.
+model SeasonCampusVote {
+  id       String @id @default(uuid())
+  seasonId String
+  voterId  String
+  campusId String
+
+  season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  voter  User   @relation("SeasonCampusVoter", fields: [voterId], references: [id], onDelete: Cascade)
+  campus Campus @relation(fields: [campusId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  // One campus vote per user per season
+  @@unique([seasonId, voterId])
+  @@index([seasonId, campusId])
+}
+
+/// The winning island per campus for a finalized season.
+model SeasonResult {
+  id           String @id @default(uuid())
+  seasonId     String
+  campusId     String
+  winnerUserId String?
+  votes        Int    @default(0)
+
+  season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  campus Campus @relation(fields: [campusId], references: [id], onDelete: Cascade)
+
+  @@unique([seasonId, campusId])
 }
 
 model World {

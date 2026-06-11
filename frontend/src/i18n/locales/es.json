@@ -5,6 +5,46 @@
     "fr": "Français",
     "es": "Español"
   },
+  "common": {
+    "cancel": "Cancelar"
+  },
+  "errors": {
+    "fortyTwoNoEmailChange": "Las cuentas 42 no pueden cambiar su correo.",
+    "fortyTwoNoPassword": "Las cuentas 42 no tienen contraseña.",
+    "campusNameExists": "Ya existe un campus con ese nombre.",
+    "buildEndAfterStart": "El fin de construcción debe ser posterior al inicio.",
+    "campusMembersVoteIsland": "Los miembros de un campus votan por una isla, no por un campus.",
+    "campusNotFound": "Campus no encontrado.",
+    "currentPasswordIncorrect": "La contraseña actual es incorrecta.",
+    "emailInUse": "El correo ya está en uso.",
+    "emailOrUsernameInUse": "Correo o nombre de usuario ya en uso.",
+    "friendRequestAlreadySent": "Solicitud de amistad ya enviada.",
+    "friendRequestNotFound": "Solicitud de amistad no encontrada.",
+    "friendshipNotFound": "Amistad no encontrada.",
+    "invalidCredentials": "Credenciales inválidas.",
+    "invalidRefreshToken": "Token de actualización inválido o caducado.",
+    "noActiveSeason": "No hay temporada activa.",
+    "noFileUploaded": "No se subió ningún archivo.",
+    "seasonNotFound": "Temporada no encontrada.",
+    "nextSeasonAfterVote": "La próxima temporada debe comenzar después de que termine la votación de la actual.",
+    "campusDoesNotExist": "Ese campus no existe.",
+    "memberNoIsland": "Ese miembro no tiene isla para votar.",
+    "noPasswordSet": "Esta cuenta no tiene contraseña.",
+    "tokenRevoked": "Token revocado.",
+    "unsupportedImageType": "Tipo de imagen no admitido.",
+    "tooManyAttempts": "Demasiados intentos, inténtalo de nuevo en 15 minutos.",
+    "usernameTaken": "Nombre de usuario ya en uso.",
+    "userNotFound": "Usuario no encontrado.",
+    "votingNotOpen": "La votación no está abierta.",
+    "alreadyFriends": "Ya sois amigos.",
+    "notFriends": "No eres amigo de este usuario.",
+    "cannotAddYourself": "No puedes añadirte a ti mismo.",
+    "cannotChangeOwnRole": "No puedes cambiar tu propio rol.",
+    "cannotDeleteOwnAccount": "No puedes eliminar tu propia cuenta.",
+    "voteOwnCampusOnly": "Solo puedes votar dentro de tu propio campus.",
+    "cannotVoteOwnIsland": "No puedes votar por tu propia isla.",
+    "mustBelongCampusToVote": "Debes pertenecer a un campus para votar."
+  },
   "role": {
     "USER": "Usuario",
     "ADMIN": "Administrador"
@@ -51,7 +91,8 @@
     "acceptPrivacyPre": "He leído y acepto la",
     "privacyPolicy": "Política de privacidad",
     "mustAcceptPrivacy": "Debes aceptar la política de privacidad para crear una cuenta",
-    "signupCancelled": "Registro cancelado, tu cuenta no se ha conservado"
+    "signupCancelled": "Registro cancelado, tu cuenta no se ha conservado",
+    "accountDeleted": "Tu cuenta ha sido eliminada permanentemente"
   },
   "friends": {
     "title": "Amigos",
@@ -177,7 +218,8 @@
     "tabs": {
       "overview": "Resumen",
       "users": "Usuarios",
-      "campus": "Campus"
+      "campus": "Campus",
+      "season": "Temporadas"
     },
     "search": "Buscar por usuario, correo…",
     "filter": {
@@ -220,13 +262,20 @@
       "manageSection": "Todos los campus",
       "delete": "Eliminar campus",
       "deleted": "Campus «{{label}}» eliminado",
+      "regenerateTitle": "¿Regenerar el planeta?",
+      "regenerateAction": "Regenerar",
       "removeMember": "Quitar del campus",
       "noMembers": "Aún no hay miembros.",
       "noCampuses": "Aún no hay campus.",
       "coinsDecrease": "Quitar una moneda",
       "coinsIncrease": "Añadir una moneda",
       "totalHint": "Total de monedas (miembros + bono)",
-      "bonus": "Bono admin"
+      "bonus": "Bono admin",
+      "create": "Crear",
+      "created": "Campus «{{label}}» creado",
+      "namePlaceholder": "Nombre del nuevo campus",
+      "addMember": "Añadir miembro",
+      "noUsersToAdd": "No hay usuarios para añadir."
     }
   },
   "editor": {
@@ -265,6 +314,78 @@
   },
   "planet": {
     "private": "Planeta privado"
+  },
+  "campus": {
+    "joined": "Te has unido a {{label}}: ¡ya puedes construir!",
+    "left": "Has sido eliminado de tu campus."
+  },
+  "season": {
+    "menu": "Voto de temporada",
+    "dialogTitle": "Voto de temporada",
+    "dialogDescription": "Visita las islas construidas esta temporada y vota por la mejor de tu campus.",
+    "noSeason": "No hay ninguna temporada en curso ahora mismo.",
+    "yourCampus": "Tu campus",
+    "vote": "Votar",
+    "voted": "Votado",
+    "visit": "Visitar",
+    "votesCount_one": "{{count}} voto",
+    "votesCount_other": "{{count}} votos",
+    "noCandidates": "Todavía no hay islas para votar en este campus.",
+    "endsIn": "Termina en",
+    "buildLocked": "La construcción está bloqueada fuera de la fase de construcción de la temporada.",
+    "worldReset": "Comenzó una nueva temporada: los mundos se han reiniciado.",
+    "deletedUser": "Cuenta eliminada",
+    "noWinners": "Aún no hay ganadores anteriores.",
+    "winnersFrom": "Ganadores de {{title}}",
+    "yourIsland": "Tu isla",
+    "tabs": {
+      "current": "Temporada",
+      "winners": "Ganadores"
+    },
+    "podium": {
+      "title": "Podio de campus"
+    },
+    "phaseHint": {
+      "UPCOMING": "La temporada aún no ha comenzado.",
+      "BUILD": "La construcción está abierta: la votación empezará al terminar.",
+      "DELAY": "La construcción ha terminado. La votación abre pronto.",
+      "VOTE": "La votación está abierta: elige la mejor isla de tu campus.",
+      "ENDED": "La temporada ha terminado. Estos son los resultados."
+    },
+    "phase": {
+      "UPCOMING": "Próxima",
+      "BUILD": "Construcción",
+      "DELAY": "Voto pronto",
+      "VOTE": "Voto abierto",
+      "ENDED": "Terminada"
+    },
+    "admin": {
+      "title": "Título de la temporada",
+      "titlePlaceholder": "p. ej. Verano 2026",
+      "buildStart": "Inicio de construcción",
+      "buildEnd": "Fin de construcción",
+      "pickDate": "Elegir una fecha",
+      "delay": "Retraso del voto (min)",
+      "duration": "Duración del voto (min)",
+      "create": "Abrir temporada",
+      "queue": "Programar la próxima temporada",
+      "startsOn": "empieza el {{date}}",
+      "allSeasons": "Todas las temporadas",
+      "noSeasons": "Aún no hay temporadas.",
+      "statusActive": "Activa",
+      "statusQueued": "En cola",
+      "delete": "Eliminar temporada",
+      "deleteTitle": "¿Eliminar temporada?",
+      "deleteConfirm": "¿Eliminar la temporada «{{title}}» y todos sus votos? No se puede deshacer.",
+      "deleted": "Temporada eliminada",
+      "endBuild": "Terminar construcción",
+      "openVote": "Abrir voto",
+      "closeVote": "Cerrar voto",
+      "finalize": "Finalizar",
+      "in": "en",
+      "created": "Temporada abierta",
+      "finalized": "Temporada finalizada: islas ganadoras copiadas"
+    }
   },
   "blocks": {
     "Stone": "Piedra",

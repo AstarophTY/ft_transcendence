@@ -3,8 +3,10 @@ import { toast } from 'sonner'
 import { tokenStore, type DirectMessage, type Friendship } from '@/lib/api'
 import { connectSocket, disconnectSocket } from '@/lib/sockets/socket'
 import { disconnectWorldSocket } from '@/lib/sockets/worldSocket'
+import { listWorlds } from '@/lib/api/world'
 import { useAuth } from '@/store/auth'
 import { useChatChannels } from '@/store/chatChannels'
+import { usePlanetStore } from '@/store/planetStore'
 import i18n from '@/i18n'
 import type { FriendsState, SocketSlice } from './types'
 
@@ -69,6 +71,32 @@ export const createSocketSlice: StateCreator<
         }
         const name = nameOf(message.senderId)
         if (name) toast.info(i18n.t('friends.notif.message', { name }))
+      })
+      .off('campus:assigned')
+      .on(
+        'campus:assigned',
+        ({ campusId, label }: { campusId: string; label: string }) => {
+          // An admin added us to a campus: update our identity so we can build
+          // straight away, no reload needed.
+          useAuth.setState((s) =>
+            s.user ? { user: { ...s.user, campusId } } : s,
+          )
+          // Pull in the campus planet so it shows up in the selector, but don't
+          // yank the carousel while the player is inside a world.
+          if (usePlanetStore.getState().sceneMode === 'selection') {
+            void listWorlds().then((worlds) =>
+              usePlanetStore.getState().setWorlds(worlds),
+            )
+          }
+          toast.success(i18n.t('campus.joined', { label }))
+        },
+      )
+      .off('campus:removed')
+      .on('campus:removed', () => {
+        useAuth.setState((s) =>
+          s.user ? { user: { ...s.user, campusId: null } } : s,
+        )
+        toast.info(i18n.t('campus.left'))
       })
       .off('auth:kick')
       .on('auth:kick', ({ reason }: { reason?: string }) => {

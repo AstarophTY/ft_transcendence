@@ -5,6 +5,46 @@
     "fr": "Français",
     "es": "Español"
   },
+  "common": {
+    "cancel": "Annuler"
+  },
+  "errors": {
+    "fortyTwoNoEmailChange": "Les comptes 42 ne peuvent pas changer leur e-mail.",
+    "fortyTwoNoPassword": "Les comptes 42 n'ont pas de mot de passe.",
+    "campusNameExists": "Un campus portant ce nom existe déjà.",
+    "buildEndAfterStart": "La fin de construction doit être après le début.",
+    "campusMembersVoteIsland": "Les membres d'un campus votent pour une île, pas pour un campus.",
+    "campusNotFound": "Campus introuvable.",
+    "currentPasswordIncorrect": "Le mot de passe actuel est incorrect.",
+    "emailInUse": "E-mail déjà utilisé.",
+    "emailOrUsernameInUse": "E-mail ou nom d'utilisateur déjà utilisé.",
+    "friendRequestAlreadySent": "Demande d'ami déjà envoyée.",
+    "friendRequestNotFound": "Demande d'ami introuvable.",
+    "friendshipNotFound": "Amitié introuvable.",
+    "invalidCredentials": "Identifiants invalides.",
+    "invalidRefreshToken": "Jeton de rafraîchissement invalide ou expiré.",
+    "noActiveSeason": "Aucune saison active.",
+    "noFileUploaded": "Aucun fichier envoyé.",
+    "seasonNotFound": "Saison introuvable.",
+    "nextSeasonAfterVote": "La prochaine saison doit commencer après la fin du vote de la saison actuelle.",
+    "campusDoesNotExist": "Ce campus n'existe pas.",
+    "memberNoIsland": "Ce membre n'a pas d'île pour laquelle voter.",
+    "noPasswordSet": "Ce compte n'a pas de mot de passe défini.",
+    "tokenRevoked": "Jeton révoqué.",
+    "unsupportedImageType": "Type d'image non pris en charge.",
+    "tooManyAttempts": "Trop de tentatives, réessayez dans 15 minutes.",
+    "usernameTaken": "Nom d'utilisateur déjà pris.",
+    "userNotFound": "Utilisateur introuvable.",
+    "votingNotOpen": "Le vote n'est pas ouvert.",
+    "alreadyFriends": "Vous êtes déjà amis.",
+    "notFriends": "Vous n'êtes pas ami avec cet utilisateur.",
+    "cannotAddYourself": "Vous ne pouvez pas vous ajouter vous-même.",
+    "cannotChangeOwnRole": "Vous ne pouvez pas changer votre propre rôle.",
+    "cannotDeleteOwnAccount": "Vous ne pouvez pas supprimer votre propre compte.",
+    "voteOwnCampusOnly": "Vous ne pouvez voter que dans votre propre campus.",
+    "cannotVoteOwnIsland": "Vous ne pouvez pas voter pour votre propre île.",
+    "mustBelongCampusToVote": "Vous devez appartenir à un campus pour voter."
+  },
   "role": {
     "USER": "Utilisateur",
     "ADMIN": "Administrateur"
@@ -51,7 +91,8 @@
     "acceptPrivacyPre": "J'ai lu et j'accepte la",
     "privacyPolicy": "Politique de confidentialité",
     "mustAcceptPrivacy": "Vous devez accepter la politique de confidentialité pour créer un compte",
-    "signupCancelled": "Inscription annulée, votre compte n'a pas été conservé"
+    "signupCancelled": "Inscription annulée, votre compte n'a pas été conservé",
+    "accountDeleted": "Votre compte a été définitivement supprimé"
   },
   "friends": {
     "title": "Amis",
@@ -141,7 +182,14 @@
       "fortyTwo": "Identifiant 42",
       "email42Hint": "Les comptes 42 ne peuvent pas changer d'email.",
       "siteLogtime": "Logtime",
-      "siteLogtimeHint": "Logtime 42 total depuis la création du compte"
+      "siteLogtimeHint": "Logtime 42 total depuis la création du compte",
+      "dangerZone": "Zone de danger",
+      "deleteHint": "Supprime définitivement ton compte et toutes ses données. Cette action est irréversible.",
+      "deleteAccount": "Supprimer mon compte",
+      "deleteConfirmTitle": "Supprimer ton compte ?",
+      "deleteConfirmBody": "Cela supprime définitivement ton compte, tes amis, tes messages et tes mondes. Cette action est irréversible.",
+      "deleteCancel": "Annuler",
+      "deleteConfirm": "Supprimer définitivement"
     },
     "security": {
       "current": "Mot de passe actuel",
@@ -177,7 +225,8 @@
     "tabs": {
       "overview": "Vue d'ensemble",
       "users": "Utilisateurs",
-      "campus": "Campus"
+      "campus": "Campus",
+      "season": "Saisons"
     },
     "search": "Rechercher par pseudo, email…",
     "filter": {
@@ -213,13 +262,20 @@
       "manageSection": "Tous les campus",
       "delete": "Supprimer le campus",
       "deleted": "Campus « {{label}} » supprimé",
+      "regenerateTitle": "Régénérer la planète ?",
+      "regenerateAction": "Régénérer",
       "removeMember": "Retirer du campus",
       "noMembers": "Aucun membre pour l'instant.",
       "noCampuses": "Aucun campus pour l'instant.",
       "coinsDecrease": "Retirer un coin",
       "coinsIncrease": "Ajouter un coin",
       "totalHint": "Total des coins (membres + bonus)",
-      "bonus": "Bonus admin"
+      "bonus": "Bonus admin",
+      "create": "Créer",
+      "created": "Campus « {{label}} » créé",
+      "namePlaceholder": "Nom du nouveau campus",
+      "addMember": "Ajouter un membre",
+      "noUsersToAdd": "Aucun utilisateur à ajouter."
     }
   },
   "editor": {
@@ -245,7 +301,8 @@
       "title": "Historique du bloc",
       "fetching": "Chargement de l'historique du bloc...",
       "empty": "Clique sur un bloc dans la scène 3D pour voir son historique.",
-      "none": "Aucun historique pour ce bloc."
+      "none": "Aucun historique pour ce bloc.",
+      "deletedAccount": "Compte supprimé"
     },
     "freecam": "Caméra libre",
     "exitFreecam": "Quitter la caméra libre",
@@ -258,6 +315,78 @@
   },
   "planet": {
     "private": "Planète privée"
+  },
+  "campus": {
+    "joined": "Tu as rejoint {{label}} — tu peux construire maintenant !",
+    "left": "Tu as été retiré de ton campus."
+  },
+  "season": {
+    "menu": "Vote de saison",
+    "dialogTitle": "Vote de saison",
+    "dialogDescription": "Visite les îles construites cette saison et vote pour la meilleure de ton campus.",
+    "noSeason": "Aucune saison n'est en cours pour le moment.",
+    "yourCampus": "Ton campus",
+    "vote": "Voter",
+    "voted": "Voté",
+    "visit": "Visiter",
+    "votesCount_one": "{{count}} vote",
+    "votesCount_other": "{{count}} votes",
+    "noCandidates": "Aucune île à départager dans ce campus pour l'instant.",
+    "endsIn": "Se termine dans",
+    "buildLocked": "La construction est verrouillée en dehors de la phase de construction de la saison.",
+    "worldReset": "Une nouvelle saison a commencé : les mondes ont été réinitialisés.",
+    "deletedUser": "Compte supprimé",
+    "noWinners": "Aucun gagnant précédent pour l'instant.",
+    "winnersFrom": "Gagnants de {{title}}",
+    "yourIsland": "Ton île",
+    "tabs": {
+      "current": "Saison",
+      "winners": "Gagnants"
+    },
+    "podium": {
+      "title": "Podium des campus"
+    },
+    "phaseHint": {
+      "UPCOMING": "La saison n'a pas encore commencé.",
+      "BUILD": "La construction est ouverte — le vote débutera à la fin.",
+      "DELAY": "La construction est terminée. Le vote ouvre bientôt.",
+      "VOTE": "Le vote est ouvert — choisis la meilleure île de ton campus.",
+      "ENDED": "La saison est terminée. Voici les résultats."
+    },
+    "phase": {
+      "UPCOMING": "À venir",
+      "BUILD": "Construction",
+      "DELAY": "Vote bientôt",
+      "VOTE": "Vote ouvert",
+      "ENDED": "Terminée"
+    },
+    "admin": {
+      "title": "Titre de la saison",
+      "titlePlaceholder": "ex. Été 2026",
+      "buildStart": "Début construction",
+      "buildEnd": "Fin construction",
+      "pickDate": "Choisir une date",
+      "delay": "Délai avant vote (min)",
+      "duration": "Durée du vote (min)",
+      "create": "Ouvrir la saison",
+      "queue": "Programmer la prochaine saison",
+      "startsOn": "démarre le {{date}}",
+      "allSeasons": "Toutes les saisons",
+      "noSeasons": "Aucune saison pour l'instant.",
+      "statusActive": "En cours",
+      "statusQueued": "En file",
+      "delete": "Supprimer la saison",
+      "deleteTitle": "Supprimer la saison ?",
+      "deleteConfirm": "Supprimer la saison « {{title}} » et tous ses votes ? Action irréversible.",
+      "deleted": "Saison supprimée",
+      "endBuild": "Terminer la construction",
+      "openVote": "Ouvrir le vote",
+      "closeVote": "Fermer le vote",
+      "finalize": "Finaliser",
+      "in": "dans",
+      "created": "Saison ouverte",
+      "finalized": "Saison finalisée — îles gagnantes copiées"
+    }
   },
   "blocks": {
     "Stone": "Pierre",

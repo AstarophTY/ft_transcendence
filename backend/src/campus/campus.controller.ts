@@ -15,9 +15,8 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { CampusService } from './campus.service';
-import { CreateContestDto } from './dto/create-contest.dto';
+import { CreateCampusDto } from './dto/create-campus.dto';
 import { UpdateCampusDto } from './dto/update-campus.dto';
-import { UpdateContestDto } from './dto/update-contest.dto';
 
 @Controller('campus')
 @UseGuards(JwtAuthGuard)
@@ -40,6 +39,14 @@ export class CampusController {
     return this.campus.listWithMembers();
   }
 
+  /** Create a campus from just a name. */
+  @Post()
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  create(@Body() dto: CreateCampusDto): Promise<Campus> {
+    return this.campus.create(dto);
+  }
+
   /** Rename a campus and/or set its coin balance. */
   @Patch(':id')
   @UseGuards(RolesGuard)
@@ -59,6 +66,18 @@ export class CampusController {
     return this.campus.remove(id);
   }
 
+  /** Attach a single user to a campus. */
+  @Post(':id/members/:userId')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  addMember(
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+  ): Promise<void> {
+    return this.campus.addMember(id, userId);
+  }
+
   /** Detach a single member from a campus. */
   @Delete(':id/members/:userId')
   @UseGuards(RolesGuard)
@@ -69,29 +88,5 @@ export class CampusController {
     @Param('userId') userId: string,
   ): Promise<void> {
     return this.campus.removeMember(id, userId);
-  }
-
-  @Get(':id/contests')
-  @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
-  listContests(@Param('id') id: string) {
-    return this.campus.listContests(id);
-  }
-
-  @Post(':id/contests')
-  @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
-  createContest(@Param('id') id: string, @Body() dto: CreateContestDto) {
-    return this.campus.createContest(id, dto);
-  }
-
-  @Patch(':id/contests/:contestId')
-  @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
-  updateContest(
-    @Param('contestId') contestId: string,
-    @Body() dto: UpdateContestDto,
-  ) {
-    return this.campus.updateContest(contestId, dto);
   }
 }

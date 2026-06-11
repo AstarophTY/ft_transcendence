@@ -7,6 +7,7 @@ import { CampusModule } from './campus/campus.module';
 import { FriendsModule } from './friends/friends.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
+import { SeasonModule } from './season/season.module';
 import { UsersModule } from './users/users.module';
 import { WorldModule } from './world/world.module';
 
@@ -24,6 +25,7 @@ import { WorldModule } from './world/world.module';
     CampusModule,
     FriendsModule,
     AdminModule,
+    SeasonModule,
     WorldModule,
   ],
 })

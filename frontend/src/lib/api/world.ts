@@ -35,7 +35,6 @@ export interface WorldBlock {
 export interface WorldDetail extends WorldProfile {
   campusId: string
   blocks: WorldBlock[]
-  contests?: unknown[]
 }
 
 /** One world per campus — drives the planet selection menu. */

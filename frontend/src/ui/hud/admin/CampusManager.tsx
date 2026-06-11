@@ -8,18 +8,140 @@ import {
   Plus,
   RefreshCw,
   Save,
+  Search,
   Trash2,
   UserMinus,
+  UserPlus,
 } from 'lucide-react'
 import { Button } from '@/ui/shadcn/button.tsx'
 import { Input } from '@/ui/shadcn/input.tsx'
 import { Badge } from '@/ui/shadcn/badge.tsx'
+import { ConfirmDialog } from '@/ui/shadcn/confirm-dialog.tsx'
 import { ScrollArea } from '@/ui/shadcn/scroll-area.tsx'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/ui/shadcn/popover.tsx'
 import Avatar from '@/ui/hud/friends/Avatar.tsx'
-import { CampusContestManager } from '@/ui/three/scenes/CampusContestManager'
 import { useAdmin } from '@/store/admin.ts'
 import type { CampusWithMembers } from '@/lib/api/campus.ts'
 import { cn } from '@/lib/utils.ts'
+
+/** Pick a user not yet in the campus and attach them. */
+function AddMemberPicker({ campus }: { campus: CampusWithMembers }) {
+  const { t } = useTranslation()
+  const { users, attachMember } = useAdmin()
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+
+  const memberIds = new Set(campus.users.map((m) => m.id))
+  const q = search.toLowerCase()
+  const candidates = users.filter(
+    (u) =>
+      !memberIds.has(u.id) &&
+      (!q ||
+        u.username.toLowerCase().includes(q) ||
+        (u.displayName ?? '').toLowerCase().includes(q)),
+  )
+
+  const add = (id: string) => {
+    void attachMember(campus.id, id)
+    setOpen(false)
+    setSearch('')
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-1.5 self-start">
+          <UserPlus className="size-4" />
+          {t('admin.campus.addMember')}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-0" align="start">
+        <div className="relative border-b">
+          <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            autoFocus
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('admin.search')}
+            className="h-9 border-0 pl-8 focus-visible:ring-0"
+          />
+        </div>
+        <ScrollArea className="max-h-56">
+          {candidates.length === 0 ? (
+            <p className="px-3 py-4 text-center text-xs text-muted-foreground">
+              {t('admin.campus.noUsersToAdd')}
+            </p>
+          ) : (
+            <ul className="p-1">
+              {candidates.map((u) => (
+                <li key={u.id}>
+                  <button
+                    type="button"
+                    onClick={() => add(u.id)}
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent"
+                  >
+                    <Avatar src={u.avatar} name={u.username} size={24} />
+                    <span className="flex-1 truncate">{u.username}</span>
+                    {u.campus && (
+                      <Badge variant="secondary" className="text-[10px]">
+                        {u.campus.label}
+                      </Badge>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </ScrollArea>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+/** Create a campus from just a name. */
+function CreateCampusForm() {
+  const { t } = useTranslation()
+  const { createCampus } = useAdmin()
+  const [label, setLabel] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  const submit = async () => {
+    const name = label.trim()
+    if (!name || busy) return
+    setBusy(true)
+    const ok = await createCampus(name)
+    setBusy(false)
+    if (ok) setLabel('')
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <div className="relative flex-1">
+        <Building2 className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && void submit()}
+          maxLength={60}
+          placeholder={t('admin.campus.namePlaceholder')}
+          className="pl-9"
+        />
+      </div>
+      <Button
+        className="gap-1.5"
+        disabled={!label.trim() || busy}
+        onClick={() => void submit()}
+      >
+        <Plus className="size-4" />
+        {t('admin.campus.create')}
+      </Button>
+    </div>
+  )
+}
 
 function CampusRow({ campus }: { campus: CampusWithMembers }) {
   const { t } = useTranslation()
@@ -29,6 +151,7 @@ function CampusRow({ campus }: { campus: CampusWithMembers }) {
   const [bonus, setBonus] = useState(String(campus.coins))
   const [seed, setSeed] = useState(campus.world?.seed || '')
   const [open, setOpen] = useState(false)
+  const [confirmRegen, setConfirmRegen] = useState(false)
 
   const bonusValue = Number(bonus || 0)
   const dirty =
@@ -51,9 +174,8 @@ function CampusRow({ campus }: { campus: CampusWithMembers }) {
   }
 
   const regenerate = () => {
-    if (confirm(t('admin.campus.regenerateConfirm'))) {
-      void saveCampus(campus.id, { regenerate: true })
-    }
+    void saveCampus(campus.id, { regenerate: true })
+    setConfirmRegen(false)
   }
 
   return (
@@ -131,7 +253,7 @@ function CampusRow({ campus }: { campus: CampusWithMembers }) {
                 size="icon"
                 className="size-8"
                 title={t('admin.campus.regenerate')}
-                onClick={regenerate}
+                onClick={() => setConfirmRegen(true)}
               >
                 <RefreshCw className="size-3.5" />
               </Button>
@@ -174,9 +296,8 @@ function CampusRow({ campus }: { campus: CampusWithMembers }) {
             </div>
           </div>
 
-          <CampusContestManager campusId={campus.id} />
-
           {/* Members and their earned coins. */}
+          <AddMemberPicker campus={campus} />
           <ul className="flex flex-col gap-1">
             {campus.users.length === 0 ? (
               <li className="px-1 py-1 text-xs text-muted-foreground">
@@ -214,6 +335,17 @@ function CampusRow({ campus }: { campus: CampusWithMembers }) {
           </ul>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmRegen}
+        onOpenChange={setConfirmRegen}
+        title={t('admin.campus.regenerateTitle')}
+        description={t('admin.campus.regenerateConfirm')}
+        confirmLabel={t('admin.campus.regenerateAction')}
+        cancelLabel={t('common.cancel')}
+        destructive
+        onConfirm={regenerate}
+      />
     </li>
   )
 }
@@ -222,23 +354,25 @@ export default function CampusManager() {
   const { t } = useTranslation()
   const { campuses } = useAdmin()
 
-  if (campuses.length === 0) {
-    return (
-      <div className="flex h-24 items-center justify-center rounded-lg border text-sm text-muted-foreground">
-        {t('admin.campus.noCampuses')}
-      </div>
-    )
-  }
-
   return (
-    <div className="rounded-lg border">
-      <ScrollArea className="max-h-[40vh] overflow-y-scroll overflow-x-hidden [scrollbar-width:none]">
-        <ul className="divide-y">
-          {campuses.map((c) => (
-            <CampusRow key={c.id} campus={c} />
-          ))}
-        </ul>
-      </ScrollArea>
+    <div className="flex flex-col gap-3">
+      <CreateCampusForm />
+
+      {campuses.length === 0 ? (
+        <div className="flex h-24 items-center justify-center rounded-lg border text-sm text-muted-foreground">
+          {t('admin.campus.noCampuses')}
+        </div>
+      ) : (
+        <div className="rounded-lg border">
+          <ScrollArea className="max-h-[40vh] overflow-y-scroll overflow-x-hidden [scrollbar-width:none]">
+            <ul className="divide-y">
+              {campuses.map((c) => (
+                <CampusRow key={c.id} campus={c} />
+              ))}
+            </ul>
+          </ScrollArea>
+        </div>
+      )}
     </div>
   )
 }

@@ -2,7 +2,16 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/ui/shadcn/button.tsx'
 import { Input } from '@/ui/shadcn/input.tsx'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/ui/shadcn/dialog.tsx'
 import { useSettings } from '@/store/settings.ts'
+import { useAuth } from '@/store/auth.ts'
 import Field from './Field.tsx'
 
 const COOLDOWN_DAYS = 30
@@ -11,8 +20,18 @@ const DAY_MS = 24 * 60 * 60 * 1000
 export default function AccountTab() {
   const { t } = useTranslation()
   const { me, saving, renameUser, saveProfile } = useSettings()
+  const deleteMyAccount = useAuth((s) => s.deleteMyAccount)
   const [username, setUsername] = useState(me?.username ?? '')
   const [email, setEmail] = useState(me?.email ?? '')
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  const onDelete = async () => {
+    setDeleting(true)
+    const ok = await deleteMyAccount()
+    setDeleting(false)
+    if (ok) setConfirmOpen(false)
+  }
 
   const daysLeft = (() => {
     if (!me?.usernameChangedAt) return 0
@@ -79,6 +98,47 @@ export default function AccountTab() {
           </Field>
         </>
       )}
+
+      <div className="mt-2 flex flex-col gap-2 rounded-lg border border-destructive/40 p-4">
+        <span className="text-sm font-medium text-destructive">
+          {t('settings.account.dangerZone')}
+        </span>
+        <p className="text-xs text-muted-foreground">
+          {t('settings.account.deleteHint')}
+        </p>
+        <Button
+          variant="destructive"
+          className="self-start"
+          onClick={() => setConfirmOpen(true)}
+        >
+          {t('settings.account.deleteAccount')}
+        </Button>
+      </div>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('settings.account.deleteConfirmTitle')}</DialogTitle>
+            <DialogDescription>
+              {t('settings.account.deleteConfirmBody')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2">
+            <DialogClose asChild>
+              <Button variant="outline" disabled={deleting}>
+                {t('settings.account.deleteCancel')}
+              </Button>
+            </DialogClose>
+            <Button
+              variant="destructive"
+              disabled={deleting}
+              onClick={() => void onDelete()}
+            >
+              {t('settings.account.deleteConfirm')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

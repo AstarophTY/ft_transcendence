@@ -8,6 +8,8 @@ import {
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { FortyTwoService } from '../auth/forty-two.service';
+import { FriendsGateway } from '../friends/friends.gateway';
+import { FriendsService } from '../friends/friends.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SELF_USER_SELECT, SelfProfile, SelfUser } from './users.select';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -22,6 +24,8 @@ export class ProfileService {
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
     private readonly fortyTwo: FortyTwoService,
+    private readonly friends: FriendsService,
+    private readonly gateway: FriendsGateway,
   ) {}
 
   /** Self profile plus the coin rate, so the UI can show progress to the next coin. */
@@ -49,10 +53,22 @@ export class ProfileService {
    * Permanently delete the account and everything it owns. All relations are
    * `onDelete: Cascade`, so a single delete removes the world, friendships,
    * messages and tokens too. Used when a new 42 user declines the Privacy
-   * Policy, which cancels the just-created sign-up.
+   * Policy, and when a user deletes their own account from the settings.
+   *
+   * Block-history rows (`BlockLog`) on shared campus worlds are intentionally
+   * kept (their `userId` is a plain column, not a cascading relation): the
+   * history survives and the client labels the now-missing author as a
+   * deleted account.
    */
   async deleteAccount(userId: string): Promise<void> {
+    // Snapshot the friends before the cascade wipes the friendships, then tell
+    // their clients to drop this account once it's actually gone, so it
+    // disappears from their friends list in real time.
+    const friends = await this.friends.listFriends(userId);
     await this.prisma.user.delete({ where: { id: userId } });
+    for (const friend of friends) {
+      this.gateway.emitToUser(friend.id, 'friend:removed', { userId });
+    }
   }
 
   /** Update freely-editable fields + optional avatar URL. */

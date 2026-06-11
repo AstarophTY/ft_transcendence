@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Campus, User, World } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { WorldBlockDto } from './dto/save-blocks.dto';
@@ -28,17 +28,6 @@ export class WorldService {
     const worlds = [];
     for (const campus of campuses) {
       const world = campus.world ?? (await this.createWorld(campus.id));
-      const contests = await this.prisma.voteContest.findMany({
-        where: { campusId: campus.id, isActive: true },
-        include: {
-          candidates: {
-            include: {
-              user: { select: { id: true, username: true, avatar: true } },
-              _count: { select: { Vote: true } },
-            },
-          },
-        },
-      });
 
       worlds.push({
         campusId: campus.id,
@@ -53,19 +42,6 @@ export class WorldService {
         baseHeight: world.baseHeight,
         variationRange: world.variationRange,
         blocks: 'blocks' in world ? world.blocks : [],
-        contests: contests.map((c) => ({
-          id: c.id,
-          title: c.title,
-          description: c.description,
-          startsAt: c.startsAt,
-          endsAt: c.endsAt,
-          candidates: c.candidates.map((can) => ({
-            userId: can.userId,
-            username: can.user.username,
-            avatar: can.user.avatar,
-            votes: can._count.Vote,
-          })),
-        })),
       });
     }
     return worlds;
@@ -87,29 +63,6 @@ export class WorldService {
       select: { x: true, y: true, z: true, block: true, rotation: true, block_log: false },
     });
 
-    let campusId = world.campusId;
-    if (!campusId && world.userId) {
-      const user = await this.prisma.user.findUnique({
-        where: { id: world.userId },
-        select: { campusId: true },
-      });
-      campusId = user?.campusId ?? null;
-    }
-
-    const contests = campusId
-      ? await this.prisma.voteContest.findMany({
-          where: { campusId, isActive: true },
-          include: {
-            candidates: {
-              include: {
-                user: { select: { id: true, username: true, avatar: true } },
-                _count: { select: { Vote: true } },
-              },
-            },
-          },
-        })
-      : [];
-
     return {
       campusId: world.campusId ?? world.userId ?? id,
       seed: world.seed,
@@ -122,19 +75,6 @@ export class WorldService {
       baseHeight: world.baseHeight,
       variationRange: world.variationRange,
       blocks,
-      contests: contests.map((c) => ({
-        id: c.id,
-        title: c.title,
-        description: c.description,
-        startsAt: c.startsAt,
-        endsAt: c.endsAt,
-        candidates: c.candidates.map((can) => ({
-          userId: can.userId,
-          username: can.user.username,
-          avatar: can.user.avatar,
-          votes: can._count.Vote,
-        })),
-      })),
     };
   }
 
@@ -419,74 +359,4 @@ export class WorldService {
     }
     return this.createWorld(worldId, is_personal_planet);
   }
-
-  async joinContest(userId: string, contestId: string) {
-    if (!userId) {
-      throw new BadRequestException('User ID is required');
-    }
-
-    const contest = await this.prisma.voteContest.findUnique({
-      where: { id: contestId },
-    });
-    if (!contest || !contest.isActive) {
-      throw new NotFoundException('Active contest not found');
-    }
-
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user || user.campusId !== contest.campusId) {
-      throw new Error('User does not belong to this campus');
-    }
-
-    return this.prisma.voteContestCandidate.create({
-      data: {
-        contestId,
-        userId,
-      },
-    });
-  }
-
-  async quitContest(userId: string, contestId: string) {
-    return this.prisma.voteContestCandidate.delete({
-      where: {
-        contestId_userId: {
-          contestId,
-          userId,
-        },
-      },
-    });
-  }
-
-  async vote(voterId: string, contestId: string, targetUserId: string) {
-    const contest = await this.prisma.voteContest.findUnique({
-      where: { id: contestId },
-      select: { id: true, isActive: true },
-    });
-
-    if (!contest || !contest.isActive) {
-      throw new NotFoundException('Active contest not found');
-    }
-
-    // targetUserId is the user being voted for (the candidate's userId).
-    const candidate = await this.prisma.voteContestCandidate.findUnique({
-      where: {
-        // @@unique([contestId, userId])
-        contestId_userId: { contestId, userId: targetUserId },
-      },
-      select: { id: true },
-    });
-
-    if (!candidate) {
-      throw new NotFoundException('User is not a candidate in this contest');
-    }
-
-    return this.prisma.vote.upsert({
-      where: {
-        // @@unique([contestId, voterId])
-        contestId_voterId: { contestId, voterId },
-      },
-      create: { contestId, voterId, candidateId: candidate.id },
-      update: { candidateId: candidate.id },
-    });
-  }
-
 }
