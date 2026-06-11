@@ -292,7 +292,7 @@ The FT_VERSE voxel engine is designed to deliver a real-time, interactive, and m
 
 #### Instanced Rendering (`THREE.InstancedMesh`)
 Rather than instantiating a separate 3D mesh for each block (which would saturate the CPU and GPU with thousands of draw calls), the engine uses instanced rendering via `THREE.InstancedMesh`.
-* **Grouping by Block Type**: Visible blocks in a chunk are sorted by block type (e.g., Grass, Water, Stone) in [ChunkRenderer.tsx](file:///home/trgascoi/WebstormProjects/ft_transcendence/frontend/src/ui/three/scenes/worldScene/ChunkRenderer.tsx).
+* **Grouping by Block Type**: Visible blocks in a chunk are sorted by block type (e.g., Grass, Water, Stone) in [ChunkRenderer.tsx](frontend/src/ui/three/scenes/worldScene/ChunkRenderer.tsx).
 * **One Instance per Type**: For each non-empty block type, a single `ChunkBlockTypeRenderer` component is rendered with a single `THREE.InstancedMesh`.
 * **Transformation Matrices**: In `useLayoutEffect`, each block is assigned a `Matrix4` encoding its global position, rotation (decoded using 2 bits per axis), and scale (slightly scaled to `0.505` to eliminate rendering gaps between blocks).
 * **GPU Update**: Calling `mesh.instanceMatrix.needsUpdate = true` flags Three.js to upload the matrices to video memory (VRAM).
@@ -312,37 +312,37 @@ LocalMap (1D Grid of Chunks)
         └── 4x SubChunks 16x16x16 (Lazy Allocated Segment)
 ```
 
-* **Lazy Allocation in [SubChunk.ts](file:///home/trgascoi/WebstormProjects/ft_transcendence/frontend/src/types/maps/SubChunk.ts)**: A `SubChunk` (16x16x16 blocks) starts in a uniform state (`isUniform = true`, `uniformBlock = Block.Air`). As long as no different block is placed inside, it consumes minimal memory. Once a different block is placed, a typed `Uint16Array(4096)` array (representing $16^3$ entries) is allocated to store each voxel individually. This technique saves up to 90% of RAM for deep underground solid chunks and empty air chunks.
+* **Lazy Allocation in [SubChunk.ts](frontend/src/types/maps/SubChunk.ts)**: A `SubChunk` (16x16x16 blocks) starts in a uniform state (`isUniform = true`, `uniformBlock = Block.Air`). As long as no different block is placed inside, it consumes minimal memory. Once a different block is placed, a typed `Uint16Array(4096)` array (representing $16^3$ entries) is allocated to store each voxel individually. This technique saves up to 90% of RAM for deep underground solid chunks and empty air chunks.
 * **Coordinate Mapping via Bit Shifts**:
   * Inside a `SubChunk`, the flat 1D index of a block `(x, y, z)` is calculated using fast bitwise operations: `x + (z << 4) + (y << 8)`.
-  * In [Chunk.ts](file:///home/trgascoi/WebstormProjects/ft_transcendence/frontend/src/types/maps/Chunk.ts), the global height `y` (from 0 to 63) is mapped to the sub-chunk index using a bit shift `y >> 4` (division by 16) and to the local vertical coordinate using a bitwise mask `y & 15` (modulo 16).
-* **Flat Array Representation in [LocalMap.ts](file:///home/trgascoi/WebstormProjects/ft_transcendence/frontend/src/types/maps/LocalMap.ts)**: The global map `LocalMap` stores chunks in a flat 1D array of size `widthInChunks * depthInChunks`. Accessing is done via `chunkX + (chunkZ * widthInChunks)`.
+  * In [Chunk.ts](frontend/src/types/maps/Chunk.ts), the global height `y` (from 0 to 63) is mapped to the sub-chunk index using a bit shift `y >> 4` (division by 16) and to the local vertical coordinate using a bitwise mask `y & 15` (modulo 16).
+* **Flat Array Representation in [LocalMap.ts](frontend/src/types/maps/LocalMap.ts)**: The global map `LocalMap` stores chunks in a flat 1D array of size `widthInChunks * depthInChunks`. Accessing is done via `chunkX + (chunkZ * widthInChunks)`.
 * **Local vs. Global Lookup Optimization**:
   * Global block queries (`getGlobalBlock`) convert global world coordinates into a chunk index using `Math.floor(globalX / Chunk.WIDTH)`.
   * During the exposure check (`isBlockExposed`), the engine first checks if adjacent blocks belong to the same local chunk. If they do, it directly queries the local chunk array, bypassing global calculations and map lookups for over 90% of queries.
 
 #### Planet Surface Preview (Planet Selection Scene)
-To display interactive, rotating planetary models in the [PlanetSelectionScene.tsx](file:///home/trgascoi/WebstormProjects/ft_transcendence/frontend/src/ui/three/scenes/PlanetSelectionScene.tsx) rail, rendering the full-scale voxel maps (typically $256 \times 256$ columns of blocks) is prohibitive for browser performance. The engine solves this by generating a lightweight preview model:
-* **Downsampling & Raycasting in [createDemoPlanetMap.ts](file:///home/trgascoi/WebstormProjects/ft_transcendence/frontend/src/ui/three/scenes/planetSelection/createDemoPlanetMap.ts)**:
+To display interactive, rotating planetary models in the [PlanetSelectionScene.tsx](frontend/src/ui/three/scenes/PlanetSelectionScene.tsx) rail, rendering the full-scale voxel maps (typically $256 \times 256$ columns of blocks) is prohibitive for browser performance. The engine solves this by generating a lightweight preview model:
+* **Downsampling & Raycasting in [createDemoPlanetMap.ts](frontend/src/ui/three/scenes/planetSelection/createDemoPlanetMap.ts)**:
   * The procedural map's 64-block flat borders (`BORDER_SIZE = 64`) are cropped out so that the preview voxel grid spans the entire visible surface.
   * The remaining terrain is downsampled to a configurable resolution (default: `32x32` preview voxels).
   * For each cell, the engine performs a downward raycast from `MAX_HEIGHT = 63` to `0`, combining procedural biomes, simulated forest canopy (`Block.Leaves` generated at `baseHeight + 3` based on coordinate hashes), and the user edits overlay (`editsMap`).
   * The first non-air block found is registered. The height and RGB color values of all blocks matching the cell coordinates are averaged to produce a single `PreviewVoxel`.
-* **Base Mesh & Tinting in [SelectablePlanet.tsx](file:///home/trgascoi/WebstormProjects/ft_transcendence/frontend/src/ui/three/objects/SelectablePlanet.tsx)**:
+* **Base Mesh & Tinting in [SelectablePlanet.tsx](frontend/src/ui/three/objects/SelectablePlanet.tsx)**:
   * A standard `[1, 1, 1]` cube mesh is rendered at the center of the planet object.
   * The base cube is styled with a `baseColor` representing the average RGB color of all `PreviewVoxel`s on the planet. This ensures that flat areas where no extruded voxel faces are drawn match the terrain's color instead of rendering grey.
-* **3D Cube Face Mapping & Instancing in [PlanetPreviewFaces.tsx](file:///home/trgascoi/WebstormProjects/ft_transcendence/frontend/src/ui/three/objects/selectablePlanet/PlanetPreviewFaces.tsx)**:
+* **3D Cube Face Mapping & Instancing in [PlanetPreviewFaces.tsx](frontend/src/ui/three/objects/selectablePlanet/PlanetPreviewFaces.tsx)**:
   * Since the selector camera only views the planets from the top, front, and right sides, the engine only renders 3 faces of the cube (Top, Right, Front) to save draw calls and vertices.
   * The `32x32` grid is divided into three `16x16` quadrants:
     - **Top Face**: The top-left quadrant (`x < 16 && z < 16`), extruding upward along the Y axis.
     - **Right Face**: The top-right quadrant (`x >= 16 && z < 16`), mapped and wrapped down the right side of the cube, extruding rightward along the X axis.
     - **Front Face**: The bottom-left quadrant (`x < 16 && z >= 16`), mapped and wrapped down the front side of the cube, extruding forward along the Z axis.
-  - The columns are rendered using `THREE.InstancedMesh` with unit box geometry (`BoxGeometry args={[1, 1, 1]}`) scaled and positioned in [VoxelFace.tsx](file:///home/trgascoi/WebstormProjects/ft_transcendence/frontend/src/ui/three/objects/selectablePlanet/VoxelFace.tsx) based on the relative voxel heights.
-  - **Edge & Corner Seam Filling ([VoxelFiller.tsx](file:///home/trgascoi/WebstormProjects/ft_transcendence/frontend/src/ui/three/objects/selectablePlanet/VoxelFiller.tsx))**:
+  - The columns are rendered using `THREE.InstancedMesh` with unit box geometry (`BoxGeometry args={[1, 1, 1]}`) scaled and positioned in [VoxelFace.tsx](frontend/src/ui/three/objects/selectablePlanet/VoxelFace.tsx) based on the relative voxel heights.
+  - **Edge & Corner Seam Filling ([VoxelFiller.tsx](frontend/src/ui/three/objects/selectablePlanet/VoxelFiller.tsx))**:
     - When voxel columns of different heights meet along the edges and corners where the cube faces intersect, ugly visual gaps and hollow spaces would appear.
-    - To prevent this, the engine dynamically generates intermediate filler voxels using [useFillerVoxels.ts](file:///home/trgascoi/WebstormProjects/ft_transcendence/frontend/src/ui/three/objects/selectablePlanet/useFillerVoxels.ts):
-      - **Edges ([generateEdges.ts](file:///home/trgascoi/WebstormProjects/ft_transcendence/frontend/src/ui/three/objects/selectablePlanet/generateEdges.ts))**: For each slice along an edge (Top-Right, Top-Front, and Right-Front), the engine compares the height of the two adjacent voxels, computes their minimum height $R$, and generates a quarter-circle/cylindrical wedge pattern of filler voxels ($i^2 + j^2 \leq R^2$). This fills the crease with a smooth, rounded edge.
-      - **Corners ([generateCorner.ts](file:///home/trgascoi/WebstormProjects/ft_transcendence/frontend/src/ui/three/objects/selectablePlanet/generateCorner.ts))**: At the main corner where all three visible faces meet, the engine takes the minimum height $R$ of the three adjacent corner voxels and generates a spherical octant pattern ($i^2 + j^2 + k^2 \leq R^2$) of filler voxels.
+    - To prevent this, the engine dynamically generates intermediate filler voxels using [useFillerVoxels.ts](frontend/src/ui/three/objects/selectablePlanet/useFillerVoxels.ts):
+      - **Edges ([generateEdges.ts](frontend/src/ui/three/objects/selectablePlanet/generateEdges.ts))**: For each slice along an edge (Top-Right, Top-Front, and Right-Front), the engine compares the height of the two adjacent voxels, computes their minimum height $R$, and generates a quarter-circle/cylindrical wedge pattern of filler voxels ($i^2 + j^2 \leq R^2$). This fills the crease with a smooth, rounded edge.
+      - **Corners ([generateCorner.ts](frontend/src/ui/three/objects/selectablePlanet/generateCorner.ts))**: At the main corner where all three visible faces meet, the engine takes the minimum height $R$ of the three adjacent corner voxels and generates a spherical octant pattern ($i^2 + j^2 + k^2 \leq R^2$) of filler voxels.
     - These filler voxels are rendered in a single draw call via `THREE.InstancedMesh` within `VoxelFiller.tsx`, ensuring a completely seamless and solid planet model with minimal performance overhead.
 
 ---
@@ -358,8 +358,8 @@ Player physics and controls combine responsive inputs with a three-dimensional b
 
 #### Collision Detection & Axis-by-Axis Sliding (AABB)
 The player is represented by a 3D bounding box (AABB) of radius `PLAYER_RADIUS` and height $1.8$ blocks (the player is approximately 1 block tall).
-* **Three-Dimensional Detection in [playerCollision.ts](file:///home/trgascoi/WebstormProjects/ft_transcendence/frontend/src/ui/three/objects/player/playerCollision.ts)**: The `checkCollisionAt` function tests the 4 corners of the player's bounding box at the target horizontal coordinates. For each corner, it iterates vertically from the player's feet (`Math.floor(playerY)`) to the top of their head (`Math.ceil(playerY + 1.8)`) querying `LocalMap.getGlobalBlock`. If any solid block is found, a collision is detected.
-* **Axis-by-Axis Sliding in [usePlayerMovement.ts](file:///home/trgascoi/WebstormProjects/ft_transcendence/frontend/src/ui/three/objects/player/usePlayerMovement.ts)**: When diagonal movement leads to a collision, the engine resolves the movement independently on each axis:
+* **Three-Dimensional Detection in [playerCollision.ts](frontend/src/ui/three/objects/player/playerCollision.ts)**: The `checkCollisionAt` function tests the 4 corners of the player's bounding box at the target horizontal coordinates. For each corner, it iterates vertically from the player's feet (`Math.floor(playerY)`) to the top of their head (`Math.ceil(playerY + 1.8)`) querying `LocalMap.getGlobalBlock`. If any solid block is found, a collision is detected.
+* **Axis-by-Axis Sliding in [usePlayerMovement.ts](frontend/src/ui/three/objects/player/usePlayerMovement.ts)**: When diagonal movement leads to a collision, the engine resolves the movement independently on each axis:
   ```typescript
   if (!hit(nextX, nextZ)) {
     // Free movement
@@ -376,9 +376,9 @@ The player is represented by a 3D bounding box (AABB) of radius `PLAYER_RADIUS` 
   This prevents the player from getting stuck when walking diagonally against a wall.
 
 #### Gravity & Ground Snapping
-* **Constant Gravity in [usePlayerVertical.ts](file:///home/trgascoi/WebstormProjects/ft_transcendence/frontend/src/ui/three/objects/player/usePlayerVertical.ts)**: At each frame, vertical velocity decreases based on the gravity constant (`velocityRef.current.y -= PLAYER_GRAVITY * delta`).
+* **Constant Gravity in [usePlayerVertical.ts](frontend/src/ui/three/objects/player/usePlayerVertical.ts)**: At each frame, vertical velocity decreases based on the gravity constant (`velocityRef.current.y -= PLAYER_GRAVITY * delta`).
 * **Jumping**: If the player presses `Space` and `isGroundedRef` is true, a vertical jump force (`PLAYER_JUMP_FORCE`) is applied.
-* **Ground Height Calculation in [playerTerrain.ts](file:///home/trgascoi/WebstormProjects/ft_transcendence/frontend/src/ui/three/objects/player/playerTerrain.ts)**: The `getGroundHeightAt` function maps the player's position to global grid coordinates `(globalX, globalZ)` and scans downward from their current `y` coordinate. It locates the highest solid block (neither air nor water) and returns that altitude plus a height offset (`PLAYER_HEIGHT_OFFSET`).
+* **Ground Height Calculation in [playerTerrain.ts](frontend/src/ui/three/objects/player/playerTerrain.ts)**: The `getGroundHeightAt` function maps the player's position to global grid coordinates `(globalX, globalZ)` and scans downward from their current `y` coordinate. It locates the highest solid block (neither air nor water) and returns that altitude plus a height offset (`PLAYER_HEIGHT_OFFSET`).
 * **Snapping & Landing**: If the player's vertical coordinate falls below the ground height, the player is snapped to the ground, their vertical velocity is set to 0, and `isGrounded` is set to true.
 
 ---
@@ -418,7 +418,7 @@ Biome types are determined in `IslandMap.getBiomeAt` using a second, independent
 * **Height Blending**: To prevent steep, unrealistic vertical cliffs at biome borders (e.g., transitioning directly from flat plains to a 22-block high mountain), final heights are linearly interpolated. The engine evaluates the raw height of each biome at the point `(x, z)` and performs a weighted interpolation between adjacent biomes based on the biome noise value's position relative to the biome centers (`p0` to `p3`).
 
 #### Block Composition & Deterministic Vegetation
-* **getBiomeBlock in [Biome.ts](file:///home/trgascoi/WebstormProjects/ft_transcendence/frontend/src/generation/terrain/Biome.ts)**: Once the maximum height $H$ is computed at a coordinate $(X, Z)$, the block types along the vertical column are decided based on depth:
+* **getBiomeBlock in [Biome.ts](frontend/src/generation/terrain/Biome.ts)**: Once the maximum height $H$ is computed at a coordinate $(X, Z)$, the block types along the vertical column are decided based on depth:
   * If the terrain height is 18 or above, or if the biome is Mountain: the peak ($y = H$) is set to Gravel (`Block.Gravel`), and lower levels are set to Stone (`Block.Stone`).
   * In Plains and Forest biomes: the surface ($y = H$) is set to Grass (`Block.Grass`), the subsurface layer ($H-3 \leq y < H$) is set to Dirt (`Block.Dirt`), and the deep layers are Stone (`Block.Stone`).
   * In Desert: the surface and upper subsurface are Sand (`Block.Sand`), deep subsurface is Sandstone (`Block.Sandstone`), and deep layers are Stone (`Block.Stone`).
