@@ -8,7 +8,7 @@ import { DEFAULT_SKIN_COLOR } from '@/config/playerAppearance'
 import { useAvatar, tintAvatar } from './player/useAvatar'
 import { Billboard, Html } from '@react-three/drei'
 import { usePlanetStore } from '@/store/planetStore'
-import { MAP_SIZE_BLOCKS } from '@/ui/three/scenes/worldScene/constants'
+import { MAP_SIZE_BLOCKS, PRIVATE_MAP_SIZE } from '@/ui/three/scenes/worldScene/constants'
 import { Chunk } from '@/types/maps/Chunk'
 
 
@@ -104,7 +104,7 @@ const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
 
     // Calculate if player is within render distance chunks of the camera
     const isPrivate = usePlanetStore.getState().isPrivateWorld
-    const mapSize = isPrivate ? 64 : MAP_SIZE_BLOCKS
+    const mapSize = isPrivate ? PRIVATE_MAP_SIZE : MAP_SIZE_BLOCKS
 
     const cameraChunkX = Math.floor((camera.position.x + mapSize / 2) / Chunk.WIDTH)
     const cameraChunkZ = Math.floor((camera.position.z + mapSize / 2) / Chunk.WIDTH)
