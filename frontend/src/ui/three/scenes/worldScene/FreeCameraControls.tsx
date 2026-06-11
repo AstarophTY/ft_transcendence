@@ -20,6 +20,8 @@ import { isPaidBlock } from '@/config/worldBlocks'
 import { toast } from 'sonner'
 import i18n from '@/i18n'
 
+const hasPointerLock = typeof document !== 'undefined' && 'pointerLockElement' in document
+
 interface FreeCameraControlsProps {
   localMap: LocalMap
   mapSize: number
@@ -762,7 +764,7 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
 
   return active ? (
     <>
-      <PointerLockControls ref={(node) => { controlsRef.current = node }} selector="#canvas-container" />
+      {hasPointerLock && <PointerLockControls ref={(node) => { controlsRef.current = node }} selector="#canvas-container" />}
       <group ref={previewGroupRef}>
         <mesh ref={cubePreviewRef}>
           <BoxGeometry args={[1.01, 1.01, 1.01]} />

@@ -18,6 +18,8 @@ import { Chunk } from '@/types/maps/Chunk'
 
 const Primitive = 'primitive' as unknown as ElementType
 
+const hasPointerLock = typeof document !== 'undefined' && 'pointerLockElement' in document
+
 const Player = ({ localMap, active, playerRef }: PlayerProps) => {
   const { camera, gl } = useThree()
   const skinColor = usePlayerAppearance((s) => s.skinColor)
@@ -58,7 +60,7 @@ const Player = ({ localMap, active, playerRef }: PlayerProps) => {
     <group ref={playerRef}>
       <Primitive object={scene} scale={0.5} />
       <Primitive object={eyes} scale={0.5} />
-      {active && <PointerLockControls ref={controlsRef} selector="#canvas-container" />}
+      {active && hasPointerLock && <PointerLockControls ref={controlsRef} selector="#canvas-container" />}
     </group>
   )
 }
