@@ -4,6 +4,7 @@ import { useAuth } from '@/store/auth'
 import { useFriends } from '@/store/friends'
 import { useSettings } from '@/store/settings'
 import { usePlanetStore } from '@/store/planetStore'
+import { disconnectWorldSocket } from '@/lib/sockets/worldSocket'
 import i18n from '@/i18n'
 import HUDFrame from './ui/hud/HUDFrame'
 import SceneFrame from './ui/three/SceneFrame'
@@ -42,7 +43,14 @@ function App() {
         }
       })
     } else {
+      // Logging out (or any session loss): drop the real-time channels and leave
+      // any island the player is standing on, returning to the main menu. Closing
+      // the world socket fires the server-side disconnect that removes the player
+      // from the island, and switching to 'selection' unmounts the world scene
+      // (which emits `world:leave`) so we land back on planet selection.
       disconnect()
+      disconnectWorldSocket()
+      usePlanetStore.getState().setSceneMode('selection')
     }
   }, [user, connect, disconnect, loadSettings])
 

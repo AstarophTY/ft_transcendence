@@ -65,7 +65,11 @@ export class WorldGateway
 {
   @WebSocketServer() server!: Server;
 
-  /** Last known transform of every connected player, per campus room. */
+  /**
+   * Last known transform of every connected player, per campus room.
+   * Outer key: campusId. Inner key: userId (not socket id) so a user has a
+   * single presence entry that survives reconnects instead of duplicating.
+   */
   private readonly players = new Map<string, Map<string, PlayerState>>();
 
   constructor(
@@ -197,12 +201,13 @@ export class WorldGateway
     void client.join(this.room(campusId));
     client.data.campusId = campusId;
 
-    // Send the joining client the players already on this island.
+    // Send the joining client the players already on this island. Presence is
+    // keyed by user, so a user only ever appears once even across reconnects.
     const room = this.players.get(campusId);
     if (room) {
       const others = [...room.entries()]
-        .filter(([id]) => id !== client.id)
-        .map(([id, state]) => ({ id, ...state }));
+        .filter(([userId]) => userId !== client.data.userId)
+        .map(([userId, state]) => ({ id: userId, ...state }));
       if (others.length > 0) client.emit('world:players', others);
     }
 
@@ -265,16 +270,17 @@ export class WorldGateway
       state.skin = body.skin;
     }
 
+    const userId = client.data.userId as string;
     if (campusId) {
       let roomPlayers = this.players.get(campusId);
       if (!roomPlayers) {
         roomPlayers = new Map();
         this.players.set(campusId, roomPlayers);
       }
-      roomPlayers.set(client.id, state);
+      roomPlayers.set(userId, state);
     }
 
-    client.to(room).emit('player:move', { id: client.id, ...state });
+    client.to(room).emit('player:move', { id: userId, ...state });
   }
 
   /**
@@ -396,11 +402,12 @@ export class WorldGateway
     const room = this.room(campusId);
     void client.leave(room);
 
+    const userId = client.data.userId as string;
     const roomPlayers = this.players.get(campusId);
-    if (roomPlayers?.delete(client.id) && roomPlayers.size === 0) {
+    if (roomPlayers?.delete(userId) && roomPlayers.size === 0) {
       this.players.delete(campusId);
     }
-    client.to(room).emit('player:leave', { id: client.id });
+    client.to(room).emit('player:leave', { id: userId });
   }
 
   /** Validate an incoming transform; returns null if malformed. */

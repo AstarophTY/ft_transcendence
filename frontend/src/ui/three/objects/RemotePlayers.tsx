@@ -222,12 +222,27 @@ const RemotePlayers = ({ campusId }: { campusId: string }) => {
           mode,
           skin: tint,
         })
-        setIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
       }
     }
 
-    const onSnapshot = (players: MovePayload[]) => players.forEach(upsert)
-    const onMove = (payload: MovePayload) => upsert(payload)
+    // The snapshot is the authoritative list of who is on the island: update the
+    // ones we know, add new ones, and drop anyone no longer present (stale
+    // entries from peers who already left) so phantoms never linger.
+    const onSnapshot = (players: MovePayload[]) => {
+      const present = new Set(players.map((peer) => peer.id))
+      for (const id of [...store.keys()]) {
+        if (!present.has(id)) store.delete(id)
+      }
+      players.forEach(upsert)
+      setIds(players.map((peer) => peer.id))
+    }
+    const onMove = (payload: MovePayload) => {
+      const isNew = !store.has(payload.id)
+      upsert(payload)
+      if (isNew) {
+        setIds((prev) => (prev.includes(payload.id) ? prev : [...prev, payload.id]))
+      }
+    }
     const onLeave = ({ id }: { id: string }) => {
       store.delete(id)
       setIds((prev) => prev.filter((x) => x !== id))
