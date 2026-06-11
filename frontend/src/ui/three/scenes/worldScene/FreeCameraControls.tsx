@@ -627,7 +627,8 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
 
     const moveSpeed = 12
     const verticalSpeed = 8
-    const wallPadding = 0.4
+    const CAMERA_RADIUS = 0.35
+    const wallPadding = 0.45
     const halfSize = mapSize / 2
     const moveForward = keysRef.current.KeyW ? 1 : 0
     const moveBackward = keysRef.current.KeyS ? 1 : 0
@@ -658,30 +659,54 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
 
     // Function to check if a position is valid (not inside a block)
     const isValidPosition = (pos: THREE.Vector3) => {
-      const globalX = Math.floor(pos.x + halfSize)
-      const globalZ = Math.floor(pos.z + halfSize)
-      const adjustedY = Math.floor(pos.y)
+      const minX = Math.floor(pos.x - CAMERA_RADIUS + halfSize)
+      const maxX = Math.floor(pos.x + CAMERA_RADIUS + halfSize)
+      const minY = Math.floor(pos.y - CAMERA_RADIUS)
+      const maxY = Math.floor(pos.y + CAMERA_RADIUS)
+      const minZ = Math.floor(pos.z - CAMERA_RADIUS + halfSize)
+      const maxZ = Math.floor(pos.z + CAMERA_RADIUS + halfSize)
 
-      if (adjustedY < 0) return false
-      if (adjustedY >= Chunk.HEIGHT) return true // skies
+      for (let x = minX; x <= maxX; x++) {
+        for (let y = minY; y <= maxY; y++) {
+          for (let z = minZ; z <= maxZ; z++) {
+            if (x < 0 || x >= mapSize || z < 0 || z >= mapSize) {
+              return false
+            }
+            if (y < 0) return false
+            if (y >= Chunk.HEIGHT) continue // skies
 
-      const block = localMap.getGlobalBlock(globalX, adjustedY, globalZ)
-      return !(block !== Block.Air && block !== Block.Water);
-
+            const block = localMap.getGlobalBlock(x, y, z)
+            if (block !== Block.Air && block !== Block.Water) {
+              return false
+            }
+          }
+        }
+      }
+      return true
     }
 
     // Collision handling: check each axis separately for sliding
     const finalPosition = camera.position.clone()
 
     const getPhysicGroundHeight = (pos: THREE.Vector3) => {
-      const globalX = Math.floor(pos.x + halfSize)
-      const globalZ = Math.floor(pos.z + halfSize)
+      const minX = Math.floor(pos.x - CAMERA_RADIUS + halfSize)
+      const maxX = Math.floor(pos.x + CAMERA_RADIUS + halfSize)
+      const minZ = Math.floor(pos.z - CAMERA_RADIUS + halfSize)
+      const maxZ = Math.floor(pos.z + CAMERA_RADIUS + halfSize)
+
       let highestSolid = 0
-      for (let y = Chunk.HEIGHT - 1; y >= 0; y--) {
-        const block = localMap.getGlobalBlock(globalX, y, globalZ)
-        if (block !== Block.Air && block !== Block.Water) {
-          highestSolid = y + 1
-          break
+      for (let x = minX; x <= maxX; x++) {
+        for (let z = minZ; z <= maxZ; z++) {
+          if (x < 0 || x >= mapSize || z < 0 || z >= mapSize) continue
+          for (let y = Chunk.HEIGHT - 1; y >= 0; y--) {
+            const block = localMap.getGlobalBlock(x, y, z)
+            if (block !== Block.Air && block !== Block.Water) {
+              if (y + 1 > highestSolid) {
+                highestSolid = y + 1
+              }
+              break
+            }
+          }
         }
       }
       return highestSolid
@@ -696,8 +721,8 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
       // If moving into a block volume from above, snap to top
       const groundHeight = getPhysicGroundHeight(finalPosition)
 
-      if (finalPosition.y > groundHeight) {
-        finalPosition.y = groundHeight + 0.1 // Stay slightly above
+      if (finalPosition.y > groundHeight + CAMERA_RADIUS) {
+        finalPosition.y = groundHeight + CAMERA_RADIUS + 0.01 // Stay slightly above
       }
     }
 
