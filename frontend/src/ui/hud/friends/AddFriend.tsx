@@ -4,6 +4,7 @@ import { UserPlus } from 'lucide-react'
 import { Button } from '@/ui/shadcn/button.tsx'
 import { Input } from '@/ui/shadcn/input.tsx'
 import { useFriends } from '@/store/friends'
+import { validateUsername } from '@/lib/utils.ts'
 
 export default function AddFriend() {
   const { t } = useTranslation()
@@ -11,11 +12,14 @@ export default function AddFriend() {
   const [username, setUsername] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
+  const trimmed = username.trim()
+  const isValid = validateUsername(trimmed)
+
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!username.trim() || submitting) return
+    if (!isValid || submitting) return
     setSubmitting(true)
-    const ok = await sendRequest(username)
+    const ok = await sendRequest(trimmed)
     setSubmitting(false)
     if (ok) setUsername('')
   }
@@ -30,8 +34,10 @@ export default function AddFriend() {
         onChange={(e) => setUsername(e.target.value)}
         placeholder={t('friends.add.placeholder')}
         autoComplete="off"
+        maxLength={20}
+        aria-invalid={username.length > 0 && !isValid ? true : undefined}
       />
-      <Button type="submit" disabled={!username.trim() || submitting}>
+      <Button type="submit" disabled={!isValid || submitting}>
         <UserPlus className="size-4" />
         {t('friends.add.submit')}
       </Button>

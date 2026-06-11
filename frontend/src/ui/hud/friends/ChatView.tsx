@@ -81,6 +81,7 @@ export default function ChatView({ dragControls }: ChatViewProps) {
           onChange={(e) => setDraft(e.target.value)}
           placeholder={t('friends.chat.placeholder')}
           autoComplete="off"
+          maxLength={2000}
         />
         <Button type="submit" size="icon" disabled={!draft.trim()}>
           <Send className="size-4" />

@@ -27,7 +27,7 @@ import SeasonDialog from '@/ui/hud/SeasonDialog'
 import AdminDialog from '@/ui/hud/admin/AdminDialog'
 import LegalDialog from '@/ui/hud/LegalDialog'
 import { useLegal } from '@/store/legal'
-import { cn } from '@/lib/utils'
+import { cn, PASSWORD_RULES, validateUsername } from '@/lib/utils'
 import { useAuth } from '@/store/auth'
 import { useFriends } from '@/store/friends'
 import { useSettings } from '@/store/settings'
@@ -36,13 +36,6 @@ import { useAdmin } from '@/store/admin'
 import { usePlanetStore } from '@/store/planetStore'
 import { useEditorStore } from '@/store/editorStore'
 
-const PASSWORD_RULES = [
-  { key: 'pwLength', test: (p: string) => p.length >= 8 },
-  { key: 'pwUpper', test: (p: string) => /[A-Z]/.test(p) },
-  { key: 'pwLower', test: (p: string) => /[a-z]/.test(p) },
-  { key: 'pwNumber', test: (p: string) => /\d/.test(p) },
-  { key: 'pwSpecial', test: (p: string) => /[^A-Za-z0-9]/.test(p) },
-] as const
 
 function FortyTwoButton() {
   const { t } = useTranslation()
@@ -160,6 +153,8 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
 
+  const usernameValid = validateUsername(username)
+  const usernameInvalid = username.length > 0 && !usernameValid
   const passwordValid = PASSWORD_RULES.every((rule) => rule.test(password))
   const passwordInvalid = password.length > 0 && !passwordValid
   const passwordsMatch = password === confirm
@@ -167,7 +162,7 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!passwordValid || !passwordsMatch) return
+    if (!passwordValid || !passwordsMatch || !usernameValid) return
     if (await register(email, username, password)) onSuccess()
   }
 
@@ -185,8 +180,14 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
           onChange={(e) => setUsername(e.target.value)}
           minLength={3}
           maxLength={20}
+          aria-invalid={usernameInvalid || undefined}
           required
         />
+        {usernameInvalid && (
+          <p className="text-xs text-destructive">
+            {t('auth.usernameInvalid', { defaultValue: 'Username may only contain letters, numbers, _ and -' })}
+          </p>
+        )}
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="register-email">
@@ -238,7 +239,7 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
       <Button
         type="submit"
-        disabled={loading || !passwordValid || !passwordsMatch}
+        disabled={loading || !passwordValid || !passwordsMatch || !usernameValid}
         className="w-full"
       >
         {loading ? (

@@ -13,6 +13,7 @@ import {
 import { useSettings } from '@/store/settings.ts'
 import { useAuth } from '@/store/auth.ts'
 import Field from './Field.tsx'
+import { validateUsername, validateEmail } from '@/lib/utils.ts'
 
 const COOLDOWN_DAYS = 30
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -46,14 +47,21 @@ export default function AccountTab() {
         hint={
           daysLeft > 0
             ? t('settings.account.cooldown', { days: daysLeft })
-            : t('settings.account.usernameHint')
+            : !validateUsername(username) && username !== me?.username && username.length > 0
+              ? t('auth.usernameInvalid', { defaultValue: 'Username may only contain letters, numbers, _ and - (3-20 chars)' })
+              : t('settings.account.usernameHint')
         }
       >
         <div className="flex gap-2">
-          <Input value={username} onChange={(e) => setUsername(e.target.value)} disabled={daysLeft > 0} />
+          <Input 
+            value={username} 
+            onChange={(e) => setUsername(e.target.value)} 
+            disabled={daysLeft > 0} 
+            aria-invalid={!validateUsername(username) && username !== me?.username && username.length > 0 ? true : undefined}
+          />
           <Button
             onClick={() => void renameUser(username)}
-            disabled={saving || daysLeft > 0 || username === me?.username}
+            disabled={saving || daysLeft > 0 || username === me?.username || !validateUsername(username)}
           >
             {t('settings.save')}
           </Button>
@@ -65,10 +73,21 @@ export default function AccountTab() {
           <Input type="email" value={me?.email ?? '—'} disabled />
         </Field>
       ) : (
-        <Field label={t('settings.account.email')}>
+        <Field 
+          label={t('settings.account.email')}
+          hint={!validateEmail(email) && email !== (me?.email ?? '') && email.length > 0 ? t('settings.account.emailInvalid', { defaultValue: 'Please enter a valid email address.' }) : undefined}
+        >
           <div className="flex gap-2">
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            <Button onClick={() => void saveProfile({ email })} disabled={saving || email === (me?.email ?? '')}>
+            <Input 
+              type="email" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              aria-invalid={!validateEmail(email) && email !== (me?.email ?? '') && email.length > 0 ? true : undefined}
+            />
+            <Button 
+              onClick={() => void saveProfile({ email })} 
+              disabled={saving || email === (me?.email ?? '') || !validateEmail(email)}
+            >
               {t('settings.save')}
             </Button>
           </div>

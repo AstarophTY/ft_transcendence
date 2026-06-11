@@ -115,7 +115,12 @@ export default function SeasonAdminPanel() {
     [title, buildStartsAt, buildEndsAt, delay, duration],
   )
 
-  const valid = body.title && body.buildStartsAt && body.buildEndsAt
+  const datesValid =
+    !buildStartsAt ||
+    !buildEndsAt ||
+    new Date(buildEndsAt).getTime() > new Date(buildStartsAt).getTime()
+
+  const valid = body.title && body.buildStartsAt && body.buildEndsAt && datesValid
 
   if (loading && !season) {
     return (
@@ -200,6 +205,11 @@ export default function SeasonAdminPanel() {
               placeholder={t('season.admin.pickDate')}
             />
           </div>
+          {!datesValid && (
+            <p className="col-span-2 text-xs text-destructive">
+              {t('season.admin.datesInvalid', { defaultValue: 'End date must be after start date.' })}
+            </p>
+          )}
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="season-delay">{t('season.admin.delay')}</Label>
             <Input

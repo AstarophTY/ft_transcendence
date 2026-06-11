@@ -21,6 +21,7 @@ import { useAdmin } from '@/store/admin.ts'
 import Avatar from '@/ui/hud/friends/Avatar.tsx'
 import Field from '@/ui/hud/settings/Field.tsx'
 import type { UserStatus } from '@/lib/api/account.ts'
+import { cn, PASSWORD_RULES, validateEmail, validatePassword } from '@/lib/utils.ts'
 
 const STATUSES: UserStatus[] = ['ONLINE', 'AWAY', 'DND', 'OFFLINE']
 
@@ -38,6 +39,7 @@ export default function AdminEditUser() {
 
   if (!editing) return null
   const is42 = Boolean(editing.fortyTwoLogin)
+  const isEmailValid = is42 || email === '' || validateEmail(email)
 
   const save = () =>
     void saveUser(editing.id, {
@@ -99,13 +101,20 @@ export default function AdminEditUser() {
 
               <Field
                 label={t('settings.account.email')}
-                hint={is42 ? t('settings.account.email42Hint') : undefined}
+                hint={
+                  is42
+                    ? t('settings.account.email42Hint')
+                    : !isEmailValid
+                      ? t('settings.account.emailInvalid', { defaultValue: 'Please enter a valid email address.' })
+                      : undefined
+                }
               >
                 <Input
                   type="email"
                   value={email}
                   disabled={is42}
                   onChange={(e) => setEmail(e.target.value)}
+                  aria-invalid={!isEmailValid || undefined}
                 />
               </Field>
 
@@ -153,7 +162,7 @@ export default function AdminEditUser() {
             </div>
           </section>
 
-          <Button onClick={save} className="self-start">
+          <Button onClick={save} disabled={!isEmailValid} className="self-start">
             {t('settings.save')}
           </Button>
 
@@ -165,19 +174,40 @@ export default function AdminEditUser() {
                   {t('admin.edit.securitySection')}
                 </p>
                 <Field label={t('admin.edit.newPassword')}>
-                  <div className="flex gap-2">
-                    <Input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                    <Button
-                      variant="outline"
-                      onClick={() => void reset()}
-                      disabled={!password}
-                    >
-                      {t('admin.edit.reset')}
-                    </Button>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <Input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => void reset()}
+                        disabled={!password || !validatePassword(password)}
+                      >
+                        {t('admin.edit.reset')}
+                      </Button>
+                    </div>
+                    {password.length > 0 && (
+                      <ul className="mt-1 space-y-1">
+                        {PASSWORD_RULES.map((rule) => {
+                          const ok = rule.test(password)
+                          return (
+                            <li
+                              key={rule.key}
+                              className={cn(
+                                'flex items-center gap-1.5 text-xs',
+                                ok ? 'text-green-600' : 'text-muted-foreground'
+                              )}
+                            >
+                              <span>{ok ? '✓' : '•'}</span>
+                              <span>{t(`auth.${rule.key}`)}</span>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    )}
                   </div>
                 </Field>
               </section>
