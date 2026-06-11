@@ -56,37 +56,46 @@ export default function TutorialOverlay({ onClose }: TutorialOverlayProps) {
       icon: <Keyboard className="size-16 text-purple-500" />,
       title: t('tutorial.controls', { defaultValue: 'Controls & Keybinds' }),
       content: (
-        <div className="grid grid-cols-2 gap-3 text-left text-xs">
-          <div className="flex items-center gap-2.5 p-2 rounded-lg border border-border/20 bg-muted/10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left text-xs w-full">
+          <div className="flex items-center justify-between sm:justify-start gap-2.5 p-2 rounded-lg border border-border/20 bg-muted/10">
             <div className="flex gap-0.5 shrink-0">
               <kbd className="px-1.5 py-0.5 bg-muted-foreground/15 border border-border/50 text-[10px] rounded shadow-sm">W</kbd>
               <kbd className="px-1.5 py-0.5 bg-muted-foreground/15 border border-border/50 text-[10px] rounded shadow-sm">A</kbd>
               <kbd className="px-1.5 py-0.5 bg-muted-foreground/15 border border-border/50 text-[10px] rounded shadow-sm">S</kbd>
               <kbd className="px-1.5 py-0.5 bg-muted-foreground/15 border border-border/50 text-[10px] rounded shadow-sm">D</kbd>
             </div>
-            <span className="text-muted-foreground font-medium">{t('tutorial.control_move', { defaultValue: 'Movement (WASD)' })}</span>
+            <span className="text-muted-foreground font-medium text-[11px] sm:text-xs">{t('tutorial.control_move', { defaultValue: 'Movement (WASD)' })}</span>
           </div>
 
-          <div className="flex items-center gap-2.5 p-2 rounded-lg border border-border/20 bg-muted/10">
+          <div className="flex items-center justify-between sm:justify-start gap-2.5 p-2 rounded-lg border border-border/20 bg-muted/10">
             <kbd className="px-2 py-0.5 bg-muted-foreground/15 border border-border/50 text-[10px] rounded shadow-sm shrink-0">{t('tutorial.key_space', { defaultValue: 'Space' })}</kbd>
-            <span className="text-muted-foreground font-medium">{t('tutorial.control_jump', { defaultValue: 'Jump / Fly up' })}</span>
+            <span className="text-muted-foreground font-medium text-[11px] sm:text-xs">{t('tutorial.control_jump', { defaultValue: 'Jump / Fly up' })}</span>
           </div>
 
-          <div className="flex items-center gap-2.5 p-2 rounded-lg border border-border/20 bg-muted/10">
+          <div className="flex items-center justify-between sm:justify-start gap-2.5 p-2 rounded-lg border border-border/20 bg-muted/10">
             <kbd className="px-2 py-0.5 bg-muted-foreground/15 border border-border/50 text-[10px] rounded shadow-sm shrink-0">{t('tutorial.key_shift', { defaultValue: 'Shift' })}</kbd>
-            <span className="text-muted-foreground font-medium">{t('tutorial.control_down', { defaultValue: 'Fly down / Descend' })}</span>
+            <span className="text-muted-foreground font-medium text-[11px] sm:text-xs">{t('tutorial.control_down', { defaultValue: 'Fly down / Descend' })}</span>
           </div>
 
-          <div className="flex items-center gap-2.5 p-2 rounded-lg border border-border/20 bg-muted/10">
-            <kbd className="px-2 py-0.5 bg-muted-foreground/15 border border-border/50 text-[10px] rounded shadow-sm shrink-0">E</kbd>
-            <kbd className="px-1.5 py-0.5 bg-muted-foreground/15 border border-border/50 text-[10px] rounded shadow-sm shrink-0">{t('tutorial.key_esc', { defaultValue: 'Esc' })}</kbd>
-            <span className="text-muted-foreground font-medium">{t('tutorial.control_unlock', { defaultValue: 'Unlock cursor' })}</span>
+          <div className="flex items-center justify-between sm:justify-start gap-2.5 p-2 rounded-lg border border-border/20 bg-muted/10">
+            <div className="flex gap-1 shrink-0">
+              <kbd className="px-1.5 py-0.5 bg-muted-foreground/15 border border-border/50 text-[10px] rounded shadow-sm shrink-0">E</kbd>
+              <kbd className="px-1.5 py-0.5 bg-muted-foreground/15 border border-border/50 text-[10px] rounded shadow-sm shrink-0">{t('tutorial.key_esc', { defaultValue: 'Esc' })}</kbd>
+            </div>
+            <span className="text-muted-foreground font-medium text-[11px] sm:text-xs">{t('tutorial.control_unlock', { defaultValue: 'Unlock cursor' })}</span>
           </div>
 
-          <div className="col-span-2 flex items-center gap-2.5 p-2 rounded-lg border border-border/20 bg-muted/10">
-            <span className="px-2 py-0.5 bg-muted-foreground/15 border border-border/50 text-[10px] rounded shadow-sm shrink-0 font-bold">{t('tutorial.key_left_click', { defaultValue: 'Left Click' })}</span>
-            <kbd className="px-2 py-0.5 bg-muted-foreground/15 border border-border/50 text-[10px] rounded shadow-sm shrink-0">{t('tutorial.key_enter', { defaultValue: 'Enter' })}</kbd>
-            <span className="text-muted-foreground font-medium">{t('tutorial.control_action', { defaultValue: 'Place, remove, or interact' })}</span>
+          <div className="flex items-center justify-between sm:justify-start gap-2.5 p-2 rounded-lg border border-border/20 bg-muted/10">
+            <kbd className="px-2 py-0.5 bg-muted-foreground/15 border border-border/50 text-[10px] rounded shadow-sm shrink-0">C</kbd>
+            <span className="text-muted-foreground font-medium text-[11px] sm:text-xs">{t('tutorial.control_freecam', { defaultValue: 'Activate freecam' })}</span>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between sm:justify-start gap-2 p-2 rounded-lg border border-border/20 bg-muted/10">
+            <div className="flex gap-1.5 shrink-0">
+              <span className="px-2 py-0.5 bg-muted-foreground/15 border border-border/50 text-[10px] rounded shadow-sm font-bold">{t('tutorial.key_left_click', { defaultValue: 'Left Click' })}</span>
+              <kbd className="px-2 py-0.5 bg-muted-foreground/15 border border-border/50 text-[10px] rounded shadow-sm">{t('tutorial.key_enter', { defaultValue: 'Enter' })}</kbd>
+            </div>
+            <span className="text-muted-foreground font-medium text-[11px] sm:text-xs">{t('tutorial.control_action', { defaultValue: 'Place, remove, or interact' })}</span>
           </div>
         </div>
       ),
@@ -123,12 +132,12 @@ export default function TutorialOverlay({ onClose }: TutorialOverlayProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-[3px] sm:p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="relative w-full max-w-lg overflow-hidden bg-background/85 backdrop-blur-md border border-border/40 shadow-2xl rounded-2xl flex flex-col p-6 max-sm:p-5"
+        className="relative w-full h-full sm:h-auto sm:max-w-lg sm:max-h-[95vh] overflow-y-auto bg-background/75 dark:bg-background/40 backdrop-blur-xl border-none sm:border border-border/40 shadow-2xl rounded-none sm:rounded-2xl flex flex-col p-6 max-sm:pt-14"
       >
         {/* Close Button */}
         <button
@@ -144,7 +153,7 @@ export default function TutorialOverlay({ onClose }: TutorialOverlayProps) {
             {slides[currentSlide]!.icon}
           </div>
 
-          <h3 className="text-xl font-bold text-center text-primary mb-5 select-none">
+          <h3 className="text-lg sm:text-xl font-bold text-center text-primary mb-4 sm:mb-5 px-4 select-none">
             {slides[currentSlide]!.title}
           </h3>
 

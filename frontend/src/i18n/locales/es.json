@@ -763,6 +763,7 @@
     "key_shift": "Mayús",
     "key_esc": "Esc",
     "key_left_click": "Clic izquierdo",
-    "key_enter": "Intro"
+    "key_enter": "Intro",
+    "control_freecam": "Activar la cámara libre"
   }
 }

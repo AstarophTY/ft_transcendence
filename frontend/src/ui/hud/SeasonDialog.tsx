@@ -19,6 +19,7 @@ import { getUserId } from '@/lib/user.ts'
 import type { BallotCandidate, SeasonPhase } from '@/lib/api/season.ts'
 import { cn } from '@/lib/utils.ts'
 import { VotePreview } from './VotePreview.tsx'
+import { useIsMobile } from '@/hooks/use-mobile.tsx'
 
 const PHASE_VARIANT: Record<SeasonPhase, 'secondary' | 'warning' | 'default'> = {
   UPCOMING: 'secondary',
@@ -77,50 +78,52 @@ function CandidateRow({
   return (
     <div
       className={cn(
-        'flex items-center gap-3 rounded-lg border px-3 py-2',
+        'flex flex-col sm:flex-row sm:items-center gap-3 rounded-lg border px-3 py-2.5',
         isMyVote && 'border-primary bg-primary/5',
       )}
     >
-      {candidate.avatar ? (
-        <img
-          src={candidate.avatar}
-          alt={candidate.username}
-          className="size-8 shrink-0 rounded-full object-cover"
-        />
-      ) : (
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-          {initial}
-        </span>
-      )}
-      <div className="flex min-w-0 flex-col leading-tight">
-        <span className="flex items-center gap-1 truncate text-sm font-medium">
-          {isWinning && candidate.votes > 0 && (
-            <Trophy className="size-3.5 shrink-0 text-yellow-500" />
-          )}
-          {candidate.username}
-        </span>
-        <span className="text-xs text-muted-foreground">
-          {t('season.votesCount', { count: candidate.votes })}
-        </span>
+      <div className="flex items-center gap-3 min-w-0">
+        {candidate.avatar ? (
+          <img
+            src={candidate.avatar}
+            alt={candidate.username}
+            className="size-8 shrink-0 rounded-full object-cover"
+          />
+        ) : (
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+            {initial}
+          </span>
+        )}
+        <div className="flex min-w-0 flex-col leading-tight">
+          <span className="flex items-center gap-1 truncate text-sm font-medium">
+            {isWinning && candidate.votes > 0 && (
+              <Trophy className="size-3.5 shrink-0 text-yellow-500" />
+            )}
+            {candidate.username}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {t('season.votesCount', { count: candidate.votes })}
+          </span>
+        </div>
       </div>
-      <div className="ml-auto flex shrink-0 items-center gap-1.5">
-        <Button variant="ghost" size="sm" className="gap-1.5" onClick={onPreview}>
-          <Box className="size-4" /> {t('season.preview3d')}
+      <div className="flex flex-wrap items-center gap-1.5 sm:ml-auto">
+        <Button variant="ghost" size="sm" className="h-8 gap-1.5 px-2.5 text-xs" onClick={onPreview}>
+          <Box className="size-3.5" /> {t('season.preview3d')}
         </Button>
-        <Button variant="ghost" size="sm" className="gap-1.5" onClick={onVisit}>
-          <Eye className="size-4" /> {t('season.visit')}
+        <Button variant="ghost" size="sm" className="h-8 gap-1.5 px-2.5 text-xs" onClick={onVisit}>
+          <Eye className="size-3.5" /> {t('season.visit')}
         </Button>
         {canVote &&
           (isOwn ? (
-            <Badge variant="outline" className="shrink-0">
+            <Badge variant="outline" className="h-6 shrink-0 text-[10px]">
               {t('season.yourIsland')}
             </Badge>
           ) : isMyVote ? (
-            <Button variant="secondary" size="sm" disabled className="gap-1.5">
-              <Check className="size-4" /> {t('season.voted')}
+            <Button variant="secondary" size="sm" disabled className="h-8 gap-1.5 px-2.5 text-xs">
+              <Check className="size-3.5" /> {t('season.voted')}
             </Button>
           ) : (
-            <Button size="sm" onClick={onVote}>
+            <Button size="sm" className="h-8 text-xs px-3" onClick={onVote}>
               {t('season.vote')}
             </Button>
           ))}
@@ -157,12 +160,16 @@ export default function SeasonDialog() {
     ? [...ballot.campuses].sort((a, b) => b.campusVotes - a.campusVotes)
     : []
   const showPodium = phase === 'VOTE' || phase === 'ENDED'
+  const isMobile = useIsMobile()
 
   return (
     <>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="max-w-lg"
+        className={cn(
+          "max-w-lg",
+          isMobile && "fixed inset-0 w-screen h-screen max-w-none translate-x-0 translate-y-0 top-0 left-0 rounded-none border-none flex flex-col overflow-y-auto pt-14 p-6 animate-none"
+        )}
         // The 3D preview floats above the dialog in its own portal; interacting
         // with it must not dismiss the ballot behind it.
         onInteractOutside={(e) => {
@@ -187,13 +194,26 @@ export default function SeasonDialog() {
             <Loader2 className="size-5 animate-spin" />
           </div>
         ) : (
-          <Tabs defaultValue="season" className="w-full">
-            <TabsList>
-              <TabsTrigger value="season">{t('season.tabs.current')}</TabsTrigger>
-              <TabsTrigger value="winners">{t('season.tabs.winners')}</TabsTrigger>
+          <Tabs defaultValue="season" className="w-full flex flex-col flex-1">
+            <TabsList className={cn(
+              "grid w-full grid-cols-2",
+              isMobile && "flex flex-row overflow-x-auto scrollbar-none justify-start p-1 shrink-0"
+            )}>
+              <TabsTrigger
+                value="season"
+                className={cn(isMobile && "shrink-0 px-4")}
+              >
+                {t('season.tabs.current')}
+              </TabsTrigger>
+              <TabsTrigger
+                value="winners"
+                className={cn(isMobile && "shrink-0 px-4")}
+              >
+                {t('season.tabs.winners')}
+              </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="season" className="flex flex-col gap-4">
+            <TabsContent value="season" className="flex-1 flex flex-col gap-4">
               {!ballot?.season || !phase ? (
                 <p className="py-8 text-center text-sm text-muted-foreground">
                   {t('season.noSeason')}
@@ -216,37 +236,39 @@ export default function SeasonDialog() {
                 {podium.map((campus, index) => (
                   <div
                     key={campus.campusId}
-                    className="flex items-center gap-2.5 rounded-md px-1 py-1"
+                    className="flex flex-col sm:flex-row sm:items-center gap-2 rounded-md p-1.5 border border-border/10 sm:border-0"
                   >
-                    {index < 3 ? (
-                      <Medal className={cn('size-4 shrink-0', MEDAL_COLORS[index])} />
-                    ) : (
-                      <span className="w-4 shrink-0 text-center text-xs text-muted-foreground">
-                        {index + 1}
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {index < 3 ? (
+                        <Medal className={cn('size-4 shrink-0', MEDAL_COLORS[index])} />
+                      ) : (
+                        <span className="w-4 shrink-0 text-center text-xs text-muted-foreground">
+                          {index + 1}
+                        </span>
+                      )}
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                        {campus.label}
                       </span>
-                    )}
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium">
-                      {campus.label}
-                    </span>
-                    <span className="shrink-0 text-xs text-muted-foreground">
-                      {t('season.votesCount', { count: campus.campusVotes })}
-                    </span>
-                    <div className="flex shrink-0 items-center gap-1.5">
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {t('season.votesCount', { count: campus.campusVotes })}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5 sm:ml-auto">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="gap-1.5"
+                        className="h-8 gap-1.5 px-2.5 text-xs"
                         onClick={() => goCampus(campus.campusId)}
                       >
-                        <Eye className="size-4" /> {t('season.visit')}
+                        <Eye className="size-3.5" /> {t('season.visit')}
                       </Button>
                       {ballot.canVoteCampus &&
                         (ballot.myCampusVoteId === campus.campusId ? (
-                          <Button variant="secondary" size="sm" disabled className="gap-1.5">
-                            <Check className="size-4" /> {t('season.voted')}
+                          <Button variant="secondary" size="sm" disabled className="h-8 gap-1.5 px-2.5 text-xs">
+                            <Check className="size-3.5" /> {t('season.voted')}
                           </Button>
                         ) : (
-                          <Button size="sm" onClick={() => void voteCampus(campus.campusId)}>
+                          <Button size="sm" className="h-8 text-xs px-3" onClick={() => void voteCampus(campus.campusId)}>
                             {t('season.vote')}
                           </Button>
                         ))}
@@ -302,7 +324,7 @@ export default function SeasonDialog() {
               )}
             </TabsContent>
 
-            <TabsContent value="winners">
+            <TabsContent value="winners" className="flex-1">
               {!ballot || ballot.previousWinners.length === 0 ? (
                 <p className="py-8 text-center text-sm text-muted-foreground">
                   {t('season.noWinners')}
@@ -319,34 +341,36 @@ export default function SeasonDialog() {
                       {ballot.previousWinners.map((w) => (
                         <div
                           key={w.campusId}
-                          className="flex items-center gap-3 rounded-lg border px-3 py-2"
+                          className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-lg border px-3 py-2.5"
                         >
-                          {w.avatar ? (
-                            <img
-                              src={w.avatar}
-                              alt={w.username ?? w.campusLabel}
-                              className="size-8 shrink-0 rounded-full object-cover"
-                            />
-                          ) : (
-                            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-                              {(w.username ?? w.campusLabel).charAt(0).toUpperCase()}
-                            </span>
-                          )}
-                          <div className="flex min-w-0 flex-col leading-tight">
-                            <span className="truncate text-sm font-medium">{w.campusLabel}</span>
-                            <span className="truncate text-xs text-muted-foreground">
-                              {(w.username ?? t('season.deletedUser')) +
-                                ' · ' +
-                                t('season.votesCount', { count: w.votes })}
-                            </span>
+                          <div className="flex items-center gap-3 min-w-0">
+                            {w.avatar ? (
+                              <img
+                                src={w.avatar}
+                                alt={w.username ?? w.campusLabel}
+                                className="size-8 shrink-0 rounded-full object-cover"
+                              />
+                            ) : (
+                              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+                                {(w.username ?? w.campusLabel).charAt(0).toUpperCase()}
+                              </span>
+                            )}
+                            <div className="flex min-w-0 flex-col leading-tight">
+                              <span className="truncate text-sm font-medium">{w.campusLabel}</span>
+                              <span className="truncate text-xs text-muted-foreground">
+                                {(w.username ?? t('season.deletedUser')) +
+                                  ' · ' +
+                                  t('season.votesCount', { count: w.votes })}
+                              </span>
+                            </div>
                           </div>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="ml-auto shrink-0 gap-1.5"
+                            className="h-8 gap-1.5 px-2.5 text-xs sm:ml-auto self-start sm:self-center"
                             onClick={() => goCampus(w.campusId)}
                           >
-                            <Eye className="size-4" /> {t('season.visit')}
+                            <Eye className="size-3.5" /> {t('season.visit')}
                           </Button>
                         </div>
                       ))}

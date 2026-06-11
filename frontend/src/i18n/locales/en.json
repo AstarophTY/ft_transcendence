@@ -768,6 +768,7 @@
     "key_shift": "Shift",
     "key_esc": "Esc",
     "key_left_click": "Left Click",
-    "key_enter": "Enter"
+    "key_enter": "Enter",
+    "control_freecam": "Activate freecam"
   }
 }

@@ -764,6 +764,7 @@
     "key_shift": "Maj",
     "key_esc": "Échap",
     "key_left_click": "Clic Gauche",
-    "key_enter": "Entrée"
+    "key_enter": "Entrée",
+    "control_freecam": "Activer la caméra libre"
   }
 }
