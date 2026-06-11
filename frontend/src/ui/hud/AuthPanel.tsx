@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, Loader2, Lock, LogIn, LogOut, Mail, Rocket, User, UserPlus, X, Users, Settings as SettingsIcon, Shield, ShieldCheck, FileText, Trophy } from 'lucide-react'
+import { Check, Loader2, Lock, LogIn, LogOut, Mail, Rocket, User, UserPlus, X, Users, Settings as SettingsIcon, Shield, ShieldCheck, FileText, Trophy, HelpCircle } from 'lucide-react'
 
 import { Button } from '@/ui/shadcn/button'
 import {
@@ -387,6 +387,7 @@ function UserMenu() {
   const sceneMode = usePlanetStore((s) => s.sceneMode)
   const setSceneMode = usePlanetStore((s) => s.setSceneMode)
   const setTakingOff = usePlanetStore((s) => s.setTakingOff)
+  const setShowTutorial = usePlanetStore((s) => s.setShowTutorial)
   const activeEditor = useEditorStore((s) => s.activeEditor)
 
   const showTakeoff = sceneMode === 'world'
@@ -440,6 +441,10 @@ function UserMenu() {
               <DropdownMenuItem onSelect={() => openSettings(true)}>
                 <SettingsIcon className="mr-1.5 size-4" />
                 {t('settings.title')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setShowTutorial(true)}>
+                <HelpCircle className="mr-1.5 size-4" />
+                {t('tutorial.replay_btn', { defaultValue: 'Replay Tutorial' })}
               </DropdownMenuItem>
               {user.role === 'ADMIN' && (
                 <DropdownMenuItem onSelect={() => openAdmin(true)}>

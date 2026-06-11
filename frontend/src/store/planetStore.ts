@@ -39,6 +39,8 @@ interface PlanetStore {
   setRenderDistance: (dist: number) => void
   theme: 'light' | 'dark'
   setTheme: (theme: 'light' | 'dark') => void
+  showTutorial: boolean
+  setShowTutorial: (show: boolean) => void
 }
 
 const getInitialRenderDistance = () => {
@@ -151,4 +153,6 @@ export const usePlanetStore = create<PlanetStore>((set, get) => ({
     localStorage.setItem('theme', theme)
     set({ theme })
   },
+  showTutorial: localStorage.getItem('ft_has_seen_tutorial') !== 'true',
+  setShowTutorial: (show) => set({ showTutorial: show }),
 }))
