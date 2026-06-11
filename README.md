@@ -462,6 +462,8 @@ Multiple system administration scripts are provided with this project such as
 | `/scripts/backend/campus_process_winner.sh <campus id>` | `process the winner of the campus id`              |
 | `/scripts/backend/process_all_winners.sh`               | `process winners for all campuses (after routine)` |
 
+Some of these scripts are ran at regular intervals using `crond`. To edit the delta time between each call, execute the command `docker exec -it transcendence_backend crontab -e`
+
 ### Vote System Logging
 
 Vote logs are stored in `/var/log/`. For the campus routine, everything is stored in `/var/log/campus_routine.log` and for the winner calculation it is stored in `/var/log/campus_winner.log`.
