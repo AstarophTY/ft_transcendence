@@ -36,22 +36,24 @@ visible to everyone who joins.
 
 ---
 
-## Modules (target: 14 points — achieved: 15)
+## Modules (target: 14 points — achieved: 19)
 
 Each Major module = 2 pts, each Minor module = 1 pt.
 
-| Category | Module | Type | Pts | How it was implemented |
-|---|---|---|---|---|
-| Web | Use a framework front **and** back | Major | 2 | **React 18** (frontend) + **NestJS 11** (backend). |
-| Web | Real-time features (WebSockets) | Major | 2 | **Socket.IO** gateways: live player movement + collaborative block editing, with graceful (re)connection and concurrent-login eviction. |
-| Web | User interaction (chat + profile + friends) | Major | 2 | Direct-message chat, profile pages, full friends system. |
-| Web | Use an ORM | Minor | 1 | **Prisma** over PostgreSQL. |
-| User Management | Standard user management & auth | Major | 2 | Profile edit, avatar upload (default avatar fallback), friends + online status, profile pages. |
-| User Management | Remote auth — OAuth 2.0 | Minor | 1 | **42 intra OAuth 2.0** login. |
-| User Management | Advanced permissions system | Major | 2 | `USER` / `ADMIN` roles, role-guarded admin endpoints, full user CRUD + role/password reset. |
-| Accessibility & i18n | Multi-language (≥3 languages) | Minor | 1 | **i18next** with `en` / `fr` / `es`, live switcher, all UI text translatable. |
-| Gaming & UX | Advanced 3D graphics | Major | 2 | **Three.js** via `@react-three/fiber` + `drei`: immersive voxel planet, instanced rendering, custom camera/controls. |
-| | | **Total** | **15** | |
+| Category | Module | Type | Pts | Primary Contributors | Justification for Choice | How it was implemented |
+|---|---|---|---|---|---|---|
+| **Web** | Use a framework front **and** back | Major | 2 | sgil--de, julcleme, trgascoi | React provides a component-driven architecture needed to sync HUD with Three.js state. NestJS enforces a modular structure to split work efficiently. | **React 18** (frontend) + **NestJS 11** (backend). |
+| **Web** | Real-time features (WebSockets) | Major | 2 | sgil--de, julcleme, trgascoi | Essential for instant 3D avatar synchronization and collaborative block building across clients. | **Socket.IO** gateways: live player movement + collaborative block editing. |
+| **Web** | User interaction (chat/profile/friends) | Major | 2 | sgil--de | A sandbox game needs a strong social layer for players to coordinate building projects. | Direct-message chat, profile pages, full friends system. |
+| **Web** | Use an ORM | Minor | 1 | julcleme, sgil--de | Prisma ensures database schema consistency and type-safety across backend endpoints. | **Prisma** over PostgreSQL. |
+| **User Management** | Standard user management & auth | Major | 2 | sgil--de | Secures user data and permits persistent personalization (custom avatar, logtime-coins correlation). | Profile edit, avatar upload (default fallback), online status. |
+| **User Management** | Remote auth — OAuth 2.0 | Minor | 1 | sgil--de | Required to fetch real 42 intra logtime statistics and securely authenticate 42 students. | **42 intra OAuth 2.0** login. |
+| **User Management** | Advanced permissions system | Major | 2 | sgil--de | Prevents regular users from modifying global server configurations or other players' profiles. | `USER` / `ADMIN` roles, admin endpoints, full user CRUD. |
+| **Modules of choice** | Procedural Terrain Generation | Major | 2 | trgascoi | Enables the creation of infinite, deterministic, seed-based 3D planets entirely client-side, eliminating static server storage. It deserves Major status due to its high algorithmic complexity: implementing a custom 2D Perlin Noise generator from scratch (with quintic fading, permutation hashing, and fBm), distance mask weighting for flat zones/island borders, and real-time biome height blending. | Custom 2D Perlin noise, 4-octave fractional Brownian motion (fBm), spawn flat-zones mask, and linear biome blending. |
+| **Accessibility & i18n** | Multi-language (3+ languages) | Minor | 1 | sgil--de, trgascoi | Provides accessibility for international students at 42 campuses globally. | **i18next** with `en` / `fr` / `es`, live switcher. |
+| **Gaming & UX** | Implement a complete web-based game | Major | 2 | trgascoi, sservant, julcleme | The core application of the project; a cooperative 3D voxel sandbox where players build together, spend logtime-coins, and compete in monthly voting contests. | 3D multiplayer sandbox with block building rules, economy mechanics, and a persistent season voting system. |
+| **Gaming & UX** | Advanced 3D graphics | Major | 2 | trgascoi, sservant | Crucial to construct an engaging, interactive 3D voxel sandbox. | **Three.js** via `@react-three/fiber` + `drei`: instanced rendering. |
+| | | **Total** | **19** | | | |
 
 > The **voxel terrain engine + logtime-coin economy** is the original creative core of the project
 > and is what differentiates it from a standard 42 web app.
@@ -142,84 +144,182 @@ PostgreSQL, managed by Prisma migrations.
 ```mermaid
 erDiagram
     User ||--o{ RefreshToken : has
-    User ||--o{ Message : "sends/receives"
+    User ||--o{ Message : sends_receives
     User ||--o| Building : owns
     User ||--o{ ApiKey : owns
-    User ||--o{ Friendship : "requests/receives"
-    User ||--o| World : "personal world"
-    Campus ||--o{ User : "members"
-    Campus ||--o| World : "campus world"
+    User ||--o{ Friendship : requests_receives
+    User ||--o| World : owns
+    User ||--o{ SeasonVote : voter
+    User ||--o{ SeasonVote : candidate
+    User ||--o{ SeasonCampusVote : voter
+    
+    Campus ||--o{ User : contains
+    Campus ||--o| World : owns
+    Campus ||--o{ SeasonVote : contains
+    Campus ||--o{ SeasonCampusVote : contains
+    Campus ||--o{ SeasonResult : contains
+    
+    Season ||--o{ SeasonVote : has
+    Season ||--o{ SeasonCampusVote : has
+    Season ||--o{ SeasonResult : has
+    
     World ||--o{ WorldBlock : contains
-    WorldBlock ||--o{ BlockLog : "logged in"
-
+    WorldBlock ||--o{ BlockLog : logs
+    
     User {
         string id PK
-        string email UK
-        string username UK
-        string passwordHash
-        int    fortyTwoId UK
-        string avatar
-        Role   role "USER | ADMIN"
-        int    coins
-        int    coinsSpent
-        float  logtimeHours
-        string campusId FK
-        string skinColor
-        UserStatus status "ONLINE|AWAY|DND|OFFLINE"
+        string email "UK, nullable"
+        string username "UK"
+        string passwordHash "nullable"
+        int fortyTwoId "UK, nullable"
+        string fortyTwoLogin "nullable"
+        string avatar "nullable"
+        Role role "USER | ADMIN"
+        boolean isVerified
+        string displayName "nullable"
+        string bio "nullable"
+        string campusId FK "nullable"
+        int coins
+        int coinsSpent
+        float logtimeHours
+        float monthLogtimeHours
+        string fortyTwoAccessToken "nullable"
+        string fortyTwoRefreshToken "nullable"
+        string language "nullable"
+        string theme "nullable"
+        string skinColor "nullable"
+        UserStatus status "ONLINE | AWAY | DND | OFFLINE"
+        string statusMessage "nullable"
+        datetime usernameChangedAt "nullable"
+        datetime createdAt
+        datetime updatedAt
     }
-    Campus {
+    
+    RefreshToken {
         string id PK
-        string label UK
-        int    coins
-    }
-    World {
-        string id PK
+        string token "UK"
         string userId FK
-        string campusId FK
-        string seed
-        int    widthInChunks
-        int    depthInChunks
-        float  scale
-        int    octaves
-        float  persistence
+        datetime expiresAt
+        datetime createdAt
     }
-    WorldBlock {
-        string worldId PK,FK
-        int    x PK
-        int    y PK
-        int    z PK
-        int    block "0 = Air (broken)"
-        int    rotation
+    
+    Message {
+        string id PK
+        string content
+        string senderId FK
+        string receiverId FK
+        boolean isRead
+        datetime createdAt
     }
-    BlockLog {
-        int    id PK
-        string userId
-        int    placedBlock
-    }
+    
     Friendship {
         string id PK
         string requesterId FK
         string addresseeId FK
-        FriendshipStatus status "PENDING|ACCEPTED"
+        FriendshipStatus status "PENDING | ACCEPTED"
+        datetime createdAt
+        datetime updatedAt
     }
-    Message {
+    
+    Building {
         string id PK
-        string senderId FK
-        string receiverId FK
-        string content
-        bool   isRead
+        string userId FK "UK"
+        float height
+        string color
+        float posX
+        float posZ
+        string campus
+        datetime updatedAt
     }
-    RefreshToken {
-        string id PK
-        string token UK
-        string userId FK
-        datetime expiresAt
-    }
+    
     ApiKey {
         string id PK
-        string keyHash UK
+        string keyHash "UK"
         string label
         string userId FK
+        datetime lastUsedAt "nullable"
+        datetime createdAt
+    }
+    
+    Campus {
+        string id PK
+        string label "UK"
+        int coins
+    }
+    
+    Season {
+        string id PK
+        string title
+        datetime buildStartsAt
+        datetime buildEndsAt
+        datetime voteStartsAt
+        datetime voteEndsAt
+        datetime finalizedAt "nullable"
+        datetime startedAt "nullable"
+        boolean isActive
+        datetime createdAt
+    }
+    
+    SeasonVote {
+        string id PK
+        string seasonId FK
+        string campusId FK
+        string voterId FK
+        string candidateId FK
+        datetime createdAt
+    }
+    
+    SeasonCampusVote {
+        string id PK
+        string seasonId FK
+        string voterId FK
+        string campusId FK
+        datetime createdAt
+    }
+    
+    SeasonResult {
+        string id PK
+        string seasonId FK
+        string campusId FK
+        string winnerUserId "nullable"
+        int votes
+    }
+    
+    World {
+        string id PK
+        string userId FK "UK, nullable"
+        string campusId FK "UK, nullable"
+        string seed
+        int widthInChunks
+        int depthInChunks
+        float scale
+        int octaves
+        float persistence
+        float relief
+        float baseHeight
+        float variationRange
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    BlockLog {
+        int id PK
+        datetime date
+        string userId FK
+        int placedBlock
+        string worldBlockWorldId FK "nullable"
+        int worldBlockX FK "nullable"
+        int worldBlockY FK "nullable"
+        int worldBlockZ FK "nullable"
+    }
+    
+    WorldBlock {
+        string worldId PK,FK
+        int x PK
+        int y PK
+        int z PK
+        int block "0 = Air"
+        int rotation
     }
 ```
 
@@ -631,18 +731,18 @@ _Split derived from `git shortlog -sne`, with each author's aliases merged
 (sgil--de = AstarophTY/Swann; trgascoi = tristan-gscn; sservant = 0xS4cha/Sxcha;
 julcleme = canarddu38/0x262d)._
 
-- **trgascoi** — Lead on the **3D voxel world** rendering: procedural terrain, instanced
-  rendering, walkable avatar and camera/controls (Three.js / `@react-three/fiber`), plus a large
-  share of the in-world **HUD & UI**.
-- **sservant** — **3D world client** (Three.js scenes, avatar & controls) and the bulk of the
-  **HUD & UI** components (shadcn/ui, dialogs, panels).
-- **julcleme** — **World backend**: collaborative block editing gateway and persistence
-  (`WorldBlock` / `BlockLog` diffs), **Prisma schema & migrations**, and parts of the campus
-  module and Docker/nginx infrastructure.
-- **sgil--de** — **Backend & platform**: email/password + 42 OAuth authentication (JWT
-  access/refresh), users/profiles & avatars, friends & chat, admin dashboard, the logtime-coin
-  economy, the Privacy Policy / Terms of Service pages, **i18n**, the Prisma data model and the
-  Docker/nginx setup.
+* **trgascoi**
+  * *Contributions*: Lead on the **3D voxel world** rendering (procedural terrain, instanced rendering, walkable avatar, camera/controls) and HUD/UI.
+  * *Challenges & Solutions*: Rendering thousands of active block meshes was causing browser lag and CPU bottlenecks. Overcame this by implementing GPU-instanced rendering (`THREE.InstancedMesh`) grouped by block type, visible-face culling (`isBlockExposed`), and lazy-allocating chunk segments (SubChunks) to optimize memory and draw calls.
+* **sservant**
+  * *Contributions*: **3D world client** (Three.js scenes, avatar & controls) and the bulk of the **HUD & UI** components (shadcn/ui, dialogs, panels).
+  * *Challenges & Solutions*: Preventing Three.js camera movement and pointer lock events from firing when a user was typing in text inputs (e.g. Chat or Search). Solved by creating Zustand UI state flags and wrapping listener hooks to block inputs when focus resides on editable HTML fields.
+* **julcleme**
+  * *Contributions*: **World backend** (collaborative block editing gateway, persistence layer) and Prisma migrations/infrastructure.
+  * *Challenges & Solutions*: Storing large voxel grids in the database was highly inefficient. Solved by storing only voxel *diffs* (edits) inside the `WorldBlock` database table, keeping empty/natural blocks in memory, and broadcasting modifications using optimized Socket.IO buffers.
+* **sgil--de**
+  * *Contributions*: **Backend & platform** (OAuth 2.0 + local bcrypt auth, friends/chat, admin dashboard, logtime-coin logic, Privacy/Terms pages, and i18n).
+  * *Challenges & Solutions*: Securely verifying 42 tokens and parsing user logtime records without delaying authentication response. Resolved by implementing an isolated `api-check` container, scheduling cron routines for backend operations, and caching active session data in Redis for sub-millisecond lookups.
 
 ---
 
