@@ -470,6 +470,25 @@ Vote logs are stored in `/var/log/`. For the campus routine, everything is store
 
 These can be read using the command `docker exec -it transcendence_backend cat /var/log/campus_winner.log`
 
+
+### Vote Workflow
+```mermaid
+flowchart TD
+
+    A[Cron Scheduler] --> B{Day of Month<br/>1-7 AND Monday?}
+    B -->|Yes, 09:00| C[/opt/auto_campus_vote_routine.sh/]
+    C --> D[Append output to<br/>/var/log/campus_routine.log]
+
+    A --> E{Day of Month<br/>4-10 AND Thursday?}
+    E -->|Yes, 09:00| F[/opt/process_all_winners.sh/]
+    F --> G[Append output to<br/>/var/log/campus_winner.log]
+
+    style C fill:#d4f1f9
+    style F fill:#d4f1f9
+    style D fill:#e8f5e9
+    style G fill:#e8f5e9
+```
+
 ---
 
 ## Vote Contest System
