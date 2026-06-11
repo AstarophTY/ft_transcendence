@@ -22,7 +22,7 @@ import { useSeason } from '@/store/season'
 import Player from '../objects/Player'
 import RemotePlayers from '../objects/RemotePlayers'
 import { ChunkRenderer } from './worldScene/ChunkRenderer'
-import { MAP_SIZE_BLOCKS } from './worldScene/constants'
+import { MAP_SIZE_BLOCKS, PRIVATE_MAP_SIZE } from './worldScene/constants'
 import { FreeCameraControls } from './worldScene/FreeCameraControls'
 import { Block } from '@/types/Block'
 import { BlockMetadata } from '@/config/Block'
@@ -252,7 +252,7 @@ const WorldScene = () => {
   const worldEpoch = usePlanetStore((state) => state.worldEpoch)
   const renderDistance = usePlanetStore((state) => state.renderDistance)
   const isPrivate = usePlanetStore((state) => state.isPrivateWorld)
-  const mapSize = isPrivate ? 64 : MAP_SIZE_BLOCKS
+  const mapSize = isPrivate ? PRIVATE_MAP_SIZE : MAP_SIZE_BLOCKS
   const playerRef = useRef<THREE.Group | null>(null)
   const inEditor = useEditorStore((state) => state.in_editor)
   const activeEditor = useEditorStore((state) => state.activeEditor)
@@ -316,7 +316,7 @@ const WorldScene = () => {
     setTimeout(() => {
       if (cancelled) return
       const isPrivate = usePlanetStore.getState().isPrivateWorld
-      const size = isPrivate ? 64 : MAP_SIZE_BLOCKS
+      const size = isPrivate ? PRIVATE_MAP_SIZE : MAP_SIZE_BLOCKS
       const map = generateLocalMap(profile, size)
       mapRef.current = map
       setLocalMap(map)
@@ -675,7 +675,7 @@ const WorldScene = () => {
 
   useFrame(() => {
     const isPrivate = usePlanetStore.getState().isPrivateWorld
-    const size = isPrivate ? 64 : MAP_SIZE_BLOCKS
+    const size = isPrivate ? PRIVATE_MAP_SIZE : MAP_SIZE_BLOCKS
     const cameraChunkX = Math.floor((camera.position.x + size / 2) / Chunk.WIDTH)
     const cameraChunkZ = Math.floor((camera.position.z + size / 2) / Chunk.WIDTH)
 
