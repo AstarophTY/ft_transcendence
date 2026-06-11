@@ -46,7 +46,15 @@ export default function EditorMode() {
   }, [activePicker])
 
   const changeTool = (tool: Tab) => {
-    setCurrentTool(tool === currentTool ? Tab.None : tool)
+    const nextTool = tool === currentTool ? Tab.None : tool
+    setCurrentTool(nextTool)
+    // Leaving the Lookup tool closes its history overlay. Since the overlay
+    // stays open while the camera is still pointer-locked, this lets the player
+    // dismiss it from the keyboard (e.g. press 7 again) without the cursor ever
+    // popping out — Escape also closes it but the browser exits pointer lock.
+    if (nextTool !== Tab.Lookup) {
+      useLookupStore.getState().closeLookup()
+    }
   }
   const changeShape = () => {
     setCurrentShape(currentShape === Shape.Cube ? Shape.Sphere : Shape.Cube)
