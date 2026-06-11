@@ -585,10 +585,10 @@ Team of 4 — _exact role split is documented here; adjust to match your evaluat
 
 | Member | Role(s) | Responsibilities |
 |---|---|---|
-| **julcleme** | ... | ... |
-| **sservant** | ... | ... |
-| **trgascoi** | ... | ... |
-| **sgil--de** | ... | ... |
+| **julcleme** | Technical Lead + Developer | Ensure the project's security |
+| **sservant** | Product Owner (PO) + Developer | Project conception and design |
+| **trgascoi** | Project Manager (PM) + Developer | Organized the team with meatings |
+| **sgil--de** | Technical Lead + Developer | Defined technical architecture of the project |
 
 > All members contributed to both the mandatory part and the modules.
 
