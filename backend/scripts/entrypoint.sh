@@ -11,7 +11,8 @@ chmod +x /opt/campus_process_winner.sh
 cp ./scripts/process_all_winners.sh /opt/process_all_winners.sh
 chmod +x /opt/process_all_winners.sh
 
-crontab ./scripts/vote.crontab
-crond &
+# crond removed
+#crontab ./scripts/vote.crontab
+#crond &
 
 exec node dist/main.js
