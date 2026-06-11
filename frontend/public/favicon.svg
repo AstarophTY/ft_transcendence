@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Isometric Cube -->
+  <!-- Top Face (Light source from top) -->
+  <polygon points="50,0 93.3,25 50,50 6.7,25" fill="#86efac" />
+  
+  <!-- Left Face (Midtone) -->
+  <polygon points="6.7,25 50,50 50,100 6.7,75" fill="#22c55e" />
+  
+  <!-- Right Face (Shadow) -->
+  <polygon points="50,50 93.3,25 93.3,75 50,100" fill="#166534" />
+</svg>
