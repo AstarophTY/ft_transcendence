@@ -432,6 +432,20 @@ Biome types are determined in `IslandMap.getBiomeAt` using a second, independent
 
 ---
 
+### 4. User interface
+Functioning and implementation of user UI and user experience
+
+### Overall translation of the texts
+All texts are translatable using an i18n mode, including multiple languages ​​for the interface.
+
+### Drag and drop
+The interfaces are drag-and-drop compatible, allowing users to position the UI elements as they wish. This functionality is implemented using the Motion library, which is also used for interface animations.
+
+### Mobile joystick
+When we detect that the user is on a mobile device, we implement joysticks and adapt the entire user experience to a more specific format to highlight the features even on mobile.
+
+---
+
 ## API surface (selected)
 
 > All routes are prefixed with `/api`. Protected routes require a Bearer JWT.
