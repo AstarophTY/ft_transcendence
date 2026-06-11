@@ -194,8 +194,8 @@ const WorldShadowLight = ({ playerRef, currentMode }: WorldShadowLightProps) => 
   useEffect(() => {
     const light = lightRef.current
     if (light) {
-      light.shadow.bias = -0.0005
-      light.shadow.normalBias = 0.05
+      light.shadow.bias = 0
+      light.shadow.normalBias = 0.005
       const cam = light.shadow.camera
       cam.left = -120
       cam.right = 120
