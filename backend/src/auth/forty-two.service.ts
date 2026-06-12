@@ -139,7 +139,7 @@ export class FortyTwoService {
       if (res) this.logger.warn(`42 locations_stats: ${res.status}`);
       return null;
     }
-    const data = await res.json() as unknown;
+    const data = await this.safeJson(res);
     if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
     return data as Record<string, number>;
   }
@@ -164,7 +164,7 @@ export class FortyTwoService {
         if (res) this.logger.warn(`42 locations: ${res.status}`);
         return page === 1 ? null : all;
       }
-      const batch = (await res.json()) as Location[];
+      const batch = (await this.safeJson(res)) as Location[] | null;
       if (!Array.isArray(batch) || batch.length === 0) break;
       all.push(...batch);
       if (batch.length < 100) break;
@@ -232,6 +232,20 @@ export class FortyTwoService {
       this.config.get<string>('LOGTIME_SYNC_THROTTLE_SECONDS', String(DEFAULT_SYNC_THROTTLE_SECONDS)),
     );
     return (Number.isFinite(seconds) ? seconds : DEFAULT_SYNC_THROTTLE_SECONDS) * 1000;
+  }
+
+  /**
+   * Parse a 42 API response body, treating a non-JSON body (proxy error page,
+   * truncated response) as a missed sync rather than letting the rejection
+   * bubble into the calling request (resyncCoins runs inside GET /users/me).
+   */
+  private async safeJson(res: Response): Promise<unknown> {
+    try {
+      return (await res.json()) as unknown;
+    } catch (err) {
+      this.logger.warn(`42 API returned a non-JSON body: ${String(err)}`);
+      return null;
+    }
   }
 
   private async timedFetch(url: string, token: string): Promise<Response | null> {

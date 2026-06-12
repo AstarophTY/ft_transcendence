@@ -5,6 +5,7 @@ import { CampusModule } from '../campus/campus.module';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { FortyTwoOAuthFilter } from './filters/forty-two-oauth.filter';
 import { FortyTwoModule } from './forty-two.module';
 import { FortyTwoAuthGuard } from './guards/forty-two-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -29,6 +30,7 @@ import { WorldModule } from '../world/world.module';
     FortyTwoStrategy,
     JwtAuthGuard,
     FortyTwoAuthGuard,
+    FortyTwoOAuthFilter,
     RolesGuard,
   ],
   exports: [AuthService],

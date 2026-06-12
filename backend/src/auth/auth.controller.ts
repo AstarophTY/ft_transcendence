@@ -6,12 +6,14 @@ import {
   HttpStatus,
   Post,
   Res,
+  UseFilters,
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
+import { FortyTwoOAuthFilter } from './filters/forty-two-oauth.filter';
 import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -53,10 +55,12 @@ export class AuthController {
 
   @Get('42')
   @UseGuards(FortyTwoAuthGuard)
+  @UseFilters(FortyTwoOAuthFilter)
   fortyTwoLogin(): void {}
 
   @Get('42/callback')
   @UseGuards(FortyTwoAuthGuard)
+  @UseFilters(FortyTwoOAuthFilter)
   fortyTwoCallback(
     @CurrentUser() tokens: AuthTokens,
     @Res() res: Response,

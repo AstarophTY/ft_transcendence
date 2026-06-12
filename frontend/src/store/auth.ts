@@ -107,6 +107,18 @@ export const useAuth = create<AuthState>((set) => ({
       set({ loading: false })
     }
 
+    // A failed 42 round-trip redirects back here with a stable error code
+    // (user declined on the consent page, or the code expired/was reused).
+    const authError = params.get('auth_error')
+    if (authError) {
+      window.history.replaceState({}, '', window.location.pathname)
+      toast.error(
+        authError === 'denied'
+          ? i18n.t('auth.fortyTwoDenied')
+          : i18n.t('auth.fortyTwoFailed'),
+      )
+    }
+
     setUnauthorizedHandler(() => {
       set({ user: null })
       toast.error(i18n.t('auth.sessionExpired'))

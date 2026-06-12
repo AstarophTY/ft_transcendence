@@ -110,6 +110,8 @@
     "confirmPassword": "Confirmar contraseña",
     "passwordMismatch": "Las contraseñas no coinciden",
     "loginSuccess": "¡Bienvenido de nuevo!",
+    "fortyTwoDenied": "Inicio de sesión con 42 cancelado",
+    "fortyTwoFailed": "Error al iniciar sesión con 42, inténtalo de nuevo",
     "registerSuccess": "¡Cuenta creada!",
     "logoutSuccess": "Sesión cerrada",
     "sessionExpired": "Sesión expirada, inicia sesión de nuevo",

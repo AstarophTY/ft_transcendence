@@ -105,6 +105,8 @@
     "confirmPassword": "Confirm password",
     "passwordMismatch": "Passwords do not match",
     "loginSuccess": "Welcome back!",
+    "fortyTwoDenied": "42 sign-in cancelled",
+    "fortyTwoFailed": "42 sign-in failed, please try again",
     "registerSuccess": "Account created!",
     "logoutSuccess": "Logged out",
     "sessionExpired": "Session expired, please log in again",
