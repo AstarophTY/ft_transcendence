@@ -1,47 +1,19 @@
 import { useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useMemo, useRef, useState, ElementType } from 'react'
+import { useMemo, useRef, useState, ElementType } from 'react'
 import * as THREE from 'three'
 import UserBadge from '@/ui/hud/UserBadge'
-import { connectWorldSocket } from '@/lib/sockets/worldSocket'
-import { tokenStore } from '@/lib/api'
-import { DEFAULT_SKIN_COLOR } from '@/config/playerAppearance'
 import { useAvatar, tintAvatar } from './player/useAvatar'
 import { Billboard, Html } from '@react-three/drei'
 import { usePlanetStore } from '@/store/planetStore'
 import { MAP_SIZE_BLOCKS, PRIVATE_MAP_SIZE } from '@/ui/three/scenes/worldScene/constants'
 import { Chunk } from '@/types/maps/Chunk'
+import { useRemotePlayersStore, remoteTransforms, RemoteTransform } from '@/store/remotePlayersStore'
+import { useAuth } from '@/store/auth'
 
 
 
-type PlayerMode = 'player' | 'freecam'
 const MODEL_OFFSET = Math.PI
 const Primitive = 'primitive' as unknown as ElementType
-
-/** Last received transform of a remote player; mutated in place for lerping. */
-interface RemoteTransform {
-  username: string
-  avatar: string
-  pos: THREE.Vector3
-  yaw: number
-  camPos: THREE.Vector3
-  camYaw: number
-  camPitch: number
-  mode: PlayerMode
-  skin: string
-}
-
-type MovePayload = {
-  id: string
-  u?: string
-  a?: string
-  p: [number, number, number]
-  r: number
-  m: PlayerMode
-  c?: [number, number, number]
-  cr?: number
-  cp?: number
-  skin?: string
-}
 
 /** Shortest-path angular interpolation so the avatar never spins the long way. */
 const lerpAngle = (a: number, b: number, t: number): number => {
@@ -85,7 +57,7 @@ const createCameraModel = (): THREE.Group => {
  * One remote player. The body avatar is always shown at the player's position;
  * in freecam an extra translucent camera marker is shown where they are flying.
  */
-const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
+const RemotePlayer = ({ id, target }: { id: string; target: RemoteTransform }) => {
   const { camera } = useThree()
   const renderDistance = usePlanetStore((state) => state.renderDistance)
   const { body, eyes } = useAvatar()
@@ -161,7 +133,7 @@ const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
             <Html center transform sprite distanceFactor={6} zIndexRange={[100, 0]}>
               <UserBadge user={{
                     username: target.username,
-                    userId: target.username,
+                    userId: id,
                     avatar: target.avatar,
                     email: null,
                     role: 'USER',
@@ -183,91 +155,16 @@ const RemotePlayer = ({ target }: { target: RemoteTransform }) => {
  * `/world` socket. Membership lives in React state (mount/unmount), while the
  * frequent transform updates are kept in a ref so they never trigger a re-render.
  */
-const RemotePlayers = ({ campusId }: { campusId: string }) => {
-  const [ids, setIds] = useState<string[]>([])
-  const targets = useRef<Map<string, RemoteTransform>>(new Map())
-
-  useEffect(() => {
-    const token = tokenStore.access
-    if (!token) return
-    const socket = connectWorldSocket(token)
-    const store = targets.current
-
-    const upsert = ({ id, u, a, p, r, m, c, cr, cp, skin }: MovePayload) => {
-      const mode: PlayerMode = m === 'freecam' ? 'freecam' : 'player'
-      const camPos = c ?? p // fall back to the body when no camera is sent
-      const camYaw = cr ?? r
-      const camPitch = cp ?? 0
-      const tint = skin ?? DEFAULT_SKIN_COLOR
-      const existing = store.get(id)
-      if (existing) {
-        if (u) existing.username = u
-        if (a) existing.avatar = a
-        existing.pos.set(p[0], p[1], p[2])
-        existing.yaw = r
-        existing.mode = mode
-        existing.camPos.set(camPos[0], camPos[1], camPos[2])
-        existing.camYaw = camYaw
-        existing.camPitch = camPitch
-        existing.skin = tint
-      } else {
-        store.set(id, {
-          avatar: a || '',
-          username: u || 'Unknown',
-          pos: new THREE.Vector3(p[0], p[1], p[2]),
-          yaw: r,
-          camPos: new THREE.Vector3(camPos[0], camPos[1], camPos[2]),
-          camYaw,
-          camPitch,
-          mode,
-          skin: tint,
-        })
-      }
-    }
-
-    // The snapshot is the authoritative list of who is on the island: update the
-    // ones we know, add new ones, and drop anyone no longer present (stale
-    // entries from peers who already left) so phantoms never linger.
-    const onSnapshot = (players: MovePayload[]) => {
-      const present = new Set(players.map((peer) => peer.id))
-      for (const id of [...store.keys()]) {
-        if (!present.has(id)) store.delete(id)
-      }
-      players.forEach(upsert)
-      setIds(players.map((peer) => peer.id))
-    }
-    const onMove = (payload: MovePayload) => {
-      const isNew = !store.has(payload.id)
-      upsert(payload)
-      if (isNew) {
-        setIds((prev) => (prev.includes(payload.id) ? prev : [...prev, payload.id]))
-      }
-    }
-    const onLeave = ({ id }: { id: string }) => {
-      store.delete(id)
-      setIds((prev) => prev.filter((x) => x !== id))
-    }
-
-    socket
-      .on('world:players', onSnapshot)
-      .on('player:move', onMove)
-      .on('player:leave', onLeave)
-
-    return () => {
-      socket
-        .off('world:players', onSnapshot)
-        .off('player:move', onMove)
-        .off('player:leave', onLeave)
-      store.clear()
-      setIds([])
-    }
-  }, [campusId])
+const RemotePlayers = ({ campusId: _campusId }: { campusId: string }) => {
+  const ids = useRemotePlayersStore((s) => s.playerIds)
+  const localUserId = useAuth((s) => s.user?.userId)
 
   return (
     <>
       {ids.map((id) => {
-        const target = targets.current.get(id)
-        return target ? <RemotePlayer key={id} target={target} /> : null
+        if (id === localUserId) return null
+        const target = remoteTransforms.get(id)
+        return target ? <RemotePlayer key={id} id={id} target={target} /> : null
       })}
     </>
   )

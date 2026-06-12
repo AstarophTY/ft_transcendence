@@ -4,6 +4,7 @@ import { ShieldCheck, CalendarDays, MapPin, Clock } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/ui/shadcn/dialog.tsx'
@@ -69,6 +70,7 @@ export default function FriendProfile({
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>{t('friends.profile.title')}</DialogTitle>
+          <DialogDescription>{t('friends.profile.description')}</DialogDescription>
         </DialogHeader>
 
         {error && <p className="text-sm text-destructive">{error}</p>}

@@ -6,9 +6,18 @@
     "es": "Español"
   },
   "common": {
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "refreshPage": "Refresh Page",
+    "close": "Close",
+    "before": "Before",
+    "after": "After",
+    "sidebar": {
+      "toggle": "Toggle Sidebar"
+    }
   },
   "errors": {
+    "webglContextLost": "WebGL Context Lost",
+    "webglDescription": "Your browser lost the WebGL 3D graphics context (often caused by multiple hot-reloads during development or GPU context throttling).",
     "fortyTwoNoEmailChange": "42 accounts cannot change their email",
     "fortyTwoNoPassword": "42 accounts have no password",
     "campusNameExists": "A campus with this name already exists",
@@ -132,6 +141,7 @@
     },
     "profile": {
       "title": "Profile",
+      "description": "View this friend's profile and stats.",
       "joined": "Joined {{date}}",
       "bio": "Bio",
       "noBio": "No bio yet.",
@@ -141,6 +151,7 @@
   },
   "settings": {
     "title": "Settings",
+    "description": "Adjust your preferences and account.",
     "save": "Save",
     "saved": "Saved",
     "passwordChanged": "Password updated",
@@ -198,7 +209,8 @@
       "language": "Language",
       "theme": "Theme",
       "renderDistance": "Render distance",
-      "chunks": "chunks"
+      "chunks": "chunks",
+      "skin": "Avatar color"
     }
   },
   "profile": {
@@ -210,6 +222,8 @@
   },
   "admin": {
     "title": "Admin panel",
+    "description": "Manage members, roles and campuses.",
+    "editUserDescription": "Update this member's profile, role and campus.",
     "user": "User",
     "role": "Role",
     "actions": "Actions",
@@ -226,10 +240,10 @@
     },
     "search": "Search by username, email…",
     "filter": {
+      "42": "42",
       "all": "All",
       "admin": "Admins",
       "user": "Users",
-      "42": "42",
       "local": "Local"
     },
     "chart": {
@@ -276,7 +290,8 @@
       "namePlaceholder": "New campus name",
       "addMember": "Add member",
       "noUsersToAdd": "No users to add."
-    }
+    },
+    "userDeleted": "{{name}} deleted"
   },
   "vote": {
     "preview": "Preview",
@@ -311,12 +326,14 @@
     },
     "freecam": "Freecam",
     "exitFreecam": "Exit Freecam",
+    "air": "Air",
     "free": "Free",
     "economy": {
       "coins": "Campus coins",
       "budget": "Campus build budget — placing a paid block costs 1 coin",
       "freeBlock": "Free to place"
-    }
+    },
+    "closeCatalog": "Close catalog"
   },
   "planet": {
     "private": "Private planet"
@@ -392,7 +409,8 @@
       "created": "Season opened",
       "finalized": "Season finalized — winning islands copied"
     },
-    "preview3d": "3D Preview"
+    "preview3d": "3D Preview",
+    "votesCount": "{{count}} votes"
   },
   "blocks": {
     "Stone": "Stone",
@@ -645,8 +663,14 @@
     "Wool_Colored_White": "Wool Colored White",
     "Wool_Colored_Yellow": "Wool Colored Yellow"
   },
-  "world.loading": "Loading the world...",
-  "world.connectionLost": "Connection lost. Returning to planet selection.",
+  "world": {
+    "loading": "Loading the world...",
+    "connectionLost": "Connection lost. Returning to planet selection.",
+    "claimZone": "You cannot place blocks in the claim zone",
+    "insufficientCoins": "Not enough coins — you need {{needed}} but only have {{coins}}",
+    "noCoins": "Your campus is out of coins",
+    "loadFailed": "Failed to load worlds"
+  },
   "legal": {
     "menuTitle": "Legal",
     "privacyTitle": "Privacy Policy",
@@ -770,5 +794,9 @@
     "key_left_click": "Left Click",
     "key_enter": "Enter",
     "control_freecam": "Activate freecam"
+  },
+  "controls": {
+    "moveUp": "Move up",
+    "moveDown": "Move down"
   }
 }

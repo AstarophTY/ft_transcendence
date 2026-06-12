@@ -105,7 +105,7 @@ export function LookupBlock() {
                       {/* Previous block state */}
                       <div 
                         className="flex items-center justify-center h-10 w-10 rounded-md border border-dashed border-muted-foreground/30 shadow-sm overflow-hidden relative bg-muted/10" 
-                        title={`Before: ${record.previousBlock && BlockMetadata[record.previousBlock as keyof typeof BlockMetadata] ? blockLabel(BlockMetadata[record.previousBlock as keyof typeof BlockMetadata].name) : "Air"}`}
+                        title={record.previousBlock && BlockMetadata[record.previousBlock as keyof typeof BlockMetadata] ? `${t('common.before', { defaultValue: 'Before' })}: ${blockLabel(BlockMetadata[record.previousBlock as keyof typeof BlockMetadata].name)}` : `${t('common.before', { defaultValue: 'Before' })}: ${t('editor.air')}`}
                       >
                         {record.previousBlock && BlockMetadata[record.previousBlock as keyof typeof BlockMetadata] ? (
                           <div className="absolute inset-0 flex items-center justify-center scale-75">
@@ -115,7 +115,7 @@ export function LookupBlock() {
                             />
                           </div>
                         ) : (
-                          <span className="text-[10px] font-semibold text-muted-foreground/50 select-none">Air</span>
+                          <span className="text-[10px] font-semibold text-muted-foreground/50 select-none">{t('editor.air')}</span>
                         )}
                       </div>
                       
@@ -125,14 +125,14 @@ export function LookupBlock() {
                       {/* New placed block state */}
                       <div 
                         className="flex items-center justify-center h-10 w-10 rounded-md border border-border shadow-sm overflow-hidden relative bg-background" 
-                        title={`After: ${blockMeta ? blockLabel(blockMeta.name) : "Air"}`}
+                        title={blockMeta ? `${t('common.after', { defaultValue: 'After' })}: ${blockLabel(blockMeta.name)}` : `${t('common.after', { defaultValue: 'After' })}: ${t('editor.air')}`}
                       >
                         {blockMeta ? (
                           <div className="absolute inset-0 flex items-center justify-center scale-75">
                             <BlockPreview name={blockMeta.name} color={blockMeta.color} />
                           </div>
                         ) : (
-                          <span className="text-[10px] font-semibold text-muted-foreground/50 select-none">Air</span>
+                          <span className="text-[10px] font-semibold text-muted-foreground/50 select-none">{t('editor.air')}</span>
                         )}
                       </div>
                     </div>

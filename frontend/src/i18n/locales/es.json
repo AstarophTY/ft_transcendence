@@ -6,9 +6,18 @@
     "es": "Español"
   },
   "common": {
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "refreshPage": "Recargar página",
+    "close": "Cerrar",
+    "before": "Antes",
+    "after": "Después",
+    "sidebar": {
+      "toggle": "Alternar barra lateral"
+    }
   },
   "errors": {
+    "webglContextLost": "Contexto WebGL perdido",
+    "webglDescription": "Tu navegador perdió el contexto de gráficos 3D WebGL (a menudo causado por múltiples recargas en caliente durante el desarrollo o por la limitación del contexto de la GPU).",
     "fortyTwoNoEmailChange": "Las cuentas 42 no pueden cambiar su correo",
     "fortyTwoNoPassword": "Las cuentas 42 no tienen contraseña",
     "campusNameExists": "Ya existe un campus con este nombre",
@@ -77,7 +86,7 @@
     "newPasswordPlaceholder": "Contraseña segura",
     "passwordRequirements": "La contraseña debe contener:",
     "pwLength": "Al menos 8 caracteres",
-    "pwUpper": "Una mayúscula",
+    "pwUpper": "Una majúscula",
     "pwLower": "Una minúscula",
     "pwNumber": "Un número",
     "pwSpecial": "Un carácter especial",
@@ -137,6 +146,7 @@
     },
     "profile": {
       "title": "Perfil",
+      "description": "Mira el perfil y las estadísticas de este amigo.",
       "joined": "Se unió el {{date}}",
       "bio": "Biografía",
       "noBio": "Sin biografía todavía.",
@@ -146,6 +156,7 @@
   },
   "settings": {
     "title": "Ajustes",
+    "description": "Ajusta tus preferencias y tu cuenta.",
     "save": "Guardar",
     "saved": "Guardado",
     "passwordChanged": "Contraseña actualizada",
@@ -181,7 +192,7 @@
       "campus": "Campus",
       "campusHint": "Sincronizado desde tu cuenta 42.",
       "fortyTwo": "Usuario 42",
-      "email42Hint": "Las cuentas 42 no pueden cambiar su correo.",
+      "email42Hint": "Las cuentas 42 ne pueden cambiar su correo.",
       "siteLogtime": "Logtime",
       "siteLogtimeHint": "Logtime 42 total desde la creación de la cuenta",
       "dangerZone": "Zona de peligro",
@@ -203,7 +214,8 @@
       "language": "Idioma",
       "theme": "Tema",
       "renderDistance": "Distancia de renderizado",
-      "chunks": "chunks"
+      "chunks": "trozos",
+      "skin": "Color del avatar"
     }
   },
   "profile": {
@@ -215,6 +227,8 @@
   },
   "admin": {
     "title": "Panel de administración",
+    "description": "Gestiona miembros, roles y campus.",
+    "editUserDescription": "Actualiza el perfil, el rol y el campus de este miembro.",
     "user": "Usuario",
     "role": "Rol",
     "actions": "Acciones",
@@ -231,10 +245,10 @@
     },
     "search": "Buscar por usuario, correo…",
     "filter": {
+      "42": "42",
       "all": "Todos",
       "admin": "Admins",
       "user": "Usuarios",
-      "42": "42",
       "local": "Locales"
     },
     "chart": {
@@ -260,18 +274,9 @@
       "local": "Cuentas locales"
     },
     "campus": {
-      "empty": "No hay solicitudes de campus pendientes.",
-      "requestedBy": "Solicitado por {{user}}",
-      "approve": "Aprobar",
-      "decline": "Rechazar",
-      "approved": "Campus «{{label}}» aprobado",
-      "declined": "Solicitud de «{{label}}» rechazada",
-      "requestsSection": "Solicitudes pendientes",
       "manageSection": "Todos los campus",
       "delete": "Eliminar campus",
       "deleted": "Campus «{{label}}» eliminado",
-      "regenerateTitle": "¿Regenerar el planeta?",
-      "regenerateAction": "Regenerar",
       "removeMember": "Quitar del campus",
       "noMembers": "Aún no hay miembros.",
       "noCampuses": "Aún no hay campus.",
@@ -279,12 +284,19 @@
       "coinsIncrease": "Añadir una moneda",
       "totalHint": "Total de monedas (miembros + bono)",
       "bonus": "Bono admin",
+      "planetConfig": "Configuración del planeta",
+      "seedPlaceholder": "Semilla",
+      "regenerate": "Regenerar todo el planeta (borra las ediciones)",
+      "regenerateConfirm": "¿Seguro que quieres regenerar este planeta? Esto borrará todas las ediciones de bloques hechas por los jugadores.",
+      "regenerateTitle": "¿Regenerar el planeta?",
+      "regenerateAction": "Regenerar",
       "create": "Crear",
       "created": "Campus «{{label}}» creado",
       "namePlaceholder": "Nombre del nuevo campus",
       "addMember": "Añadir miembro",
       "noUsersToAdd": "No hay usuarios para añadir."
-    }
+    },
+    "userDeleted": "{{name}} eliminado"
   },
   "editor": {
     "catalog": {
@@ -309,16 +321,19 @@
       "title": "Historial del bloque",
       "fetching": "Cargando historial del bloque...",
       "empty": "Haz clic en un bloque de la escena 3D para ver su historial.",
-      "none": "No hay historial para este bloque."
+      "none": "No hay historial para este bloque.",
+      "deletedAccount": "Cuenta eliminada"
     },
     "freecam": "Cámara libre",
     "exitFreecam": "Salir de cámara libre",
+    "air": "Aire",
     "free": "Gratis",
     "economy": {
       "coins": "Monedas del campus",
       "budget": "Presupuesto de construcción del campus — colocar un bloque de pago cuesta 1 moneda",
       "freeBlock": "Colocación gratuita"
-    }
+    },
+    "closeCatalog": "Cerrar catálogo"
   },
   "planet": {
     "private": "Planeta privado"
@@ -340,7 +355,7 @@
     "votesCount_other": "{{count}} votos",
     "noCandidates": "Todavía no hay islas para votar en este campus.",
     "endsIn": "Termina en",
-    "buildLocked": "La construcción está bloqueada fuera de la fase de construcción de la temporada.",
+    "buildLocked": "La construction está bloqueada fuera de la fase de construcción de la temporada.",
     "worldReset": "Comenzó una nueva temporada: los mundos se han reiniciado.",
     "deletedUser": "Cuenta eliminada",
     "noWinners": "Aún no hay ganadores anteriores.",
@@ -376,7 +391,7 @@
       "delay": "Retraso del voto (min)",
       "duration": "Duración del voto (min)",
       "create": "Abrir temporada",
-      "queue": "Programar la próxima temporada",
+      "queue": "Programmar la próxima temporada",
       "startsOn": "empieza el {{date}}",
       "allSeasons": "Todas las temporadas",
       "noSeasons": "Aún no hay temporadas.",
@@ -394,11 +409,12 @@
       "created": "Temporada abierta",
       "finalized": "Temporada finalizada: islas ganadoras copiadas"
     },
-    "preview3d": "Vista 3D"
+    "preview3d": "Vista 3D",
+    "votesCount": "{{count}} votos"
   },
   "blocks": {
     "Stone": "Piedra",
-    "Dirt": "Tierra",
+    "Dirt": "Terre",
     "Grass": "Hierba",
     "Log_Oak": "Tronco de roble",
     "Leaves_Oak_Opaque": "Hojas de roble",
@@ -570,8 +586,8 @@
     "Mushroom_Block_Skin_Red": "Seta bloque piel rojo",
     "Mushroom_Block_Skin_Stem": "Seta bloque piel tallo",
     "Mycelium": "Micelio",
-    "Nether_Brick": "Ladrillo del Nether",
-    "Nether_Wart_Block": "Bloque de verrugas del Nether",
+    "Nether_Brick": "Brique du Nether",
+    "Nether_Wart_Block": "Bloc de verrugas del Nether",
     "Netherrack": "Netherrack",
     "Noteblock": "Bloque musical",
     "Obsidian": "Obsidiana",
@@ -585,8 +601,8 @@
     "Planks_Jungle": "Tablas de jungla",
     "Planks_Spruce": "Tablas de abeto",
     "Prismarine_Bricks": "Ladrillos de prismarina",
-    "Prismarine_Dark": "Prismarina oscuro",
-    "Prismarine_Rough": "Prismarina rugosa",
+    "Prismarine_Dark": "Prisamarina oscuro",
+    "Prismarine_Rough": "Prisamarina rugosa",
     "Pumpkin_Face": "Cara de calabaza",
     "Purpur_Block": "Bloque de purpúreo",
     "Purpur_Pillar": "Purpúreo pilar",
@@ -647,8 +663,14 @@
     "Wool_Colored_White": "Lana blanca",
     "Wool_Colored_Yellow": "Lana amarilla"
   },
-  "world.loading": "Cargando el mundo...",
-  "world.connectionLost": "Conexión perdida. Volviendo a la selección de planetas.",
+  "world": {
+    "loading": "Cargando el mundo...",
+    "connectionLost": "Conexión perdida. Volviendo a la selección de planetas.",
+    "claimZone": "No puedes colocar bloques en la zona protegida",
+    "insufficientCoins": "Monedas insuficientes — necesitas {{needed}} pero solo tienes {{coins}}",
+    "noCoins": "Tu campus se quedó sin monedas",
+    "loadFailed": "No se pudieron cargar los mundos"
+  },
   "legal": {
     "menuTitle": "Aviso legal",
     "privacyTitle": "Política de privacidad",
@@ -772,5 +794,9 @@
     "key_left_click": "Clic izquierdo",
     "key_enter": "Intro",
     "control_freecam": "Activar la cámara libre"
+  },
+  "controls": {
+    "moveUp": "Subir",
+    "moveDown": "Bajar"
   }
 }

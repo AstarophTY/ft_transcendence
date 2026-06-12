@@ -5,6 +5,7 @@ import { connectSocket, disconnectSocket } from '@/lib/sockets/socket'
 import { disconnectWorldSocket } from '@/lib/sockets/worldSocket'
 import { listWorlds } from '@/lib/api/world'
 import { useAuth } from '@/store/auth'
+import { useAdmin } from '@/store/admin'
 import { useChatChannels } from '@/store/chatChannels'
 import { usePlanetStore } from '@/store/planetStore'
 import i18n from '@/i18n'
@@ -71,6 +72,29 @@ export const createSocketSlice: StateCreator<
         }
         const name = nameOf(message.senderId)
         if (name) toast.info(i18n.t('friends.notif.message', { name }))
+      })
+      .off('user:avatar')
+      .on('user:avatar', ({ userId, avatar }: { userId: string; avatar: string | null }) => {
+        // A user swapped their picture: patch every place we already hold their
+        // data so the new avatar shows up live, no reload needed.
+        set({
+          friends: get().friends.map((f) =>
+            f.id === userId ? { ...f, avatar } : f,
+          ),
+          activeFriend:
+            get().activeFriend?.id === userId
+              ? { ...get().activeFriend!, avatar }
+              : get().activeFriend,
+        })
+        useAdmin.setState((s) => ({
+          users: s.users.map((u) => (u.id === userId ? { ...u, avatar } : u)),
+          editing:
+            s.editing?.id === userId ? { ...s.editing, avatar } : s.editing,
+        }))
+        // Keep our own identity in sync too (e.g. avatar changed from another tab).
+        useAuth.setState((s) =>
+          s.user?.userId === userId ? { user: { ...s.user, avatar } } : s,
+        )
       })
       .off('campus:assigned')
       .on(

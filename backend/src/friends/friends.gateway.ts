@@ -102,6 +102,16 @@ export class FriendsGateway
     this.server.to(userId).emit(event, payload);
   }
 
+  /**
+   * Tell every connected client a user swapped their avatar, so open friend
+   * lists, chats and the admin table refresh the picture live instead of
+   * showing a stale one until reload. Everyone joins the `server` room on
+   * connect, so a single emit reaches all of them.
+   */
+  broadcastAvatar(userId: string, avatar: string | null): void {
+    this.server.to('server').emit('user:avatar', { userId, avatar });
+  }
+
   /** After two users become friends, sync each other's online status. */
   syncNewFriendship(a: string, b: string): void {
     if (this.presence.isOnline(b)) this.emitToUser(a, 'friend:online', { userId: b });

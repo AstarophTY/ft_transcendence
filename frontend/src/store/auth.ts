@@ -4,12 +4,13 @@ import {
   getFortyTwoLoginUrl,
   loginRequest,
   logoutRequest,
+  refreshAccessToken,
   registerRequest,
   setUnauthorizedHandler,
   tokenStore,
   type AuthTokens,
 } from '@/lib/api'
-import { decodeAccessToken } from '@/lib/jwt'
+import { decodeAccessToken, isTokenExpired } from '@/lib/jwt'
 import { deleteAccount, getMe } from '@/lib/api/account'
 import { toMessage } from '@/lib/apiError'
 import i18n from '@/i18n'
@@ -90,7 +91,7 @@ export const useAuth = create<AuthState>((set) => ({
   loading: false,
   requirePrivacy: false,
 
-  init: () => {
+  init: async () => {
     const params = new URLSearchParams(window.location.search)
     const access = params.get('access_token')
     const refresh = params.get('refresh_token')
@@ -103,6 +104,7 @@ export const useAuth = create<AuthState>((set) => ({
       // it can use the app; gate it here right after the OAuth round-trip.
       if (isNew) set({ requirePrivacy: true })
       toast.success(i18n.t('auth.loginSuccess'))
+      set({ loading: false })
     }
 
     setUnauthorizedHandler(() => {
@@ -110,13 +112,22 @@ export const useAuth = create<AuthState>((set) => ({
       toast.error(i18n.t('auth.sessionExpired'))
     })
 
-    const stored = tokenStore.access
+    // Resolve the session before exposing a user: an expired access token is
+    // silently refreshed, and a dead session is cleared. This is what keeps a
+    // stale session from setting `user` and tripping every gated loader (and
+    // the sockets) into firing requests that come back 401.
+    let stored = tokenStore.access
+    if (stored && isTokenExpired(stored)) {
+      stored = await refreshAccessToken()
+    }
     if (stored) {
       set({ user: userFromToken(stored) })
       // The JWT carries a snapshot of mutable fields (avatar, username...) from
       // when it was issued. Re-hydrate from the DB so a change made after login
       // (e.g. a new profile picture) survives a page refresh.
       void hydrateUser()
+    } else {
+      tokenStore.clear()
     }
   },
 
@@ -162,6 +173,7 @@ export const useAuth = create<AuthState>((set) => ({
   },
 
   loginWith42: () => {
+    set({ loading: true })
     window.location.href = getFortyTwoLoginUrl()
   },
 

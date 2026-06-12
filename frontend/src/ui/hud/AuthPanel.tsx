@@ -39,15 +39,20 @@ import { useEditorStore } from '@/store/editorStore'
 
 function FortyTwoButton() {
   const { t } = useTranslation()
-  const loginWith42 = useAuth((s) => s.loginWith42)
+  const { loginWith42, loading } = useAuth()
   return (
     <Button
       type="button"
       variant="outline"
       className="w-full"
       onClick={loginWith42}
+      disabled={loading}
     >
-      <img src="/42_Logo.svg" alt="" className="size-4 shrink-0" />
+      {loading ? (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      ) : (
+        <img src="/42_Logo.svg" alt="" className="mr-2 size-4 shrink-0" />
+      )}
       {t('auth.continueWith42')}
     </Button>
   )

@@ -94,7 +94,7 @@ export const useAdmin = create<AdminState>((set, get) => ({
   removeUser: async (user) => {
     try {
       await deleteUser(user.id)
-      toast.success(`${user.username} deleted`)
+      toast.success(i18n.t('admin.userDeleted', { name: user.username }))
       await get().load()
     } catch (error) {
       toast.error(toMessage(error))

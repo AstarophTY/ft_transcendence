@@ -10,6 +10,7 @@ import { useAuth } from '@/store/auth'
 import { WHEEL_SENSITIVITY } from './planetSelection/constants'
 import { createDemoPlanetMap } from './planetSelection/createDemoPlanetMap'
 import { toast } from 'sonner'
+import i18n from '@/i18n'
 import PlanetRail from './planetSelection/PlanetRail'
 
 const CameraController = () => {
@@ -76,18 +77,36 @@ const PlanetSelectionScene = () => {
   useEffect(() => {
     if (!user) return
     let cancelled = false
-    listWorlds()
-      .then((data) => {
-        if (!cancelled) {
-          setWorlds(data)
-        }
-      })
-      .catch((err) => {
-        if (err instanceof AxiosError && err.response?.status === 401) return
-        toast.error('Failed to load worlds: ' + (err.response?.data?.message || err.message || err))
-      })
+    let timer: ReturnType<typeof setTimeout>
+
+    // A backend restart (hot-reload / deploy) briefly 502s the API and refuses
+    // the websocket. Rather than stranding the user on an empty list with an
+    // error toast until they refresh, retry transient failures with backoff so
+    // planet selection recovers on its own once the backend is back.
+    const load = (attempt = 0) => {
+      listWorlds()
+        .then((data) => {
+          if (!cancelled) setWorlds(data)
+        })
+        .catch((err) => {
+          if (cancelled) return
+          if (err instanceof AxiosError && err.response?.status === 401) return
+          const status = err.response?.status
+          const transient = !err.response || status === 502 || status === 503 || status === 504
+          if (transient && attempt < 5) {
+            timer = setTimeout(() => load(attempt + 1), Math.min(1000 * 2 ** attempt, 8000))
+            return
+          }
+          console.error('PlanetSelectionScene: Failed to load worlds:', err)
+          toast.error(i18n.t('world.loadFailed'))
+        })
+    }
+    load()
+
+
     return () => {
       cancelled = true
+      clearTimeout(timer)
     }
   }, [setWorlds, user?.userId])
 

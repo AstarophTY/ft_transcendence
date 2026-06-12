@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/ui/shadcn/dialog.tsx'
@@ -32,7 +33,6 @@ export default function AdminEditUser() {
   const [displayName, setDisplayName] = useState(editing?.displayName ?? '')
   const [bio, setBio] = useState(editing?.bio ?? '')
   const [email, setEmail] = useState(editing?.email ?? '')
-  const [campus, setCampus] = useState(editing?.campus?.label ?? '')
   const [status, setStatus] = useState<UserStatus>(editing?.status ?? 'ONLINE')
   const [statusMessage, setStatusMessage] = useState(editing?.statusMessage ?? '')
   const [password, setPassword] = useState('')
@@ -46,7 +46,6 @@ export default function AdminEditUser() {
       displayName,
       bio,
       ...(email ? { email } : {}),
-      campus,
       status,
       statusMessage,
     })
@@ -73,6 +72,9 @@ export default function AdminEditUser() {
               </p>
             </div>
           </div>
+          <DialogDescription className="sr-only">
+            {t('admin.editUserDescription')}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-5">
@@ -115,13 +117,6 @@ export default function AdminEditUser() {
                   disabled={is42}
                   onChange={(e) => setEmail(e.target.value)}
                   aria-invalid={!isEmailValid || undefined}
-                />
-              </Field>
-
-              <Field label={t('settings.account.campus')}>
-                <Input
-                  value={campus}
-                  onChange={(e) => setCampus(e.target.value)}
                 />
               </Field>
             </div>

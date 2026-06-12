@@ -38,7 +38,10 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      {/* When a description is given, let Radix wire `aria-describedby` to it.
+          When it isn't, explicitly clear `aria-describedby` to opt out of Radix's
+          "Missing Description" warning instead of pointing at a missing node. */}
+      <DialogContent {...(description ? {} : { 'aria-describedby': undefined })}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}

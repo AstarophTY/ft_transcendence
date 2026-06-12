@@ -4,6 +4,7 @@ import { Loader2, Search } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/ui/shadcn/dialog.tsx'
@@ -137,6 +138,7 @@ export default function AdminDialog() {
       )}>
         <DialogHeader>
           <DialogTitle>{t('admin.title')}</DialogTitle>
+          <DialogDescription>{t('admin.description')}</DialogDescription>
         </DialogHeader>
 
         {loading && !stats ? (

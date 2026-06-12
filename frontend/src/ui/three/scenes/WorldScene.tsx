@@ -33,6 +33,8 @@ import { Minimap } from './worldScene/Minimap'
 import { useTranslation } from 'react-i18next'
 
 // Horizontal reach of a tree canopy, in blocks (matches the ±2 leaf offset loop below).
+import { useRemotePlayersStore } from '@/store/remotePlayersStore'
+
 const TREE_CANOPY_RADIUS = 2
 
 // Deterministic per-column spawn test for a tree trunk.
@@ -341,6 +343,10 @@ const WorldScene = () => {
     }
   }, [activeCampusId, profile, worldEpoch])
 
+  // Throttle state for the transform broadcast below; reset on every (re)join
+  // so we re-announce our presence even while standing still.
+  const lastSent = useRef({ t: 0, key: '' })
+
   useEffect(() => {
     if (!activeCampusId && !isPrivate) return
     const token = tokenStore.access
@@ -360,7 +366,82 @@ const WorldScene = () => {
     }
     socket.on('world:coins', onCoins)
 
-    socket.emit('world:join', { campusId: activeCampusId, personalWorld: isPrivate })
+    const onSnapshot = (players: any[]) => {
+      useRemotePlayersStore.getState().setPlayers(players)
+    }
+    const onMove = (payload: any) => {
+      useRemotePlayersStore.getState().upsertPlayer(payload)
+    }
+    const onLeave = ({ id }: { id: string }) => {
+      useRemotePlayersStore.getState().removePlayer(id)
+    }
+    const onAvatar = ({ id, a }: { id: string; a: string | null }) => {
+      useRemotePlayersStore.getState().updateAvatar(id, a)
+    }
+
+    socket
+      .on('world:players', onSnapshot)
+      .on('player:move', onMove)
+      .on('player:leave', onLeave)
+      .on('player:avatar', onAvatar)
+
+    // Join the island and re-announce our transform. The server only registers
+    // presence (used to build the `world:players` snapshot for newcomers) on
+    // `player:move`, and the move sender is throttled to "only on change". So
+    // after anything that drops us from the island's presence — a campus switch,
+    // or a transient socket disconnect that the server cleans up — a standing
+    // still player would otherwise stay invisible to anyone who joins later.
+    // Resetting the throttle forces the next frame to re-send our position,
+    // re-adding us to the snapshot and re-notifying peers. We also re-join on
+    // every reconnect, since socket.io drops us from the room on a blip.
+    const join = () => {
+      const p = playerRef.current
+      const skin = usePlayerAppearance.getState().skinColor
+      
+      // Send our initial state so we are registered and visible to others
+      // immediately upon join, even if we don't move.
+      socket.emit('world:join', {
+        campusId: activeCampusId,
+        personalWorld: isPrivate,
+        p: p ? [p.position.x, p.position.y, p.position.z] : [0, 20, 0],
+        r: p ? p.rotation.y : 0,
+        m: currentMode === 'freecam' ? 'freecam' : 'player',
+        skin,
+      })
+      lastSent.current = { t: 0, key: '' }
+    }
+    if (socket.connected) join()
+    socket.on('connect', join)
+
+    // Another player just joined the island: re-announce our transform (the
+    // server asks via `world:resync`) so they see us right away even if we are
+    // standing still and the move sender has nothing new to push.
+    const resync = () => {
+      lastSent.current = { t: 0, key: '' }
+      
+      // Trigger an immediate broadcast rather than waiting for the next
+      // useFrame (which might be throttled in background tabs).
+      const p = playerRef.current
+      if (!p) return
+      
+      const { activeCampusId, isPrivateWorld } = usePlanetStore.getState()
+      const skin = usePlayerAppearance.getState().skinColor
+      const freecam = currentMode === 'freecam'
+      const round = (n: number) => Math.round(n * 50) / 50
+
+      const payload: any = {
+        p: [round(p.position.x), round(p.position.y), round(p.position.z)],
+        r: round(p.rotation.y),
+        m: freecam ? 'freecam' : 'player',
+        skin,
+        campusId: activeCampusId,
+        personalWorld: isPrivateWorld,
+      }
+      
+      // We don't bother with camDir here, the body position is enough for a resync.
+      socket.emit('player:move', payload)
+    }
+    socket.on('world:resync', resync)
 
     const onRemoteEdit = ({ blocks }: { blocks: WorldBlock[] }) => {
       const map = mapRef.current
@@ -420,6 +501,8 @@ const WorldScene = () => {
 
     return () => {
       socket.emit('world:leave', { campusId: activeCampusId, personalWorld: isPrivate })
+      socket.off('connect', join)
+      socket.off('world:resync', resync)
       socket.off('world:edit', onRemoteEdit)
       socket.off('world:lookup:res', onLookupResponse)
       socket.off('world:coins', onCoins)
@@ -427,13 +510,17 @@ const WorldScene = () => {
       socket.off('disconnect', onDisconnect)
       socket.off('world:locked', onLocked)
       socket.off('world:reset', onReset)
+      socket.off('world:players', onSnapshot)
+      socket.off('player:move', onMove)
+      socket.off('player:leave', onLeave)
+      socket.off('player:avatar', onAvatar)
+      useRemotePlayersStore.getState().clear()
     }
   }, [activeCampusId, isPrivate])
 
   // Broadcast our own transform to the island, throttled and only when it
   // changed. We always send the body; in freecam we also send the flying camera
   // so peers see both the avatar and a camera marker.
-  const lastSent = useRef({ t: 0, key: '' })
   const camDir = useRef(new THREE.Vector3())
   useFrame(() => {
     const socket = getWorldSocket()
@@ -702,54 +789,55 @@ const WorldScene = () => {
     })
   })
 
-  if (!localMap || !isLoaded) {
-    return (
-      <Html 
-        fullscreen 
-        zIndexRange={[100, 100]}
-        calculatePosition={(_, __, size) => [size.width / 2, size.height / 2]}
-      >
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
-          <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary" />
-          <h2 className="text-2xl font-bold tracking-tight text-primary">{t('world.loading')}</h2>
-        </div>
-      </Html>
-    )
-  }
-
   return (
     <group>
-      <Minimap
-        localMap={localMap}
-        mapVersion={mapVersion}
-        playerRef={playerRef}
-        currentMode={currentMode}
-        mapSize={mapSize}
-      />
-      <WorldShadowLight playerRef={playerRef} currentMode={currentMode} />
-      <FreeCameraControls
-        localMap={localMap}
-        mapSize={mapSize}
-        active={currentMode === 'freecam'}
-        playerRef={playerRef}
-        onLookupBlock={handleLookupBlock}
-        onUpdateBlock={handleUpdateBlock}
-      />
-      <Player
-        localMap={localMap}
-        active={currentMode === 'player'}
-        playerRef={playerRef}
-      />
       {(activeCampusId || isPrivate) && <RemotePlayers campusId={activeCampusId || 'personal'} />}
-      {visibleChunks.map(({ cx, cz }) => (
-        <ChunkRenderer
-          key={`${cx}-${cz}`}
-          chunkX={cx}
-          chunkZ={cz}
-          localMap={localMap}
-          blockAssets={blockAssets}
-        />
-      ))}
+
+      {(!localMap || !isLoaded) ? (
+        <Html 
+          fullscreen 
+          zIndexRange={[100, 100]}
+          calculatePosition={(_, __, size) => [size.width / 2, size.height / 2]}
+        >
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
+            <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary" />
+            <h2 className="text-2xl font-bold tracking-tight text-primary">{t('world.loading')}</h2>
+          </div>
+        </Html>
+      ) : (
+        <>
+          <Minimap
+            localMap={localMap}
+            mapVersion={mapVersion}
+            playerRef={playerRef}
+            currentMode={currentMode}
+            mapSize={mapSize}
+          />
+          <WorldShadowLight playerRef={playerRef} currentMode={currentMode} />
+          <FreeCameraControls
+            localMap={localMap}
+            mapSize={mapSize}
+            active={currentMode === 'freecam'}
+            playerRef={playerRef}
+            onLookupBlock={handleLookupBlock}
+            onUpdateBlock={handleUpdateBlock}
+          />
+          <Player
+            localMap={localMap}
+            active={currentMode === 'player'}
+            playerRef={playerRef}
+          />
+          {visibleChunks.map(({ cx, cz }) => (
+            <ChunkRenderer
+              key={`${cx}-${cz}`}
+              chunkX={cx}
+              chunkZ={cz}
+              localMap={localMap}
+              blockAssets={blockAssets}
+            />
+          ))}
+        </>
+      )}
     </group>
   )
 }

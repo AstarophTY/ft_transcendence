@@ -188,9 +188,15 @@ export class WorldService {
       // Lock campus record for the duration of the transaction to prevent coin race conditions
       const campus = await tx.campus.findUnique({
         where: { id: campusId },
-        select: { coins: true },
+        select: { coins: true, users: { select: { coins: true } } },
       });
       if (!campus) throw new NotFoundException('Campus not found');
+      // The build budget is the whole campus pool: the admin bonus plus every
+      // member's earned coins (same total the admin panel shows). Members' coins
+      // are read-only here (they come from 42 logtime), so all spending is
+      // persisted on the campus bonus, which may dip below zero once the pooled
+      // members' coins have been consumed.
+      const membersCoins = campus.users.reduce((sum, u) => sum + u.coins, 0);
 
       // Query existing blocks in a single batch to calculate costs/refunds correctly
       const existing = await tx.worldBlock.findMany({
@@ -204,7 +210,8 @@ export class WorldService {
         existing.map((e) => [`${e.x},${e.y},${e.z}`, e.block]),
       );
 
-      let coins = campus.coins;
+      let bonus = campus.coins; // persisted admin pool (may go negative)
+      let coins = bonus + membersCoins; // spendable budget = admin total
       const applied: WorldBlockDto[] = [];
       const rejected: { x: number; y: number; z: number }[] = [];
 
@@ -242,9 +249,13 @@ export class WorldService {
             continue;
           }
           coins -= 1;
+          bonus -= 1;
         } else if (b.block === AIR) {
           const before = prev.get(key);
-          if (before !== undefined && isPaidBlock(before)) coins += 1;
+          if (before !== undefined && isPaidBlock(before)) {
+            coins += 1;
+            bonus += 1;
+          }
         }
         applied.push(b);
       }
@@ -302,22 +313,29 @@ export class WorldService {
 
       await tx.campus.update({
         where: { id: campusId },
-        data: { coins },
+        data: { coins: bonus },
       });
 
+      // Return the spendable total (bonus + members) so clients show the same
+      // budget the admin panel does.
       return { applied, rejected, coins };
     }, {
       timeout: 15000, // Higher timeout for economy logic processing
     });
   }
 
-  /** The campus build budget (coins), or null if the campus does not exist. */
+  /**
+   * The campus build budget, or null if the campus does not exist. This is the
+   * whole pool shown in the admin panel: the admin bonus plus every member's
+   * earned coins.
+   */
   async getCampusCoins(campusId: string): Promise<number | null> {
     const campus = await this.prisma.campus.findUnique({
       where: { id: campusId },
-      select: { coins: true },
+      select: { coins: true, users: { select: { coins: true } } },
     });
-    return campus?.coins ?? null;
+    if (!campus) return null;
+    return campus.coins + campus.users.reduce((sum, u) => sum + u.coins, 0);
   }
 
   /** Create a world (with a fresh random profile) for a campus or user. */

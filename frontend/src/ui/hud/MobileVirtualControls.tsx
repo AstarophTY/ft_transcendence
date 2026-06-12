@@ -199,7 +199,7 @@ export default function MobileVirtualControls() {
               onPointerCancel={() => dispatchKey('Space', false)}
               onPointerLeave={() => dispatchKey('Space', false)}
               className="flex h-10 w-10 items-center justify-center rounded-lg bg-background/40 border border-border/30 text-foreground active:bg-primary/40 active:scale-95 select-none touch-none"
-              aria-label="Move Up"
+              aria-label={t('controls.moveUp')}
             >
               <ArrowUpToLine className="size-5" />
             </button>
@@ -209,7 +209,7 @@ export default function MobileVirtualControls() {
               onPointerCancel={() => dispatchKey('ShiftLeft', false)}
               onPointerLeave={() => dispatchKey('ShiftLeft', false)}
               className="flex h-10 w-10 items-center justify-center rounded-lg bg-background/40 border border-border/30 text-foreground active:bg-primary/40 active:scale-95 select-none touch-none"
-              aria-label="Move Down"
+              aria-label={t('controls.moveDown')}
             >
               <ArrowDownToLine className="size-5" />
             </button>

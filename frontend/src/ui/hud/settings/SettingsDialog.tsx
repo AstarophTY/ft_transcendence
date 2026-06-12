@@ -3,6 +3,7 @@ import { Loader2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/ui/shadcn/dialog.tsx'
@@ -39,6 +40,7 @@ export default function SettingsDialog() {
       )}>
         <DialogHeader>
           <DialogTitle>{t('settings.title')}</DialogTitle>
+          <DialogDescription>{t('settings.description')}</DialogDescription>
         </DialogHeader>
 
         {loading || !me ? (

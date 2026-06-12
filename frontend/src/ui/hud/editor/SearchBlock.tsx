@@ -369,7 +369,7 @@ export function SearchBlock() {
               <button 
                 onClick={() => setCatalogOpen(false)}
                 className="p-1 rounded-md hover:bg-muted/20 active:scale-95 transition-all text-muted-foreground hover:text-foreground cursor-pointer"
-                aria-label="Close Catalog"
+                aria-label={t('editor.closeCatalog')}
               >
                 <X className="h-5 w-5" />
               </button>

@@ -127,21 +127,30 @@ export class AuthService {
     const username = await this.users.generateUniqueUsername(
       profile.fortyTwoLogin,
     );
-    const created = await this.users.create({
-      fortyTwoId: profile.fortyTwoId,
-      fortyTwoLogin: profile.fortyTwoLogin,
-      email: profile.email,
-      username,
-      avatar: profile.avatar,
-      displayName: profile.displayName ?? null,
-      isVerified: true,
-    });
+    try {
+      const created = await this.users.create({
+        fortyTwoId: profile.fortyTwoId,
+        fortyTwoLogin: profile.fortyTwoLogin,
+        email: profile.email,
+        username,
+        avatar: profile.avatar,
+        displayName: profile.displayName ?? null,
+        isVerified: true,
+      });
 
-    await this.syncFortyTwo(created, profile);
-    await this.world.ensureWorld(created.id, true);
-    const latestUser = await this.users.findById(created.id);
-    const tokens = await this.generateTokens(latestUser!);
-    return { ...tokens, isNew: true };
+      await this.syncFortyTwo(created, profile);
+      await this.world.ensureWorld(created.id, true);
+      const latestUser = await this.users.findById(created.id);
+      const tokens = await this.generateTokens(latestUser!);
+      return { ...tokens, isNew: true };
+    } catch (err: any) {
+      // If we lost the race to create the user (P2002: Unique constraint failed),
+      // just recurse: the next call will hit the `linked` or `sameEmail` checks.
+      if (err.code === 'P2002') {
+        return this.validateFortyTwoUser(profile);
+      }
+      throw err;
+    }
   }
 
   /** Keep campus and logtime-coins in sync with 42 on every login. */

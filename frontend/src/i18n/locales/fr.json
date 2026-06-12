@@ -6,9 +6,18 @@
     "es": "Español"
   },
   "common": {
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "refreshPage": "Actualiser la page",
+    "close": "Fermer",
+    "before": "Avant",
+    "after": "Après",
+    "sidebar": {
+      "toggle": "Basculer la barre latérale"
+    }
   },
   "errors": {
+    "webglContextLost": "Contexte WebGL perdu",
+    "webglDescription": "Votre navigateur a perdu le contexte graphique 3D WebGL (souvent causé par plusieurs rechargements à chaud pendant le développement ou par une limitation du GPU).",
     "fortyTwoNoEmailChange": "Les comptes 42 ne peuvent pas changer leur e-mail",
     "fortyTwoNoPassword": "Les comptes 42 n'ont pas de mot de passe",
     "campusNameExists": "Un campus portant ce nom existe déjà",
@@ -137,6 +146,7 @@
     },
     "profile": {
       "title": "Profil",
+      "description": "Voir le profil et les stats de cet ami.",
       "joined": "Inscrit le {{date}}",
       "bio": "Bio",
       "noBio": "Pas encore de bio.",
@@ -146,6 +156,7 @@
   },
   "settings": {
     "title": "Paramètres",
+    "description": "Ajustez vos préférences et votre compte.",
     "save": "Enregistrer",
     "saved": "Enregistré",
     "passwordChanged": "Mot de passe mis à jour",
@@ -203,7 +214,8 @@
       "language": "Langue",
       "theme": "Thème",
       "renderDistance": "Distance de rendu",
-      "chunks": "tronçons"
+      "chunks": "tronçons",
+      "skin": "Couleur de l’avatar"
     }
   },
   "profile": {
@@ -215,6 +227,8 @@
   },
   "admin": {
     "title": "Panneau admin",
+    "description": "Gérer les membres, les rôles et les campus.",
+    "editUserDescription": "Modifier le profil, le rôle et le campus de ce membre.",
     "user": "Utilisateur",
     "role": "Rôle",
     "actions": "Actions",
@@ -231,10 +245,10 @@
     },
     "search": "Rechercher par pseudo, email…",
     "filter": {
+      "42": "42",
       "all": "Tous",
       "admin": "Admins",
       "user": "Utilisateurs",
-      "42": "42",
       "local": "Locaux"
     },
     "chart": {
@@ -263,8 +277,6 @@
       "manageSection": "Tous les campus",
       "delete": "Supprimer le campus",
       "deleted": "Campus « {{label}} » supprimé",
-      "regenerateTitle": "Régénérer la planète ?",
-      "regenerateAction": "Régénérer",
       "removeMember": "Retirer du campus",
       "noMembers": "Aucun membre pour l'instant.",
       "noCampuses": "Aucun campus pour l'instant.",
@@ -272,12 +284,19 @@
       "coinsIncrease": "Ajouter un coin",
       "totalHint": "Total des coins (membres + bonus)",
       "bonus": "Bonus admin",
+      "planetConfig": "Configuration de la planète",
+      "seedPlaceholder": "Graine",
+      "regenerate": "Régénérer toute la planète (efface les modifications)",
+      "regenerateConfirm": "Es-tu sûr de vouloir régénérer cette planète ? Cela effacera toutes les modifications de blocs faites par les joueurs.",
+      "regenerateTitle": "Régénérer la planète ?",
+      "regenerateAction": "Régénérer",
       "create": "Créer",
       "created": "Campus « {{label}} » créé",
       "namePlaceholder": "Nom du nouveau campus",
       "addMember": "Ajouter un membre",
       "noUsersToAdd": "Aucun utilisateur à ajouter."
-    }
+    },
+    "userDeleted": "{{name}} supprimé"
   },
   "editor": {
     "catalog": {
@@ -307,12 +326,14 @@
     },
     "freecam": "Caméra libre",
     "exitFreecam": "Quitter la caméra libre",
+    "air": "Air",
     "free": "Gratuit",
     "economy": {
       "coins": "Coins du campus",
       "budget": "Budget de construction du campus — poser un bloc payant coûte 1 coin",
       "freeBlock": "Pose gratuite"
-    }
+    },
+    "closeCatalog": "Fermer le catalogue"
   },
   "planet": {
     "private": "Planète privée"
@@ -335,11 +356,11 @@
     "noCandidates": "Aucune île à départager dans ce campus pour l'instant.",
     "endsIn": "Se termine dans",
     "buildLocked": "La construction est verrouillée en dehors de la phase de construction de la saison.",
-    "worldReset": "Une nouvelle saison a commencé : les mondes ont été réinitialisés.",
+    "worldReset": "A une nouvelle saison a commencé : les mondes ont été réinitialisés.",
     "deletedUser": "Compte supprimé",
     "noWinners": "Aucun gagnant précédent pour l'instant.",
     "winnersFrom": "Gagnants de {{title}}",
-    "yourIsland": "Ton île",
+    "yourIsland": "Votre île",
     "tabs": {
       "current": "Saison",
       "winners": "Gagnants"
@@ -388,7 +409,8 @@
       "created": "Saison ouverte",
       "finalized": "Saison finalisée — îles gagnantes copiées"
     },
-    "preview3d": "Aperçu 3D"
+    "preview3d": "Aperçu 3D",
+    "votesCount": "{{count}} votes"
   },
   "blocks": {
     "Stone": "Pierre",
@@ -641,8 +663,14 @@
     "Wool_Colored_White": "Laine blanche",
     "Wool_Colored_Yellow": "Laine jaune"
   },
-  "world.loading": "Chargement du monde...",
-  "world.connectionLost": "Connexion perdue. Retour à la sélection des planètes.",
+  "world": {
+    "loading": "Chargement du monde...",
+    "connectionLost": "Connexion perdue. Retour à la sélection des planètes.",
+    "claimZone": "Tu ne peux pas placer de blocs dans la zone protégée",
+    "insufficientCoins": "Pas assez de pièces — il en faut {{needed}} mais tu n’en as que {{coins}}",
+    "noCoins": "Ton campus n’a plus de pièces",
+    "loadFailed": "Échec du chargement des mondes"
+  },
   "legal": {
     "menuTitle": "Mentions légales",
     "privacyTitle": "Politique de confidentialité",
@@ -659,7 +687,7 @@
         "body": "Nous utilisons vos données uniquement pour faire fonctionner le service : vous authentifier, afficher votre profil et votre présence aux autres joueurs, sauvegarder vos contributions et votre progression, gérer vos amitiés et le chat, et mémoriser vos réglages. Nous ne vendons pas vos données et ne les utilisons pas à des fins publicitaires."
       },
       {
-        "title": "3. Base légale",
+        "title": "3. Base legal",
         "body": "Nous traitons vos données pour fournir le service auquel vous avez souscrit et, le cas échéant, sur la base de votre consentement. Vous pouvez retirer votre consentement à tout moment en supprimant votre compte."
       },
       {
@@ -695,7 +723,7 @@
       },
       {
         "title": "2. Compte & éligibilité",
-        "body": "ft_transcendence est un projet pédagogique destiné aux étudiants de 42. Vous devez fournir des informations exactes lors de l'inscription et êtes responsable de la sécurité de vos identifiants ainsi que de toute activité sur votre compte."
+        "body": "ft_transcendence is an educational project intended for 42 students. You must provide accurate information when registering and you are responsible for keeping your credentials secure and for all activity under your account."
       },
       {
         "title": "3. Usage acceptable",
@@ -766,5 +794,9 @@
     "key_left_click": "Clic Gauche",
     "key_enter": "Entrée",
     "control_freecam": "Activer la caméra libre"
+  },
+  "controls": {
+    "moveUp": "Monter",
+    "moveDown": "Descendre"
   }
 }

@@ -6,6 +6,7 @@ import * as SheetPrimitive from "@radix-ui/react-dialog"
 
 import { cn } from "@/lib/utils.ts"
 import { Button } from "@/ui/shadcn/button.tsx"
+import i18n from "@/i18n"
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
@@ -76,7 +77,7 @@ function SheetContent({
               size="sm"
             >
               <XIcon />
-              <span className="sr-only">Close</span>
+              <span className="sr-only">{i18n.t("common.close")}</span>
             </Button>
           </SheetPrimitive.Close>
         )}

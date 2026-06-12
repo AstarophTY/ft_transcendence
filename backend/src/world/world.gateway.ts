@@ -182,7 +182,15 @@ export class WorldGateway
   @SubscribeMessage('world:join')
   async handleJoin(
     @ConnectedSocket() client: Socket,
-    @MessageBody() body: { campusId?: string; personalWorld?: boolean },
+    @MessageBody()
+    body: {
+      campusId?: string
+      personalWorld?: boolean
+      p?: unknown
+      r?: unknown
+      m?: unknown
+      skin?: string
+    },
   ): Promise<void> {
     const campusId = body?.campusId;
     const personalWorld = body?.personalWorld;
@@ -201,17 +209,61 @@ export class WorldGateway
     void client.join(this.room(campusId));
     client.data.campusId = campusId;
 
-    // Send the joining client the players already on this island. Presence is
-    // keyed by user, so a user only ever appears once even across reconnects.
+    const userId = client.data.userId as string;
+    const username = client.data.username as string;
+    // Disallow joining if not fully authenticated (extra safety).
+    if (!userId || !username) {
+      client.disconnect();
+      return;
+    }
+
+    const avatar = (client.data.avatar as string | null) || null;
+
+    // If the client provided an initial transform, register and broadcast it
+    // immediately so others see the newcomer without waiting for the first
+    // move event (and the newcomer is included in the next joiner's snapshot).
+    const state = this.sanitizeTransform(
+      username,
+      avatar,
+      body.p,
+      body.r,
+      body.m,
+      undefined,
+      undefined,
+      undefined,
+    );
+    if (state) {
+      if (typeof body.skin === 'string' && body.skin.length <= 9) {
+        state.skin = body.skin;
+      }
+      let roomPlayers = this.players.get(campusId);
+      if (!roomPlayers) {
+        roomPlayers = new Map();
+        this.players.set(campusId, roomPlayers);
+      }
+      roomPlayers.set(userId, state);
+
+      // Broadcast the newcomer's presence to those already there.
+      client
+        .to(this.room(campusId))
+        .emit('player:move', { id: userId, ...state });
+    }
+
+    // Send the joining client the players already on this island.
     const room = this.players.get(campusId);
     if (room) {
       const others = [...room.entries()]
-        .filter(([userId]) => userId !== client.data.userId)
-        .map(([userId, state]) => ({ id: userId, ...state }));
+        .filter(([id]) => id !== userId)
+        .map(([id, s]) => ({ id, ...s }));
       if (others.length > 0) client.emit('world:players', others);
     }
 
-    // Send the campus build budget so the client knows what it can place.
+    // Presence is only ever populated by `player:move` (or now, initial join),
+    // so a peer who joined and never moved might be missing. Ask everyone
+    // already there to re-announce.
+    client.to(this.room(campusId)).emit('world:resync');
+
+    // Send the campus build budget.
     const coins = await this.world.getCampusCoins(campusId);
     if (coins !== null) client.emit('world:coins', { campusId, coins });
   }
@@ -242,18 +294,21 @@ export class WorldGateway
       skin?: unknown;
     },
   ): void {
+    const userId = client.data.userId as string;
+    const username = client.data.username as string;
+    if (!userId || !username) return;
+
     const campusId = body?.campusId;
     const personalWorld = body?.personalWorld;
 
     const room = personalWorld
-      ? `world:personal:${client.data.userId}`
+      ? `world:personal:${userId}`
       : campusId
         ? this.room(campusId)
         : null;
 
     if (!room || !client.rooms.has(room)) return;
 
-    const username = (client.data.username as string) || 'Unknown';
     const avatar = (client.data.avatar as string | null) || null;
     const state = this.sanitizeTransform(
       username,
@@ -270,7 +325,6 @@ export class WorldGateway
       state.skin = body.skin;
     }
 
-    const userId = client.data.userId as string;
     if (campusId) {
       let roomPlayers = this.players.get(campusId);
       if (!roomPlayers) {
@@ -352,9 +406,16 @@ export class WorldGateway
     }
   }
 
-  /** Push an updated coin balance to every client on the campus island. */
-  broadcastCampusCoins(campusId: string, coins: number): void {
-    this.server?.to(this.room(campusId)).emit('world:coins', { campusId, coins });
+  /**
+   * Push the campus's current build budget (admin bonus + members' coins) to
+   * every client on the island, so an admin's change shows up live in-game. The
+   * total is resolved here so callers don't have to recompute it.
+   */
+  async broadcastCampusCoins(campusId: string): Promise<void> {
+    const coins = await this.world.getCampusCoins(campusId);
+    if (coins !== null) {
+      this.server?.to(this.room(campusId)).emit('world:coins', { campusId, coins });
+    }
   }
 
   /**
@@ -364,6 +425,25 @@ export class WorldGateway
    */
   broadcastWorldReset(): void {
     this.server?.emit('world:reset');
+  }
+
+  /**
+   * Push a freshly-changed avatar to every player currently in a world, so the
+   * picture floating above this user refreshes live instead of staying stale
+   * until peers reconnect. Updates the open socket(s) and the remembered
+   * presence too, so the next `player:move` and any newcomer also get the new
+   * picture (the avatar otherwise comes from the JWT captured at connect time).
+   */
+  async setUserAvatar(userId: string, avatar: string | null): Promise<void> {
+    const sockets = await this.server.fetchSockets();
+    for (const socket of sockets) {
+      if (socket.data.userId === userId) socket.data.avatar = avatar;
+    }
+    for (const roomPlayers of this.players.values()) {
+      const state = roomPlayers.get(userId);
+      if (state) state.a = avatar;
+    }
+    this.server.emit('player:avatar', { id: userId, a: avatar });
   }
 
   /**

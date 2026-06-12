@@ -5,12 +5,19 @@ import axios, {
 } from 'axios'
 import { toast } from 'sonner'
 import i18n from '@/i18n'
+import { isTokenExpired } from '@/lib/jwt'
 
 let sessionExpiredToastShown = false
 
 if (typeof window !== 'undefined') {
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason
+    // Requests we cancel on purpose when there is no session (see the request
+    // interceptor) reject with a cancel — never an unhandled error.
+    if (axios.isCancel(reason)) {
+      event.preventDefault()
+      return
+    }
     if (reason && typeof reason === 'object' && 'response' in reason) {
       const response = (reason as Record<string, unknown>).response
       if (response && typeof response === 'object' && 'status' in response && response.status === 401) {
@@ -55,13 +62,30 @@ export function setUnauthorizedHandler(handler: () => void): void {
 }
 
 api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
+  // Auth endpoints (login/register/refresh/42) are reachable while logged out.
+  if (config.url?.includes('/auth/')) return config
+
   if (refreshing) {
     await refreshing
   }
-  const token = tokenStore.access
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+  let token = tokenStore.access
+  // Refresh an access token that is expired (or about to be) before the request
+  // leaves, so it never comes back 401 and triggers the retry dance.
+  if (token && isTokenExpired(token, 10_000)) {
+    if (!refreshing) {
+      refreshing = refreshAccessToken().finally(() => {
+        refreshing = null
+      })
+    }
+    token = await refreshing
   }
+  // No usable session: cancel quietly instead of firing a request the browser
+  // would log as a 401. Callers/effects are gated on `user`, so this only
+  // guards stray requests made while logged out.
+  if (!token) {
+    return Promise.reject(new axios.Cancel('auth:no-session'))
+  }
+  config.headers.Authorization = `Bearer ${token}`
   return config
 })
 
@@ -70,6 +94,13 @@ let refreshing: Promise<string | null> | null = null
 export async function refreshAccessToken(): Promise<string | null> {
   const refreshToken = tokenStore.refresh
   if (!refreshToken) return null
+  // The refresh token is itself a JWT: if it has already expired there is no
+  // point posting it (the server would 401 and the browser would log it) — the
+  // session is simply over, so drop it locally.
+  if (isTokenExpired(refreshToken)) {
+    tokenStore.clear()
+    return null
+  }
   try {
     const { data } = await axios.post<AuthTokens>(`${baseURL}/auth/refresh`, {
       refreshToken,

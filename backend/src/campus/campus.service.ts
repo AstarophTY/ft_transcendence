@@ -117,7 +117,7 @@ export class CampusService {
 
     const updated = await this.prisma.campus.update({ where: { id }, data: rest });
     if (dto.coins !== undefined) {
-      this.worldGateway.broadcastCampusCoins(id, updated.coins);
+      await this.worldGateway.broadcastCampusCoins(id);
     }
     return updated;
   }

@@ -1,6 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from 'react'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { Button } from '@/ui/shadcn/button.tsx'
+import i18n from '@/i18n'
 
 interface Props {
   children?: ReactNode
@@ -39,9 +40,9 @@ export class WebGLErrorBoundary extends Component<Props, State> {
             </div>
             
             <div className="space-y-2">
-              <h2 className="text-xl font-bold tracking-tight">WebGL Context Lost</h2>
+              <h2 className="text-xl font-bold tracking-tight">{i18n.t('errors.webglContextLost')}</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Your browser lost the WebGL 3D graphics context (often caused by multiple hot-reloads during development or GPU context throttling).
+                {i18n.t('errors.webglDescription')}
               </p>
             </div>
 
@@ -50,7 +51,7 @@ export class WebGLErrorBoundary extends Component<Props, State> {
               className="w-full h-11 font-medium gap-2 shadow-lg hover:shadow-xl transition-all cursor-pointer"
             >
               <RefreshCw className="h-4 w-4" />
-              Refresh Page
+              {i18n.t('common.refreshPage')}
             </Button>
           </div>
         </div>

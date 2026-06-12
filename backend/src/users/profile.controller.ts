@@ -17,6 +17,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuthUser } from '../auth/interfaces/auth.interfaces';
+import { FriendsGateway } from '../friends/friends.gateway';
+import { WorldGateway } from '../world/world.gateway';
 import {
   AVATAR_URL_PREFIX,
   avatarMulterOptions,
@@ -30,7 +32,11 @@ import { SelfProfile, SelfUser } from './users.select';
 @Controller('users/me')
 @UseGuards(JwtAuthGuard)
 export class ProfileController {
-  constructor(private readonly profile: ProfileService) {}
+  constructor(
+    private readonly profile: ProfileService,
+    private readonly friends: FriendsGateway,
+    private readonly world: WorldGateway,
+  ) {}
 
   /** Full self profile (email + campus included, no password hash). */
   @Get()
@@ -63,15 +69,21 @@ export class ProfileController {
   /** Upload / replace the avatar image (multipart field: `file`). */
   @Post('avatar')
   @UseInterceptors(FileInterceptor('file', avatarMulterOptions))
-  uploadAvatar(
+  async uploadAvatar(
     @CurrentUser() user: AuthUser,
     @UploadedFile() file?: Express.Multer.File,
   ): Promise<SelfUser> {
     if (!file) throw new BadRequestException('No file uploaded');
-    return this.profile.setAvatar(
+    const me = await this.profile.setAvatar(
       user.userId,
       `${AVATAR_URL_PREFIX}/${file.filename}`,
     );
+    // Push the new picture to every online client so friend lists and the
+    // admin table update without a reload, and to anyone sharing a world so the
+    // badge above the player refreshes live too.
+    this.friends.broadcastAvatar(user.userId, me.avatar);
+    await this.world.setUserAvatar(user.userId, me.avatar);
+    return me;
   }
 
   @Patch('username')
