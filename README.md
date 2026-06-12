@@ -727,10 +727,6 @@ Team of 4 — _exact role split is documented here; adjust to match your evaluat
 
 ## Individual Contributions
 
-_Split derived from `git shortlog -sne`, with each author's aliases merged
-(sgil--de = AstarophTY/Swann; trgascoi = tristan-gscn; sservant = 0xS4cha/Sxcha;
-julcleme = canarddu38/0x262d)._
-
 * **trgascoi**
   * *Contributions*: Lead on the **3D voxel world** rendering (procedural terrain, instanced rendering, walkable avatar, camera/controls) and HUD/UI.
   * *Challenges & Solutions*: Rendering thousands of active block meshes was causing browser lag and CPU bottlenecks. Overcame this by implementing GPU-instanced rendering (`THREE.InstancedMesh`) grouped by block type, visible-face culling (`isBlockExposed`), and lazy-allocating chunk segments (SubChunks) to optimize memory and draw calls.
