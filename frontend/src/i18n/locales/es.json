@@ -11,6 +11,7 @@
     "close": "Cerrar",
     "before": "Antes",
     "after": "Después",
+    "pickColor": "Elegir un color",
     "sidebar": {
       "toggle": "Alternar barra lateral"
     }
@@ -52,7 +53,23 @@
     "cannotDeleteOwnAccount": "No puedes eliminar tu propia cuenta",
     "voteOwnCampusOnly": "Solo puedes votar dentro de tu propio campus",
     "cannotVoteOwnIsland": "No puedes votar por tu propia isla",
-    "mustBelongCampusToVote": "Debes pertenecer a un campus para votar"
+    "mustBelongCampusToVote": "Debes pertenecer a un campus para votar",
+    "fileTooLarge": "El archivo es demasiado grande (máx. 4 MB)",
+    "fileUploadFailed": "Error al subir el archivo",
+    "invalidEmail": "Introduce una dirección de correo válida",
+    "usernameLength": "El nombre de usuario debe tener entre 3 y 20 caracteres",
+    "usernamePattern": "El nombre de usuario solo puede contener letras, números, _ y -",
+    "passwordLength": "La contraseña debe tener entre 8 y 72 caracteres",
+    "passwordWeak": "La contraseña debe contener una mayúscula, una minúscula, un número y un carácter especial",
+    "currentPasswordRequired": "La contraseña actual es obligatoria",
+    "displayNameTooLong": "El nombre visible es demasiado largo",
+    "bioTooLong": "La biografía es demasiado larga",
+    "statusMessageTooLong": "El mensaje de estado es demasiado largo",
+    "duplicateRecord": "Ya existe un registro con estos datos",
+    "resourceNotFound": "Recurso no encontrado",
+    "invalidReference": "Recurso relacionado no encontrado",
+    "unexpected": "Algo salió mal. Inténtalo de nuevo.",
+    "usernameCooldown": "Podrás cambiar tu nombre de usuario en {{days}} día(s)"
   },
   "role": {
     "USER": "Usuario",

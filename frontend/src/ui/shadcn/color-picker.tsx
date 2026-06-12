@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { HexColorPicker } from 'react-colorful'
+import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/lib/utils'
 import { Input } from '@/ui/shadcn/input.tsx'
@@ -24,12 +25,13 @@ const normalizeHex = (raw: string): string => {
 
 /** A swatch button that opens a shadcn-style popover with a hex color picker. */
 export function ColorPicker({ value, onChange, className }: ColorPickerProps) {
+  const { t } = useTranslation()
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label="Pick a color"
+          aria-label={t('common.pickColor')}
           className={cn(
             'flex h-9 w-full items-center gap-2 rounded-md border border-input bg-card/50 px-3 text-sm shadow-sm',
             className,

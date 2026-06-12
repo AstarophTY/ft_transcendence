@@ -32,7 +32,25 @@ const SERVER_ERROR_KEYS: Record<string, string> = {
   'This account has no password set': 'noPasswordSet',
   'Token revoked': 'tokenRevoked',
   'Unsupported image type': 'unsupportedImageType',
+  'File too large': 'fileTooLarge',
+  'File upload failed': 'fileUploadFailed',
   'Too many attempts, try again in 15 minutes': 'tooManyAttempts',
+  // Form validation messages (mirrors backend common/validation-messages.ts).
+  'Please enter a valid email address': 'invalidEmail',
+  'Username must be 3 to 20 characters long': 'usernameLength',
+  'Username may only contain letters, numbers, _ and -': 'usernamePattern',
+  'Password must be 8 to 72 characters long': 'passwordLength',
+  'Password must contain an uppercase letter, a lowercase letter, a number and a special character':
+    'passwordWeak',
+  'Current password is required': 'currentPasswordRequired',
+  'Display name is too long': 'displayNameTooLong',
+  'Bio is too long': 'bioTooLong',
+  'Status message is too long': 'statusMessageTooLong',
+  // Generic fallbacks emitted by the backend Prisma/Multer exception filters.
+  'A record with these details already exists': 'duplicateRecord',
+  'Resource not found': 'resourceNotFound',
+  'Related resource not found': 'invalidReference',
+  'Something went wrong': 'unexpected',
   'Username already taken': 'usernameTaken',
   'User not found': 'userNotFound',
   'Voting is not open': 'votingNotOpen',
@@ -55,7 +73,14 @@ export function toMessage(error: unknown): string {
     const raw = Array.isArray(data?.message) ? data?.message[0] : data?.message
     if (raw) {
       const key = SERVER_ERROR_KEYS[raw]
-      return key ? i18n.t(`errors.${key}`) : raw
+      if (key) return i18n.t(`errors.${key}`)
+      // Username-change cooldown carries a dynamic day count, so it can't be a
+      // static key — match the pattern and re-localize with interpolation.
+      const cooldown = /^You can change your username again in (\d+) day/.exec(raw)
+      if (cooldown) {
+        return i18n.t('errors.usernameCooldown', { days: Number(cooldown[1]) })
+      }
+      return raw
     }
   }
   return i18n.t('auth.errorFallback')

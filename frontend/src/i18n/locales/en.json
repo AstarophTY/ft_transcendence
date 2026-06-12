@@ -11,6 +11,7 @@
     "close": "Close",
     "before": "Before",
     "after": "After",
+    "pickColor": "Pick a color",
     "sidebar": {
       "toggle": "Toggle Sidebar"
     }
@@ -52,7 +53,23 @@
     "cannotDeleteOwnAccount": "You cannot delete your own account",
     "voteOwnCampusOnly": "You can only vote within your own campus",
     "cannotVoteOwnIsland": "You cannot vote for your own island",
-    "mustBelongCampusToVote": "You must belong to a campus to vote"
+    "mustBelongCampusToVote": "You must belong to a campus to vote",
+    "fileTooLarge": "File is too large (max 4 MB)",
+    "fileUploadFailed": "File upload failed",
+    "invalidEmail": "Please enter a valid email address",
+    "usernameLength": "Username must be 3 to 20 characters long",
+    "usernamePattern": "Username may only contain letters, numbers, _ and -",
+    "passwordLength": "Password must be 8 to 72 characters long",
+    "passwordWeak": "Password must contain an uppercase letter, a lowercase letter, a number and a special character",
+    "currentPasswordRequired": "Current password is required",
+    "displayNameTooLong": "Display name is too long",
+    "bioTooLong": "Bio is too long",
+    "statusMessageTooLong": "Status message is too long",
+    "duplicateRecord": "A record with these details already exists",
+    "resourceNotFound": "Resource not found",
+    "invalidReference": "Related resource not found",
+    "unexpected": "Something went wrong. Please try again.",
+    "usernameCooldown": "You can change your username again in {{days}} day(s)"
   },
   "role": {
     "USER": "User",

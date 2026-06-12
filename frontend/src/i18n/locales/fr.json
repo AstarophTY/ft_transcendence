@@ -11,6 +11,7 @@
     "close": "Fermer",
     "before": "Avant",
     "after": "Après",
+    "pickColor": "Choisir une couleur",
     "sidebar": {
       "toggle": "Basculer la barre latérale"
     }
@@ -52,7 +53,23 @@
     "cannotDeleteOwnAccount": "Tu ne peux pas supprimer ton propre compte",
     "voteOwnCampusOnly": "Tu ne peux voter que dans ton propre campus",
     "cannotVoteOwnIsland": "Tu ne peux pas voter pour ta propre île",
-    "mustBelongCampusToVote": "Tu dois appartenir à un campus pour voter"
+    "mustBelongCampusToVote": "Tu dois appartenir à un campus pour voter",
+    "fileTooLarge": "Fichier trop volumineux (max 4 Mo)",
+    "fileUploadFailed": "Échec de l'envoi du fichier",
+    "invalidEmail": "Veuillez saisir une adresse e-mail valide",
+    "usernameLength": "Le nom d'utilisateur doit comporter entre 3 et 20 caractères",
+    "usernamePattern": "Le nom d'utilisateur ne peut contenir que des lettres, des chiffres, _ et -",
+    "passwordLength": "Le mot de passe doit comporter entre 8 et 72 caractères",
+    "passwordWeak": "Le mot de passe doit contenir une majuscule, une minuscule, un chiffre et un caractère spécial",
+    "currentPasswordRequired": "Le mot de passe actuel est requis",
+    "displayNameTooLong": "Le nom affiché est trop long",
+    "bioTooLong": "La bio est trop longue",
+    "statusMessageTooLong": "Le message de statut est trop long",
+    "duplicateRecord": "Un enregistrement avec ces informations existe déjà",
+    "resourceNotFound": "Ressource introuvable",
+    "invalidReference": "Ressource liée introuvable",
+    "unexpected": "Une erreur s'est produite. Veuillez réessayer.",
+    "usernameCooldown": "Tu pourras changer ton nom d'utilisateur dans {{days}} jour(s)"
   },
   "role": {
     "USER": "Utilisateur",
