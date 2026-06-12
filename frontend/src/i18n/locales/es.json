@@ -82,7 +82,7 @@
   },
   "auth": {
     "signIn": "Iniciar sesión",
-    "title": "Bienvenido a ft_transcendence",
+    "title": "Bienvenido a ft_verse",
     "description": "Inicia sesión o crea una cuenta para jugar.",
     "tabLogin": "Iniciar sesión",
     "tabRegister": "Registrarse",
@@ -693,7 +693,7 @@
     "privacyTitle": "Política de privacidad",
     "termsTitle": "Términos del servicio",
     "lastUpdated": "Última actualización: junio de 2026",
-    "privacyIntro": "Esta política de privacidad explica qué datos personales recopila ft_transcendence cuando usas la aplicación, por qué los recopilamos y los derechos que tienes sobre ellos.",
+    "privacyIntro": "Esta política de privacidad explica qué datos personales recopila ft_verse cuando usas la aplicación, por qué los recopilamos y los derechos que tienes sobre ellos.",
     "privacySections": [
       {
         "title": "1. Datos que recopilamos",
@@ -732,15 +732,15 @@
         "body": "Podemos actualizar esta política; la fecha anterior indica la versión más reciente. Para cualquier pregunta sobre tus datos, contacta con los administradores del proyecto a través de la aplicación."
       }
     ],
-    "termsIntro": "Estos términos del servicio rigen tu uso de ft_transcendence. Al crear una cuenta o usar la aplicación, los aceptas.",
+    "termsIntro": "Estos términos del servicio rigen tu uso de ft_verse. Al crear una cuenta o usar la aplicación, los aceptas.",
     "termsSections": [
       {
         "title": "1. Aceptación de los términos",
-        "body": "Al acceder o usar ft_transcendence aceptas quedar vinculado por estos términos del servicio y por la política de privacidad. Si no estás de acuerdo, no uses la aplicación."
+        "body": "Al acceder o usar ft_verse aceptas quedar vinculado por estos términos del servicio y por la política de privacidad. Si no estás de acuerdo, no uses la aplicación."
       },
       {
         "title": "2. Cuenta y elegibilidad",
-        "body": "ft_transcendence es un proyecto educativo destinado a estudiantes de 42. Debes proporcionar información veraz al registrarte y eres responsable de mantener seguras tus credenciales y de toda la actividad de tu cuenta."
+        "body": "ft_verse es un proyecto educativo destinado a estudiantes de 42. Debes proporcionar información veraz al registrarte y eres responsable de mantener seguras tus credenciales y de toda la actividad de tu cuenta."
       },
       {
         "title": "3. Uso aceptable",
@@ -764,7 +764,7 @@
       },
       {
         "title": "8. Limitación de responsabilidad",
-        "body": "En la medida permitida por la ley, ft_transcendence y su equipo no son responsables de pérdidas o daños derivados del uso, o la imposibilidad de uso, de esta aplicación educativa."
+        "body": "En la medida permitida por la ley, ft_verse y su equipo no son responsables de pérdidas o daños derivados del uso, o la imposibilidad de uso, de esta aplicación educativa."
       },
       {
         "title": "9. Cancelación",

@@ -77,7 +77,7 @@
   },
   "auth": {
     "signIn": "Sign in",
-    "title": "Welcome to ft_transcendence",
+    "title": "Welcome to ft_verse",
     "description": "Log in or create an account to play.",
     "tabLogin": "Log in",
     "tabRegister": "Sign up",
@@ -693,7 +693,7 @@
     "privacyTitle": "Privacy Policy",
     "termsTitle": "Terms of Service",
     "lastUpdated": "Last updated: June 2026",
-    "privacyIntro": "This Privacy Policy explains what personal data ft_transcendence collects when you use the application, why we collect it, and the rights you have over it.",
+    "privacyIntro": "This Privacy Policy explains what personal data ft_verse collects when you use the application, why we collect it, and the rights you have over it.",
     "privacySections": [
       {
         "title": "1. Data we collect",
@@ -732,15 +732,15 @@
         "body": "We may update this Privacy Policy; the date above indicates the latest version. For any question about your personal data, contact the project administrators through the application."
       }
     ],
-    "termsIntro": "These Terms of Service govern your use of ft_transcendence. By creating an account or using the application, you agree to these terms.",
+    "termsIntro": "These Terms of Service govern your use of ft_verse. By creating an account or using the application, you agree to these terms.",
     "termsSections": [
       {
         "title": "1. Acceptance of the terms",
-        "body": "By accessing or using ft_transcendence you agree to be bound by these Terms of Service and by the Privacy Policy. If you do not agree, please do not use the application."
+        "body": "By accessing or using ft_verse you agree to be bound by these Terms of Service and by the Privacy Policy. If you do not agree, please do not use the application."
       },
       {
         "title": "2. Account & eligibility",
-        "body": "ft_transcendence is an educational project intended for 42 students. You must provide accurate information when registering and you are responsible for keeping your credentials secure and for all activity under your account."
+        "body": "ft_verse is an educational project intended for 42 students. You must provide accurate information when registering and you are responsible for keeping your credentials secure and for all activity under your account."
       },
       {
         "title": "3. Acceptable use",
@@ -764,7 +764,7 @@
       },
       {
         "title": "8. Limitation of liability",
-        "body": "To the extent permitted by law, ft_transcendence and its team are not liable for any loss or damage arising from the use of, or inability to use, this educational application."
+        "body": "To the extent permitted by law, ft_verse and its team are not liable for any loss or damage arising from the use of, or inability to use, this educational application."
       },
       {
         "title": "9. Termination",
