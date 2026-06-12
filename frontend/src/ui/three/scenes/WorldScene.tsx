@@ -170,10 +170,11 @@ const generateLocalMap = (profile: DemoPlanetProfile, mapSize: number) => {
 
 /** Apply a persisted/edited block to the map, including its orientation. */
 const applyWorldBlock = (map: LocalMap, b: WorldBlock) => {
-  // Blocks are stored at their final world height: the backend already drops a
-  // winning island's floor onto the flat capital surface when copying it to the
-  // claim zone (see SeasonService.translateToCapital). So place them as-is — any
-  // extra vertical offset here would leave the central island floating.
+  // Blocks are stored at their final world height: when copying a winning island
+  // to the claim zone the backend aligns the island's ground level with the flat
+  // capital surface (see SeasonService.translateToCapital), so the capital's own
+  // floor stands in for the island's. Place them as-is — any extra vertical
+  // offset here would leave the central island floating.
   if (b.y < 0 || b.y >= Chunk.HEIGHT) return
 
   // setGlobalBlock resets the rotation, so set the block first.

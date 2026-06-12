@@ -48,6 +48,15 @@ const CAPITAL_ORIGIN = (Math.floor(MAP_CHUNKS_PER_SIDE / 2) - 2) * CHUNK_SIZE; /
  * (resp. sink into) the flat capital ground. Keep in sync with IslandMap.
  */
 const FLAT_CENTER_HEIGHT = 12;
+/**
+ * Personal islands are generated client-side on a flat plains floor whose top
+ * (grass) sits at this fixed height (see WorldScene.generateLocalMap, where the
+ * private branch forces `height = 5`). The floor itself is never persisted —
+ * only the blocks the user places are. Aligning this surface to the capital's
+ * flat grass surface lets the capital's own generated floor stand in for the
+ * island's, so a winning island lands grounded instead of floating. Keep in
+ * sync with WorldScene. */
+const PRIVATE_GROUND_HEIGHT = 5;
 
 /**
  * The single global building+voting season. Phases are derived from the stored
@@ -583,10 +592,10 @@ export class SeasonService {
 
   /**
    * Translate a personal island's blocks into a campus world's central capital
-   * zone. The island is recentred on the claim-zone origin and, crucially, its
-   * floor is dropped to rest on top of the flat capital surface — neither
-   * floating above it nor buried in it. The capital zone is levelled to
-   * FLAT_CENTER_HEIGHT (not the profile baseHeight), so we align to that.
+   * zone. The island is recentred on the claim-zone origin and shifted so its
+   * (flat, fixed-height) ground level lines up with the capital's flat grass
+   * surface. The capital zone is levelled to FLAT_CENTER_HEIGHT (not the profile
+   * baseHeight), so we align to that.
    */
   private translateToCapital(
     campusWorld: { id: string; baseHeight: number },
@@ -597,11 +606,16 @@ export class SeasonService {
     );
     if (claimed.length === 0) return [];
 
-    // Drop the island so its lowest block rests *on top of* the flat capital
-    // surface (whose top block sits at FLAT_CENTER_HEIGHT). Aligning to the
-    // surface height itself would bury the island's bottom layer by one block.
-    const minY = Math.min(...claimed.map((b) => b.y));
-    const yOffset = FLAT_CENTER_HEIGHT + 1 - minY;
+    // Map the island's coordinate space onto the capital by aligning the
+    // island's fixed ground surface (PRIVATE_GROUND_HEIGHT) with the capital's
+    // flat grass surface (FLAT_CENTER_HEIGHT). This is a constant shift — *not*
+    // a drop based on the lowest placed block. A minY-based drop only works when
+    // the user built strictly above ground; the moment they edit the surface or
+    // dig below it, the lowest block is no longer the island's floor and the
+    // whole build floats above (resp. sinks into) the capital. With a fixed
+    // shift, surface edits land on the capital surface and below-grade builds
+    // stay buried in the capital's own floor, which renders the island's ground.
+    const yOffset = FLAT_CENTER_HEIGHT - PRIVATE_GROUND_HEIGHT;
 
     return claimed.map((b) => ({
       worldId: campusWorld.id,
