@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
+  AlertTriangle,
   CalendarClock,
+  ChevronDown,
   FastForward,
   Flag,
   Loader2,
@@ -17,8 +19,35 @@ import { DateTimePicker } from '@/ui/shadcn/datetime-picker.tsx'
 import { Label } from '@/ui/shadcn/label.tsx'
 import { Badge } from '@/ui/shadcn/badge.tsx'
 import { ConfirmDialog } from '@/ui/shadcn/confirm-dialog.tsx'
+import { cn } from '@/lib/utils.ts'
 import { useSeason } from '@/store/season.ts'
-import type { Season, SeasonPhase } from '@/lib/api/season.ts'
+import type { Season, SeasonInput, SeasonPhase } from '@/lib/api/season.ts'
+
+/** A titled, collapsible section — keeps the bulky season forms out of the way. */
+function Section({
+  title,
+  children,
+  defaultOpen = false,
+}: {
+  title: string
+  children: ReactNode
+  defaultOpen?: boolean
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div className="rounded-lg border">
+      <button
+        type="button"
+        className="flex w-full items-center gap-2 px-3 py-2 text-sm font-medium"
+        onClick={() => setOpen((v) => !v)}
+      >
+        {title}
+        <ChevronDown className={cn('ml-auto size-4 transition-transform', open && 'rotate-180')} />
+      </button>
+      {open && <div className="flex flex-col gap-3 border-t p-3">{children}</div>}
+    </div>
+  )
+}
 
 /** ISO string -> value for an <input type="datetime-local"> (local time). */
 function toLocalInput(iso: string): string {
@@ -29,6 +58,37 @@ function toLocalInput(iso: string): string {
 
 const minutesBetween = (a: string, b: string) =>
   Math.max(0, Math.round((new Date(a).getTime() - new Date(b).getTime()) / 60_000))
+
+/** The editable state of one season form (edit or schedule). */
+interface FormState {
+  title: string
+  buildStartsAt: string
+  buildEndsAt: string
+  delay: string
+  duration: string
+}
+
+const EMPTY_FORM: FormState = { title: '', buildStartsAt: '', buildEndsAt: '', delay: '0', duration: '60' }
+
+/** The computed vote window (open → close) implied by a form's inputs. */
+function voteWindow(s: FormState): { open: Date; close: Date } | null {
+  if (!s.buildEndsAt) return null
+  const end = new Date(s.buildEndsAt)
+  if (Number.isNaN(end.getTime())) return null
+  const open = new Date(end.getTime() + (Number(s.delay) || 0) * 60_000)
+  const close = new Date(open.getTime() + (Number(s.duration) || 1) * 60_000)
+  return { open, close }
+}
+
+function toBody(s: FormState): SeasonInput {
+  return {
+    title: s.title.trim(),
+    buildStartsAt: s.buildStartsAt ? new Date(s.buildStartsAt).toISOString() : '',
+    buildEndsAt: s.buildEndsAt ? new Date(s.buildEndsAt).toISOString() : '',
+    voteDelayMinutes: Number(s.delay) || 0,
+    voteDurationMinutes: Number(s.duration) || 1,
+  }
+}
 
 function phaseTarget(season: Season, phase: SeasonPhase): string | null {
   switch (phase) {
@@ -76,53 +136,142 @@ const PHASE_VARIANT: Record<SeasonPhase, 'secondary' | 'warning' | 'default'> = 
   ENDED: 'secondary',
 }
 
+/** The shared title / build window / vote timing inputs of a season form. */
+function SeasonFields({
+  state,
+  set,
+  idPrefix,
+}: {
+  state: FormState
+  set: (patch: Partial<FormState>) => void
+  idPrefix: string
+}) {
+  const { t } = useTranslation()
+  const datesValid =
+    !state.buildStartsAt ||
+    !state.buildEndsAt ||
+    new Date(state.buildEndsAt).getTime() > new Date(state.buildStartsAt).getTime()
+  const win = voteWindow(state)
+  return (
+    <>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor={`${idPrefix}-title`}>{t('season.admin.title')}</Label>
+        <Input
+          id={`${idPrefix}-title`}
+          value={state.title}
+          onChange={(e) => set({ title: e.target.value })}
+          maxLength={120}
+          placeholder={t('season.admin.titlePlaceholder')}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor={`${idPrefix}-build-start`}>{t('season.admin.buildStart')}</Label>
+          <DateTimePicker
+            id={`${idPrefix}-build-start`}
+            value={state.buildStartsAt}
+            onChange={(v) => set({ buildStartsAt: v })}
+            placeholder={t('season.admin.pickDate')}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor={`${idPrefix}-build-end`}>{t('season.admin.buildEnd')}</Label>
+          <DateTimePicker
+            id={`${idPrefix}-build-end`}
+            value={state.buildEndsAt}
+            onChange={(v) => set({ buildEndsAt: v })}
+            placeholder={t('season.admin.pickDate')}
+          />
+        </div>
+        {!datesValid && (
+          <p className="col-span-2 text-xs text-destructive">
+            {t('season.admin.datesInvalid', { defaultValue: 'End date must be after start date.' })}
+          </p>
+        )}
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor={`${idPrefix}-delay`}>{t('season.admin.delay')}</Label>
+          <Input
+            id={`${idPrefix}-delay`}
+            inputMode="numeric"
+            value={state.delay}
+            onChange={(e) => set({ delay: e.target.value.replace(/\D/g, '') })}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor={`${idPrefix}-duration`}>{t('season.admin.duration')}</Label>
+          <Input
+            id={`${idPrefix}-duration`}
+            inputMode="numeric"
+            value={state.duration}
+            onChange={(e) => set({ duration: e.target.value.replace(/\D/g, '') })}
+          />
+        </div>
+      </div>
+      {win && (
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <CalendarClock className="size-3.5" />
+          {t('season.admin.votePreview', {
+            start: win.open.toLocaleString(),
+            end: win.close.toLocaleString(),
+          })}
+        </p>
+      )}
+    </>
+  )
+}
+
 export default function SeasonAdminPanel() {
   const { t } = useTranslation()
   const { season, phase, next, seasons, loading, load, loadSeasons, saveSeason, editSeason, removeSeason, endBuild, openVote, closeVote, finalize } =
     useSeason()
 
-  const [title, setTitle] = useState('')
-  const [buildStartsAt, setBuildStartsAt] = useState('')
-  const [buildEndsAt, setBuildEndsAt] = useState('')
-  const [delay, setDelay] = useState('0')
-  const [duration, setDuration] = useState('60')
+  // Two independent forms: one edits the running season, one schedules a new one.
+  const [edit, setEdit] = useState<FormState>(EMPTY_FORM)
+  const [draft, setDraft] = useState<FormState>(EMPTY_FORM)
   // The season pending deletion, shown in the confirm dialog.
   const [pendingDelete, setPendingDelete] = useState<Season | null>(null)
+  // Set while an immediate (build starts now) schedule awaits confirmation.
+  const [pendingTakeover, setPendingTakeover] = useState(false)
 
   useEffect(() => {
     void load()
     void loadSeasons()
   }, [load, loadSeasons])
 
-  // Prefill the form from the running season.
+  // Prefill the edit form from the running season.
   useEffect(() => {
     if (!season) return
-    setTitle(season.title)
-    setBuildStartsAt(toLocalInput(season.buildStartsAt))
-    setBuildEndsAt(toLocalInput(season.buildEndsAt))
-    setDelay(String(minutesBetween(season.voteStartsAt, season.buildEndsAt)))
-    setDuration(String(minutesBetween(season.voteEndsAt, season.voteStartsAt)))
+    setEdit({
+      title: season.title,
+      buildStartsAt: toLocalInput(season.buildStartsAt),
+      buildEndsAt: toLocalInput(season.buildEndsAt),
+      delay: String(minutesBetween(season.voteStartsAt, season.buildEndsAt)),
+      duration: String(minutesBetween(season.voteEndsAt, season.voteStartsAt)),
+    })
   }, [season])
 
-  const body = useMemo(
-    () => ({
-      title: title.trim(),
-      buildStartsAt: buildStartsAt ? new Date(buildStartsAt).toISOString() : '',
-      buildEndsAt: buildEndsAt ? new Date(buildEndsAt).toISOString() : '',
-      voteDelayMinutes: Number(delay) || 0,
-      voteDurationMinutes: Number(duration) || 1,
-    }),
-    [title, buildStartsAt, buildEndsAt, delay, duration],
-  )
+  const editValidity = useMemo(() => formValidity(edit), [edit])
+  const draftValidity = useMemo(() => formValidity(draft), [draft])
 
-  const datesValid =
-    !buildStartsAt ||
-    !buildEndsAt ||
-    new Date(buildEndsAt).getTime() > new Date(buildStartsAt).getTime()
+  // An immediate takeover ends the running season and wipes every world.
+  const draftImmediate =
+    Boolean(draft.buildStartsAt) && new Date(draft.buildStartsAt).getTime() <= Date.now()
+  const wouldClobber = draftImmediate && Boolean(season) && phase !== null && phase !== 'ENDED'
 
-  const valid = body.title && body.buildStartsAt && body.buildEndsAt && datesValid
+  const submitDraft = async (force = false) => {
+    const ok = await saveSeason(force ? { ...toBody(draft), force: true } : toBody(draft))
+    if (ok) setDraft(EMPTY_FORM)
+  }
 
-  if (loading && !season) {
+  const onSchedule = () => {
+    if (wouldClobber) {
+      setPendingTakeover(true)
+      return
+    }
+    void submitDraft()
+  }
+
+  if (loading && !season && seasons.length === 0) {
     return (
       <div className="flex h-32 items-center justify-center text-muted-foreground">
         <Loader2 className="size-5 animate-spin" />
@@ -131,7 +280,7 @@ export default function SeasonAdminPanel() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       {season && phase && (
         <div className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
           <Trophy className="size-4 text-yellow-500" />
@@ -156,7 +305,7 @@ export default function SeasonAdminPanel() {
         </div>
       )}
 
-      {/* Fast-forward controls for the running season. */}
+      {/* Quick fast-forward controls for the running season — always visible. */}
       {season && (
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" className="gap-1.5" onClick={() => void endBuild()}>
@@ -174,90 +323,54 @@ export default function SeasonAdminPanel() {
         </div>
       )}
 
-      {/* Season configuration form. */}
-      <div className="flex flex-col gap-3 rounded-lg border p-3">
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="season-title">{t('season.admin.title')}</Label>
-          <Input
-            id="season-title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            maxLength={120}
-            placeholder={t('season.admin.titlePlaceholder')}
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="season-build-start">{t('season.admin.buildStart')}</Label>
-            <DateTimePicker
-              id="season-build-start"
-              value={buildStartsAt}
-              onChange={setBuildStartsAt}
-              placeholder={t('season.admin.pickDate')}
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="season-build-end">{t('season.admin.buildEnd')}</Label>
-            <DateTimePicker
-              id="season-build-end"
-              value={buildEndsAt}
-              onChange={setBuildEndsAt}
-              placeholder={t('season.admin.pickDate')}
-            />
-          </div>
-          {!datesValid && (
-            <p className="col-span-2 text-xs text-destructive">
-              {t('season.admin.datesInvalid', { defaultValue: 'End date must be after start date.' })}
-            </p>
-          )}
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="season-delay">{t('season.admin.delay')}</Label>
-            <Input
-              id="season-delay"
-              inputMode="numeric"
-              value={delay}
-              onChange={(e) => setDelay(e.target.value.replace(/\D/g, ''))}
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="season-duration">{t('season.admin.duration')}</Label>
-            <Input
-              id="season-duration"
-              inputMode="numeric"
-              value={duration}
-              onChange={(e) => setDuration(e.target.value.replace(/\D/g, ''))}
-            />
-          </div>
-        </div>
-        <div className="flex gap-2">
-          {season && (
-            <Button
-              variant="secondary"
-              className="flex-1 gap-1.5"
-              disabled={!valid}
-              onClick={() => void editSeason(body)}
-            >
-              <Save className="size-4" /> {t('settings.save')}
-            </Button>
-          )}
+      {/* Edit the running season's window — collapsed by default to save space. */}
+      {season && (
+        <Section title={t('season.admin.editHeading')}>
+          <SeasonFields state={edit} set={(p) => setEdit((s) => ({ ...s, ...p }))} idPrefix="season-edit" />
           <Button
-            className="flex-1 gap-1.5"
-            disabled={!valid}
-            onClick={() => void saveSeason(body)}
+            variant="secondary"
+            className="gap-1.5"
+            disabled={!editValidity.valid}
+            onClick={() => void editSeason(toBody(edit))}
           >
-            <Trophy className="size-4" />
-            {season ? t('season.admin.queue') : t('season.admin.create')}
+            <Save className="size-4" /> {t('settings.save')}
           </Button>
-        </div>
-      </div>
+        </Section>
+      )}
 
-      {/* Full history: past, running and queued seasons. */}
-      <div className="flex flex-col gap-2">
-        <Label>{t('season.admin.allSeasons')}</Label>
+      {/* Schedule a new season (queued when in the future, immediate when now). */}
+      <Section title={t('season.admin.scheduleHeading')} defaultOpen={!season}>
+        <SeasonFields state={draft} set={(p) => setDraft((s) => ({ ...s, ...p }))} idPrefix="season-new" />
+        {draftValidity.windowPast && (
+          <p className="text-xs text-destructive">{t('season.admin.windowPast')}</p>
+        )}
+        {wouldClobber && (
+          <p className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-500">
+            <AlertTriangle className="size-3.5 shrink-0" />
+            {t('season.admin.takeoverWarn')}
+          </p>
+        )}
+        <Button
+          className="gap-1.5"
+          variant={draftImmediate ? 'destructive' : 'default'}
+          disabled={!draftValidity.valid}
+          onClick={onSchedule}
+        >
+          <Trophy className="size-4" />
+          {draftImmediate
+            ? t('season.admin.startNow')
+            : season
+              ? t('season.admin.queue')
+              : t('season.admin.create')}
+        </Button>
+      </Section>
+
+      {/* Full history: past, running and queued seasons — collapsed + scrollable. */}
+      <Section title={`${t('season.admin.allSeasons')} (${seasons.length})`}>
         {seasons.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('season.admin.noSeasons')}</p>
         ) : (
-          <ul className="flex flex-col gap-1.5">
+          <ul className="flex max-h-56 flex-col gap-1.5 overflow-y-auto pr-1">
             {seasons.map(({ season: s, phase: p }) => {
               const tag =
                 s.id === season?.id
@@ -291,7 +404,7 @@ export default function SeasonAdminPanel() {
             })}
           </ul>
         )}
-      </div>
+      </Section>
 
       <ConfirmDialog
         open={pendingDelete !== null}
@@ -310,6 +423,33 @@ export default function SeasonAdminPanel() {
           setPendingDelete(null)
         }}
       />
+
+      <ConfirmDialog
+        open={pendingTakeover}
+        onOpenChange={(o) => !o && setPendingTakeover(false)}
+        title={t('season.admin.takeoverTitle')}
+        description={t('season.admin.takeoverConfirm', { title: season?.title ?? '' })}
+        confirmLabel={t('season.admin.startNow')}
+        cancelLabel={t('common.cancel')}
+        destructive
+        onConfirm={() => {
+          setPendingTakeover(false)
+          void submitDraft(true)
+        }}
+      />
     </div>
   )
+}
+
+/** Whether a season form is submittable, and why not. */
+function formValidity(s: FormState): { valid: boolean; windowPast: boolean } {
+  const body = toBody(s)
+  const datesValid =
+    !s.buildStartsAt ||
+    !s.buildEndsAt ||
+    new Date(s.buildEndsAt).getTime() > new Date(s.buildStartsAt).getTime()
+  const win = voteWindow(s)
+  const windowPast = win ? win.close.getTime() <= Date.now() : false
+  const valid = Boolean(body.title && body.buildStartsAt && body.buildEndsAt && datesValid && !windowPast)
+  return { valid, windowPast }
 }

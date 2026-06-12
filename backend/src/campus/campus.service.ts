@@ -3,8 +3,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Campus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { coinRate, earnedCoins } from '../users/coins';
 import { FriendsGateway } from '../friends/friends.gateway';
 import { generateWorldProfile } from '../world/world.profile';
 import { WorldGateway } from '../world/world.gateway';
@@ -24,7 +26,7 @@ const CAMPUS_WITH_MEMBERS = {
         username: true,
         avatar: true,
         role: true,
-        coins: true,
+        createdAt: true,
       },
       orderBy: { username: 'asc' },
     },
@@ -39,6 +41,7 @@ const CAMPUS_WITH_MEMBERS = {
 export class CampusService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
     private readonly worldGateway: WorldGateway,
     private readonly friendsGateway: FriendsGateway,
   ) {}
@@ -53,12 +56,18 @@ export class CampusService {
    * members' earned coins plus the campus's admin bonus (`coins`).
    */
   async listWithMembers() {
+    const rate = coinRate(this.config);
     const campuses = await this.prisma.campus.findMany(CAMPUS_WITH_MEMBERS);
-    return campuses.map((campus) => ({
-      ...campus,
-      totalCoins:
-        campus.coins + campus.users.reduce((sum, u) => sum + u.coins, 0),
-    }));
+    return campuses.map((campus) => {
+      // Derive each member's coins from their account age (same as the build
+      // budget), so the admin panel shows the live, self-updating value.
+      const users = campus.users.map(({ createdAt, ...u }) => ({
+        ...u,
+        coins: earnedCoins(createdAt, rate),
+      }));
+      const membersCoins = users.reduce((sum, u) => sum + u.coins, 0);
+      return { ...campus, users, totalCoins: campus.coins + membersCoins };
+    });
   }
 
   /**

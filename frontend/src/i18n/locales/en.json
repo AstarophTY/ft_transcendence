@@ -19,6 +19,10 @@
   "errors": {
     "webglContextLost": "WebGL Context Lost",
     "webglDescription": "Your browser lost the WebGL 3D graphics context (often caused by multiple hot-reloads during development or GPU context throttling).",
+    "notFoundTitle": "Page not found",
+    "notFoundDescription": "The page you're looking for doesn't exist or has moved.",
+    "goHome": "Back to home",
+    "crashTitle": "Something went wrong",
     "fortyTwoNoEmailChange": "42 accounts cannot change their email",
     "fortyTwoNoPassword": "42 accounts have no password",
     "campusNameExists": "A campus with this name already exists",
@@ -426,7 +430,15 @@
       "finalize": "Finalize",
       "in": "in",
       "created": "Season opened",
-      "finalized": "Season finalized — winning islands copied"
+      "finalized": "Season finalized — winning islands copied",
+      "editHeading": "Edit running season",
+      "scheduleHeading": "Schedule a new season",
+      "votePreview": "Vote: {{start}} → {{end}}",
+      "startNow": "Start now (resets worlds)",
+      "takeoverWarn": "Build starts now — this ends the running season and resets every world.",
+      "takeoverTitle": "Start this season now?",
+      "takeoverConfirm": "This ends \"{{title}}\" and resets every world. Continue?",
+      "windowPast": "This vote window has already ended — pick a later one."
     },
     "preview3d": "3D Preview",
     "votesCount": "{{count}} votes"

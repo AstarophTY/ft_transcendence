@@ -163,7 +163,7 @@ export class AuthService {
     }
   }
 
-  /** Keep campus and logtime-coins in sync with 42 on every login. */
+  /** Keep campus and 42 logtime stats in sync with 42 on every login. */
   private async syncFortyTwo(
     user: User,
     profile: FortyTwoProfile,
@@ -171,7 +171,7 @@ export class AuthService {
     if (profile.campus) {
       await this.campus.syncFortyTwoCampus(user.id, profile.campus);
     }
-    await this.fortyTwo.resyncCoins(user.id);
+    await this.fortyTwo.refreshLogtimeStats(user.id);
   }
 
   private async generateTokens(user: User): Promise<AuthTokens> {

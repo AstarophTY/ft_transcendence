@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Friendship, FriendshipStatus } from '@prisma/client';
+import { FriendshipStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { FRIENDSHIP_WITH_USERS, FriendshipWithUsers } from './friends.select';
 import { FriendsRepository } from './friends.repository';
@@ -17,7 +17,7 @@ export class RequestsService {
     private readonly repo: FriendsRepository,
   ) {}
 
-  async send(userId: string, username: string): Promise<Friendship> {
+  async send(userId: string, username: string): Promise<FriendshipWithUsers> {
     const target = await this.prisma.user.findUnique({ where: { username } });
     if (!target) throw new NotFoundException('User not found');
     if (target.id === userId) {
@@ -36,12 +36,17 @@ export class RequestsService {
 
     return this.prisma.friendship.create({
       data: { requesterId: userId, addresseeId: target.id },
+      ...FRIENDSHIP_WITH_USERS,
     });
   }
 
-  async accept(userId: string, friendshipId: string): Promise<Friendship> {
+  async accept(
+    userId: string,
+    friendshipId: string,
+  ): Promise<FriendshipWithUsers> {
     const request = await this.prisma.friendship.findUnique({
       where: { id: friendshipId },
+      ...FRIENDSHIP_WITH_USERS,
     });
     if (!request || request.addresseeId !== userId) {
       throw new NotFoundException('Friend request not found');
@@ -51,6 +56,7 @@ export class RequestsService {
     return this.prisma.friendship.update({
       where: { id: friendshipId },
       data: { status: FriendshipStatus.ACCEPTED },
+      ...FRIENDSHIP_WITH_USERS,
     });
   }
 

@@ -60,6 +60,7 @@ function CandidateRow({
   isMyVote,
   isOwn,
   canVote,
+  hasVoted,
   onVote,
   onVisit,
   onPreview,
@@ -69,6 +70,8 @@ function CandidateRow({
   isMyVote: boolean
   isOwn: boolean
   canVote: boolean
+  /** True once the user has cast their island vote — locks out the other rows. */
+  hasVoted: boolean
   onVote: () => void
   onVisit: () => void
   onPreview: () => void
@@ -122,7 +125,7 @@ function CandidateRow({
             <Button variant="secondary" size="sm" disabled className="h-8 gap-1.5 px-2.5 text-xs">
               <Check className="size-3.5" /> {t('season.voted')}
             </Button>
-          ) : (
+          ) : hasVoted ? null : (
             <Button size="sm" className="h-8 text-xs px-3" onClick={onVote}>
               {t('season.vote')}
             </Button>
@@ -267,7 +270,7 @@ export default function SeasonDialog() {
                           <Button variant="secondary" size="sm" disabled className="h-8 gap-1.5 px-2.5 text-xs">
                             <Check className="size-3.5" /> {t('season.voted')}
                           </Button>
-                        ) : (
+                        ) : ballot.myCampusVoteId ? null : (
                           <Button size="sm" className="h-8 text-xs px-3" onClick={() => void voteCampus(campus.campusId)}>
                             {t('season.vote')}
                           </Button>
@@ -301,6 +304,7 @@ export default function SeasonDialog() {
                           isMyVote={ballot.myVoteCandidateId === candidate.userId}
                           isOwn={candidate.userId === myId}
                           canVote={ballot.canVote && campus.isOwn}
+                          hasVoted={!!ballot.myVoteCandidateId}
                           onVote={() => void vote(candidate.userId)}
                           onVisit={() => visit(candidate.userId)}
                           onPreview={() =>

@@ -18,6 +18,25 @@ export function isEditableTarget(e: KeyboardEvent): boolean {
   return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
 }
 
+/**
+ * Request pointer lock without the console noise three-stdlib's `controls.lock()`
+ * produces. The browser rejects the request — firing `pointerlockerror` (logged
+ * as "Unable to use Pointer Lock API") and rejecting the `requestPointerLock`
+ * promise ("NotAllowedError: A user gesture is required") — when the page is not
+ * focused (e.g. DevTools holds focus) or during the brief cooldown after exiting
+ * lock with Escape. Skip those doomed attempts, and swallow the rejection from
+ * any that still slip through so it doesn't surface as an uncaught error.
+ */
+export function safeLockPointer(
+  controls: { isLocked: boolean; domElement?: HTMLElement } | null | undefined,
+): void {
+  if (!controls || controls.isLocked || !document.hasFocus()) return
+  const el = controls.domElement
+  if (!el) return
+  const result = el.requestPointerLock() as unknown as Promise<void> | undefined
+  result?.catch(() => {})
+}
+
 export const PASSWORD_RULES = [
   { key: 'pwLength', test: (p: string) => p.length >= 8 },
   { key: 'pwUpper', test: (p: string) => /[A-Z]/.test(p) },

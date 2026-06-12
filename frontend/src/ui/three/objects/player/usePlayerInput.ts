@@ -1,7 +1,7 @@
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
 import React, { useEffect } from 'react'
 
-import { isEditableTarget } from '@/lib/utils'
+import { isEditableTarget, safeLockPointer } from '@/lib/utils'
 
 type Params = {
   active: boolean
@@ -24,7 +24,7 @@ export const usePlayerInput = ({ active, domElement, controlsRef, keysRef }: Par
         if (controlsRef.current?.isLocked) {
           controlsRef.current.unlock()
         } else if (performance.now() - lastUnlockTime >= 1250) {
-          controlsRef.current?.lock()
+          safeLockPointer(controlsRef.current)
         }
         // E doubles as a rotation key when unlocked; clear it so toggling
         // doesn't immediately spin the camera.
@@ -51,7 +51,7 @@ export const usePlayerInput = ({ active, domElement, controlsRef, keysRef }: Par
           e.preventDefault()
           return
         }
-        controlsRef.current?.lock()
+        safeLockPointer(controlsRef.current)
       }
     }
     const handlePointerLockChange = () => {

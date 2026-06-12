@@ -99,23 +99,20 @@ export default function AccountTab() {
       </Field>
 
       {me?.fortyTwoLogin && (
-        <>
-          <Field label={t('settings.account.fortyTwo')}>
-            <Input value={me.fortyTwoLogin} disabled />
-          </Field>
+        <Field label={t('settings.account.fortyTwo')}>
+          <Input value={me.fortyTwoLogin} disabled />
+        </Field>
+      )}
 
-          <Field
-            label={t('settings.account.siteLogtime', { defaultValue: 'Logtime' })}
-            hint={t('settings.account.siteLogtimeHint', {
-              defaultValue: 'Total 42 logtime since account creation',
-            })}
-          >
-            <Input
-              value={`${Math.floor(me.logtimeHours ?? 0)} h`}
-              disabled
-            />
-          </Field>
-        </>
+      {me && (
+        <Field
+          label={t('settings.account.siteLogtime', { defaultValue: 'Logtime' })}
+          hint={t('settings.account.siteLogtimeHint', {
+            defaultValue: 'Total logtime since account creation',
+          })}
+        >
+          <Input value={`${Math.floor(me.siteLogtimeHours ?? 0)} h`} disabled />
+        </Field>
       )}
 
       <div className="mt-2 flex flex-col gap-2 rounded-lg border border-destructive/40 p-4">

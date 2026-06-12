@@ -13,12 +13,14 @@ interface Location {
 }
 
 /**
- * Syncs a user's coins from their ALL-TIME 42 logtime:
+ * Refreshes a 42 user's displayed cluster-logtime stats:
  * - `logtimeHours` = total hours on 42 clusters since account creation
  * - `monthLogtimeHours` = this calendar month only
- * - `coins` = floor(logtimeHours * rate)
  *
- * Uses `locations_stats` (aggregated by month) + current open session to avoid
+ * Coins are NOT derived from this (they come from account age, see
+ * users/coins.ts) — these values only feed the profile's logtime display.
+ *
+ * Uses `locations_stats` (aggregated by day) + current open session to avoid
  * paginating through every individual session. App token (client_credentials)
  * required — student OAuth tokens are denied on these endpoints.
  */
@@ -34,11 +36,11 @@ export class FortyTwoService {
   ) {}
 
   /**
-   * Refresh a user's coins from all-time 42 logtime. Throttled per user so
+   * Refresh a user's displayed 42 cluster-logtime stats. Throttled per user so
    * it can be called on every profile load; a no-op for non-42 accounts or
    * on API error.
    */
-  async resyncCoins(userId: string): Promise<void> {
+  async refreshLogtimeStats(userId: string): Promise<void> {
     const last = this.lastSync.get(userId) ?? 0;
     if (Date.now() - last < this.throttleMs()) return;
 
@@ -55,13 +57,13 @@ export class FortyTwoService {
     const { total, month } = await this.fetchLogtime(user.fortyTwoId, token);
     if (total === null) return;
 
-    const perHour = Number(this.config.get<string>('COINS_PER_HOUR', '1')) || 1;
+    // Coins are derived from account age (see users/coins.ts), not 42 logtime —
+    // we only refresh the displayed cluster-logtime stats here.
     await this.prisma.user.update({
       where: { id: userId },
       data: {
         logtimeHours: total,
         monthLogtimeHours: month ?? 0,
-        coins: Math.floor(total * perHour),
       },
     });
   }
@@ -84,7 +86,7 @@ export class FortyTwoService {
       ok: total !== null,
       totalHours: total !== null ? Math.round(total * 100) / 100 : null,
       monthHours: month !== null ? Math.round((month ?? 0) * 100) / 100 : null,
-      statsMonths: stats ? Object.keys(stats).length : 0,
+      statsDays: stats ? Object.keys(stats).length : 0,
     };
   }
 
@@ -97,19 +99,21 @@ export class FortyTwoService {
   private async fetchLogtime(
     fortyTwoId: number,
     token: string,
-  ): Promise<{ total: number | null; month: number | null; stats: Record<string, number> | null }> {
+  ): Promise<{ total: number | null; month: number | null; stats: Record<string, string> | null }> {
     const stats = await this.fetchLogtimeStats(fortyTwoId, token);
     if (stats === null) return { total: null, month: null, stats: null };
 
     const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
 
-    // Sum all past months (completed sessions from stats).
+    // Sum all completed days from stats. Keys are daily dates ("YYYY-MM-DD")
+    // and values are "HH:MM:SS.ffffff" duration strings, so parse each to hours
+    // and detect the current month by the date's "YYYY-MM" prefix.
     let totalFromStats = 0;
     let monthFromStats = 0;
     for (const [key, value] of Object.entries(stats)) {
-      if (typeof value !== 'number') continue;
-      totalFromStats += value;
-      if (key === currentMonth) monthFromStats = value;
+      const hours = this.parseDurationHours(value);
+      totalFromStats += hours;
+      if (key.startsWith(currentMonth)) monthFromStats += hours;
     }
 
     // Add current-month open sessions (not yet reflected in stats).
@@ -126,13 +130,14 @@ export class FortyTwoService {
   }
 
   /**
-   * `GET /v2/users/:id/locations_stats` — returns { "YYYY-MM": hours } for
-   * every month the user has ever had a completed cluster session.
+   * `GET /v2/users/:id/locations_stats` — returns
+   * `{ "YYYY-MM-DD": "HH:MM:SS.ffffff" }` for every day the user has ever had a
+   * completed cluster session. Values are duration strings, not numbers.
    */
   private async fetchLogtimeStats(
     fortyTwoId: number,
     token: string,
-  ): Promise<Record<string, number> | null> {
+  ): Promise<Record<string, string> | null> {
     const url = `https://api.intra.42.fr/v2/users/${fortyTwoId}/locations_stats`;
     const res = await this.timedFetch(url, token);
     if (!res?.ok) {
@@ -141,7 +146,24 @@ export class FortyTwoService {
     }
     const data = await this.safeJson(res);
     if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
-    return data as Record<string, number>;
+    return data as Record<string, string>;
+  }
+
+  /** Parse a 42 `"HH:MM:SS.ffffff"` duration string into hours. */
+  private parseDurationHours(value: unknown): number {
+    if (typeof value !== 'string') return 0;
+    const [h, m, s] = value.split(':');
+    const hours = Number(h);
+    const minutes = Number(m);
+    const seconds = Number(s);
+    if (
+      !Number.isFinite(hours) ||
+      !Number.isFinite(minutes) ||
+      !Number.isFinite(seconds)
+    ) {
+      return 0;
+    }
+    return hours + minutes / 60 + seconds / 3600;
   }
 
   /** Current month's open sessions only (end_at is null). */

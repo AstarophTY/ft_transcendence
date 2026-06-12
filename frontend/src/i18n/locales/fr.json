@@ -19,6 +19,10 @@
   "errors": {
     "webglContextLost": "Contexte WebGL perdu",
     "webglDescription": "Votre navigateur a perdu le contexte graphique 3D WebGL (souvent causé par plusieurs rechargements à chaud pendant le développement ou par une limitation du GPU).",
+    "notFoundTitle": "Page introuvable",
+    "notFoundDescription": "La page que vous cherchez n'existe pas ou a été déplacée.",
+    "goHome": "Retour à l'accueil",
+    "crashTitle": "Une erreur est survenue",
     "fortyTwoNoEmailChange": "Les comptes 42 ne peuvent pas changer leur e-mail",
     "fortyTwoNoPassword": "Les comptes 42 n'ont pas de mot de passe",
     "campusNameExists": "Un campus portant ce nom existe déjà",
@@ -426,7 +430,15 @@
       "finalize": "Finaliser",
       "in": "dans",
       "created": "Saison ouverte",
-      "finalized": "Saison finalisée — îles gagnantes copiées"
+      "finalized": "Saison finalisée — îles gagnantes copiées",
+      "editHeading": "Éditer la saison en cours",
+      "scheduleHeading": "Planifier une nouvelle saison",
+      "votePreview": "Vote : {{start}} → {{end}}",
+      "startNow": "Démarrer maintenant (réinitialise les mondes)",
+      "takeoverWarn": "La construction démarre maintenant — cela termine la saison en cours et réinitialise tous les mondes.",
+      "takeoverTitle": "Démarrer cette saison maintenant ?",
+      "takeoverConfirm": "Cela termine « {{title}} » et réinitialise tous les mondes. Continuer ?",
+      "windowPast": "Cette fenêtre de vote est déjà terminée — choisissez-en une plus tardive."
     },
     "preview3d": "Aperçu 3D",
     "votesCount": "{{count}} votes"

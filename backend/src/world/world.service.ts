@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Campus, User, World } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { coinRate, earnedCoins } from '../users/coins';
 import { WorldBlockDto } from './dto/save-blocks.dto';
 import { AIR, BEDROCK, isPaidBlock, VALID_BLOCKS } from './world.blocks';
 import { generateWorldProfile } from './world.profile';
@@ -12,7 +14,10 @@ import { generateWorldProfile } from './world.profile';
  */
 @Injectable()
 export class WorldService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
+  ) {}
 
 
   async listWorlds() {
@@ -188,15 +193,19 @@ export class WorldService {
       // Lock campus record for the duration of the transaction to prevent coin race conditions
       const campus = await tx.campus.findUnique({
         where: { id: campusId },
-        select: { coins: true, users: { select: { coins: true } } },
+        select: { coins: true, users: { select: { createdAt: true } } },
       });
       if (!campus) throw new NotFoundException('Campus not found');
       // The build budget is the whole campus pool: the admin bonus plus every
       // member's earned coins (same total the admin panel shows). Members' coins
-      // are read-only here (they come from 42 logtime), so all spending is
+      // are derived from account age, so they are read-only here; all spending is
       // persisted on the campus bonus, which may dip below zero once the pooled
       // members' coins have been consumed.
-      const membersCoins = campus.users.reduce((sum, u) => sum + u.coins, 0);
+      const rate = coinRate(this.config);
+      const membersCoins = campus.users.reduce(
+        (sum, u) => sum + earnedCoins(u.createdAt, rate),
+        0,
+      );
 
       // Query existing blocks in a single batch to calculate costs/refunds correctly
       const existing = await tx.worldBlock.findMany({
@@ -332,10 +341,14 @@ export class WorldService {
   async getCampusCoins(campusId: string): Promise<number | null> {
     const campus = await this.prisma.campus.findUnique({
       where: { id: campusId },
-      select: { coins: true, users: { select: { coins: true } } },
+      select: { coins: true, users: { select: { createdAt: true } } },
     });
     if (!campus) return null;
-    return campus.coins + campus.users.reduce((sum, u) => sum + u.coins, 0);
+    const rate = coinRate(this.config);
+    return (
+      campus.coins +
+      campus.users.reduce((sum, u) => sum + earnedCoins(u.createdAt, rate), 0)
+    );
   }
 
   /** Create a world (with a fresh random profile) for a campus or user. */

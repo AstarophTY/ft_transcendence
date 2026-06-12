@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuthUser } from '../auth/interfaces/auth.interfaces';
 import { SendFriendRequestDto } from './dto/send-friend-request.dto';
 import { FriendsGateway } from './friends.gateway';
+import { FriendshipWithUsers } from './friends.select';
 import { RequestsService } from './requests.service';
 
 @Controller('friends/requests')
@@ -39,7 +40,7 @@ export class RequestsController {
   async send(
     @CurrentUser() user: AuthUser,
     @Body() dto: SendFriendRequestDto,
-  ): Promise<Friendship> {
+  ): Promise<FriendshipWithUsers> {
     const friendship = await this.requests.send(user.userId, dto.username);
     if (friendship.status === FriendshipStatus.ACCEPTED) {
       this.announceFriendship(friendship);
@@ -56,7 +57,7 @@ export class RequestsController {
   async accept(
     @CurrentUser() user: AuthUser,
     @Param('id') id: string,
-  ): Promise<Friendship> {
+  ): Promise<FriendshipWithUsers> {
     const friendship = await this.requests.accept(user.userId, id);
     this.announceFriendship(friendship);
     return friendship;
@@ -72,7 +73,7 @@ export class RequestsController {
   }
 
   /** Notify both sides of a new friendship and sync their online status. */
-  private announceFriendship(friendship: Friendship): void {
+  private announceFriendship(friendship: FriendshipWithUsers): void {
     const { requesterId, addresseeId } = friendship;
     this.gateway.emitToUser(requesterId, 'friend:accepted', { friendship });
     this.gateway.emitToUser(addresseeId, 'friend:accepted', { friendship });

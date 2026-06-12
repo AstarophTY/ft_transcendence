@@ -45,6 +45,7 @@ export const createSocketSlice: StateCreator<
       .off('friend:request')
       .on('friend:request', ({ friendship }: { friendship: Friendship }) => {
         void get().refresh()
+        if (!friendship?.requester) return
         toast.info(
           i18n.t('friends.notif.request', {
             name: friendship.requester.username,
@@ -54,6 +55,7 @@ export const createSocketSlice: StateCreator<
       .off('friend:accepted')
       .on('friend:accepted', ({ friendship }: { friendship: Friendship }) => {
         void get().refresh()
+        if (!friendship?.requester || !friendship?.addressee) return
         const myId = useAuth.getState().user?.userId
         const other =
           friendship.requester.id === myId

@@ -12,7 +12,7 @@ import { Block } from '@/types/Block'
 import { LocalMap } from '@/types/maps/LocalMap'
 import { Chunk } from '@/types/maps/Chunk'
 import { useIsTouchDevice } from '@/hooks/use-mobile.tsx'
-import { isEditableTarget } from '@/lib/utils'
+import { isEditableTarget, safeLockPointer } from '@/lib/utils'
 
 import { usePlanetStore } from '@/store/planetStore'
 import { useWorldEconomy } from '@/store/worldEconomy'
@@ -501,7 +501,7 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
         if (controlsRef.current?.isLocked) {
           controlsRef.current.unlock()
         } else if (performance.now() - lastUnlockTime >= 1250) {
-          controlsRef.current?.lock()
+          safeLockPointer(controlsRef.current)
         }
         // E doubles as a rotation key when unlocked; clear it so toggling
         // doesn't immediately spin the camera.
@@ -531,7 +531,7 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
             e.preventDefault()
             return
           }
-          controlsRef.current?.lock()
+          safeLockPointer(controlsRef.current)
         }
       } else {
         handleEditorAction(e)

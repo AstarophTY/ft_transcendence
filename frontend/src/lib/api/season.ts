@@ -96,6 +96,8 @@ export interface SeasonInput {
   buildEndsAt: string
   voteDelayMinutes: number
   voteDurationMinutes: number
+  /** Confirm an immediate takeover that ends the running season + resets worlds. */
+  force?: boolean
 }
 
 export async function getCurrentSeason(): Promise<SeasonCurrent> {

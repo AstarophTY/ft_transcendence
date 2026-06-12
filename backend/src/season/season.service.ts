@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   forwardRef,
   Inject,
   Injectable,
@@ -216,6 +217,11 @@ export class SeasonService {
     const data = { title: dto.title, buildStartsAt, buildEndsAt, voteStartsAt, voteEndsAt };
 
     const now = new Date();
+    // A season whose whole window is already over would be born ENDED — reject it
+    // so admins can't create a season that never actually runs.
+    if (voteEndsAt <= now) {
+      throw new BadRequestException('The season ends in the past — pick a later window');
+    }
     const running = await this.runningSeason();
 
     // Schedule for later: queue it without disrupting the running season. The
@@ -237,6 +243,15 @@ export class SeasonService {
       });
       // Left queued: startedAt stays null until its build phase begins.
       return this.prisma.season.create({ data });
+    }
+
+    // Immediate takeover wipes every world. Guard against silently clobbering a
+    // still-running season: the admin must explicitly confirm (force) to end it
+    // now. The client surfaces this as a confirmation dialog (409 Conflict).
+    if (running && SeasonService.phaseOf(running) !== SeasonPhase.ENDED && !dto.force) {
+      throw new ConflictException(
+        'A season is still running. Confirm to end it now and reset every world.',
+      );
     }
 
     // Immediate takeover: reset the world from the outgoing season's winners.
@@ -294,6 +309,15 @@ export class SeasonService {
         : season.voteEndsAt.getTime() - season.voteStartsAt.getTime();
     const voteStartsAt = new Date(buildEndsAt.getTime() + delayMs);
     const voteEndsAt = new Date(voteStartsAt.getTime() + durationMs);
+
+    // Don't let the running season be stretched over a queued one — that would
+    // make the two overlap. The queued season must still start after this vote.
+    const queued = await this.queuedSeason();
+    if (queued && queued.id !== season.id && voteEndsAt > queued.buildStartsAt) {
+      throw new BadRequestException(
+        "This window would overlap the next scheduled season — it ends after that season's build starts",
+      );
+    }
 
     return this.prisma.season.update({
       where: { id: season.id },
