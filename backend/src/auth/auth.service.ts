@@ -44,7 +44,17 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
-    const user = await this.users.create({ email, username, passwordHash });
+    let user: User;
+    try {
+      user = await this.users.create({ email, username, passwordHash });
+    } catch (err: any) {
+      // Lost the race to an identical concurrent sign-up (P2002: unique
+      // constraint). Surface the same friendly conflict instead of a 500.
+      if (err?.code === 'P2002') {
+        throw new ConflictException('Email or username already in use');
+      }
+      throw err;
+    }
 
     await this.world.ensureWorld(user.id, true);
     return this.generateTokens(user);

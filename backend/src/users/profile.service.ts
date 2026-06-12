@@ -117,11 +117,19 @@ export class ProfileService {
     if (await this.prisma.user.findUnique({ where: { username } })) {
       throw new ConflictException('Username already taken');
     }
-    return this.prisma.user.update({
-      where: { id: userId },
-      data: { username, usernameChangedAt: new Date() },
-      select: SELF_USER_SELECT,
-    });
+    try {
+      return await this.prisma.user.update({
+        where: { id: userId },
+        data: { username, usernameChangedAt: new Date() },
+        select: SELF_USER_SELECT,
+      });
+    } catch (err: any) {
+      // Lost the race to a concurrent claim of the same username (P2002).
+      if (err?.code === 'P2002') {
+        throw new ConflictException('Username already taken');
+      }
+      throw err;
+    }
   }
 
   async changePassword(

@@ -31,7 +31,14 @@ export class RedisService implements OnModuleDestroy {
 
   async getCachedUser<T = unknown>(userId: string): Promise<T | null> {
     const data = await this.client.get(`user:${userId}`);
-    return data ? (JSON.parse(data) as T) : null;
+    if (!data) return null;
+    // A corrupted cache entry must not crash the request — treat it as a miss.
+    try {
+      return JSON.parse(data) as T;
+    } catch {
+      await this.client.del(`user:${userId}`);
+      return null;
+    }
   }
 
   async invalidateUserCache(userId: string): Promise<void> {
