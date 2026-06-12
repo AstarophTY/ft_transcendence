@@ -97,7 +97,6 @@ const PlanetSelectionScene = () => {
             timer = setTimeout(() => load(attempt + 1), Math.min(1000 * 2 ** attempt, 8000))
             return
           }
-          console.error('PlanetSelectionScene: Failed to load worlds:', err)
           toast.error(i18n.t('world.loadFailed'))
         })
     }
