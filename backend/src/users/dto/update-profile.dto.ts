@@ -6,6 +6,7 @@ import {
   MaxLength,
 } from 'class-validator';
 import { UserStatus } from '@prisma/client';
+import { VALIDATION_MESSAGES as M } from '../../common/validation-messages';
 
 /**
  * Freely-editable profile fields (no cooldown). To let users edit a new field,
@@ -13,13 +14,13 @@ import { UserStatus } from '@prisma/client';
  * this DTO validates.
  */
 export class UpdateProfileDto {
-  @IsOptional() @IsString() @MaxLength(40)
+  @IsOptional() @IsString() @MaxLength(40, { message: M.DISPLAY_NAME_LENGTH })
   displayName?: string;
 
-  @IsOptional() @IsString() @MaxLength(280)
+  @IsOptional() @IsString() @MaxLength(280, { message: M.BIO_LENGTH })
   bio?: string;
 
-  @IsOptional() @IsEmail()
+  @IsOptional() @IsEmail({}, { message: M.EMAIL })
   email?: string;
 
   @IsOptional() @IsString() @MaxLength(8)
@@ -31,7 +32,7 @@ export class UpdateProfileDto {
   @IsOptional() @IsEnum(UserStatus)
   status?: UserStatus;
 
-  @IsOptional() @IsString() @MaxLength(80)
+  @IsOptional() @IsString() @MaxLength(80, { message: M.STATUS_MESSAGE_LENGTH })
   statusMessage?: string;
 
   @IsOptional() @IsString() @MaxLength(9)
