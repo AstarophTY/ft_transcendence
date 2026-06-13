@@ -31,4 +31,12 @@ module.exports = [
       '@typescript-eslint/no-floating-promises': 'error',
     },
   },
+  {
+    // node:test's `describe`/`it` return promises by design; the runner awaits
+    // them, so flagging them as floating is noise in spec files.
+    files: ['**/*.spec.ts'],
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'off',
+    },
+  },
 ];
