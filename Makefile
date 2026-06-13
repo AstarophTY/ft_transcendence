@@ -1,14 +1,17 @@
-.PHONY: all up down build logs ssl clean re ps
+.PHONY: all up down build logs ssl jwt clean re ps
 
 ifneq (,$(wildcard .env))
     include .env
     export
 endif
 
-all: ssl up
+all: ssl jwt up
 
 ssl:
 	@bash scripts/gen-ssl.sh
+
+jwt:
+	@bash scripts/gen-jwt-keys.sh
 
 up:
 	docker compose up -d --build

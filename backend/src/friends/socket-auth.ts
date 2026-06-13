@@ -2,6 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Socket } from 'socket.io';
 import { JwtPayload } from '../auth/interfaces/auth.interfaces';
+import { JWT_ALGORITHM, getJwtPublicKey } from '../auth/jwt-keys';
 import { RedisService } from '../redis/redis.service';
 
 export interface SocketAuth {
@@ -26,7 +27,8 @@ export async function authenticateSocket(
     if (!token) return null;
 
     const payload = jwt.verify<JwtPayload>(token, {
-      secret: config.get<string>('JWT_SECRET'),
+      publicKey: getJwtPublicKey(config),
+      algorithms: [JWT_ALGORITHM],
     });
     if (await redis.isTokenBlacklisted(payload.jti)) return null;
     return {

@@ -16,6 +16,7 @@ import { RedisService } from '../redis/redis.service';
 import { UsersService } from '../users/users.service';
 import { AuthTokens, FortyTwoProfile } from './interfaces/auth.interfaces';
 import { WorldService } from '../world/world.service';
+import { JWT_ALGORITHM, getJwtPrivateKey } from './jwt-keys';
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const BCRYPT_ROUNDS = 12;
@@ -183,6 +184,14 @@ export class AuthService {
       this.config.get<string>('JWT_REFRESH_EXPIRES_IN', '7d'),
     );
 
+    // Both tokens are signed with the RSA private key (RS256); verification
+    // only ever needs the public key (see JwtStrategy / jwt-keys.ts).
+    const privateKey = getJwtPrivateKey(this.config);
+    const signOptions = {
+      algorithm: JWT_ALGORITHM,
+      privateKey,
+    } as const;
+
     const [accessToken, refreshToken] = await Promise.all([
       this.jwt.signAsync(
         {
@@ -194,17 +203,11 @@ export class AuthService {
           campusId: user.campusId,
           jti,
         },
-        {
-          secret: this.config.get<string>('JWT_SECRET'),
-          expiresIn: accessTtl,
-        },
+        { ...signOptions, expiresIn: accessTtl },
       ),
       this.jwt.signAsync(
         { sub: user.id, jti: randomUUID() },
-        {
-          secret: this.config.get<string>('JWT_REFRESH_SECRET'),
-          expiresIn: refreshTtl,
-        },
+        { ...signOptions, expiresIn: refreshTtl },
       ),
     ]);
 

@@ -4,6 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { RedisService } from '../../redis/redis.service';
 import { AuthUser, JwtPayload } from '../interfaces/auth.interfaces';
+import { JWT_ALGORITHM, getJwtPublicKey } from '../jwt-keys';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -13,7 +14,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: config.get<string>('JWT_SECRET') ?? '',
+      // Verify the RS256 signature with the public key only.
+      secretOrKey: getJwtPublicKey(config),
+      algorithms: [JWT_ALGORITHM],
     });
   }
 
