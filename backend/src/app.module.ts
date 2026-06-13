@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { GlobalThrottlerGuard } from './common/guards/global-throttler.guard';
 import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
 import { CampusModule } from './campus/campus.module';
@@ -27,6 +29,10 @@ import { WorldModule } from './world/world.module';
     AdminModule,
     SeasonModule,
     WorldModule,
+  ],
+  providers: [
+    // Activate the configured rate-limiter globally (HTTP routes only).
+    { provide: APP_GUARD, useClass: GlobalThrottlerGuard },
   ],
 })
 export class AppModule {}
