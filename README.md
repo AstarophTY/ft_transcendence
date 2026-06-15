@@ -42,8 +42,8 @@ Each Major module = 2 pts, each Minor module = 1 pt.
 
 | Category | Module | Type | Pts | Primary Contributors | Justification for Choice | How it was implemented |
 |---|---|---|---|---|---|---|
-| **Web** | Use a framework front **and** back | Major | 2 | sgil--de, julcleme, trgascoi | React provides a component-driven architecture needed to sync HUD with Three.js state. NestJS enforces a modular structure to split work efficiently. | **React 18** (frontend) + **NestJS 11** (backend). |
-| **Web** | Real-time features (WebSockets) | Major | 2 | sgil--de, julcleme, trgascoi | Essential for instant 3D avatar synchronization and collaborative block building across clients. | **Socket.IO** gateways: live player movement + collaborative block editing. |
+| **Web** | Use a framework front **and** back | Major | 2 | sgil--de, julcleme, trgascoi, sservant | React provides a component-driven architecture needed to sync HUD with Three.js state. NestJS enforces a modular structure to split work efficiently. | **React 18** (frontend) + **NestJS 11** (backend). |
+| **Web** | Real-time features (WebSockets) | Major | 2 | sgil--de, julcleme, trgascoi, sservant | Essential for instant 3D avatar synchronization and collaborative block building across clients. | **Socket.IO** gateways: live player movement + collaborative block editing. |
 | **Web** | User interaction (chat/profile/friends) | Major | 2 | sgil--de | A sandbox game needs a strong social layer for players to coordinate building projects. | Direct-message chat, profile pages, full friends system. |
 | **Web** | Use an ORM | Minor | 1 | julcleme, sgil--de | Prisma ensures database schema consistency and type-safety across backend endpoints. | **Prisma** over PostgreSQL. |
 | **User Management** | Standard user management & auth | Major | 2 | sgil--de | Secures user data and permits persistent personalization (custom avatar, logtime-coins correlation). | Profile edit, avatar upload (default fallback), online status. |
