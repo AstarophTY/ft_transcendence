@@ -1,0 +1,26 @@
+/// Lifecycle of the single global season. Phases are derived from the
+/// timestamps below; admins "fast-forward" by setting a timestamp to now().
+enum SeasonPhase {
+  UPCOMING
+  BUILD
+  DELAY
+  VOTE
+  ENDED
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ONLINE
+  AWAY
+  DND
+  OFFLINE
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+}

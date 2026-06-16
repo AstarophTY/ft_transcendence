@@ -1,0 +1,89 @@
+model Building {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  height    Float    @default(1.0)
+  color     String   @default("#7F77DD")
+  posX      Float    @default(0)
+  posZ      Float    @default(0)
+  campus    String
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([campus])
+}
+
+model Campus {
+  id String @id @default(uuid())
+
+  label String @unique
+  coins Int    @default(0)
+
+  users User[] @relation("CampusUsers")
+
+  world         World?
+  seasonVotes   SeasonVote[]
+  seasonResults SeasonResult[]
+  seasonCampusVotes SeasonCampusVote[]
+}
+
+model World {
+  id String @id @default(uuid())
+
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  campusId String? @unique
+  campus   Campus? @relation(fields: [campusId], references: [id], onDelete: Cascade)
+
+  seed           String
+  widthInChunks  Int
+  depthInChunks  Int
+  scale          Float
+  octaves        Int
+  persistence    Float
+  relief         Float
+  baseHeight     Float
+  variationRange Float
+
+  blocks    WorldBlock[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([campusId])
+}
+
+model BlockLog {
+  id          Int      @id @default(autoincrement())
+  date        DateTime @default(now())
+  userId      String
+  placedBlock Int      @default(0)
+
+  worldBlockWorldId String?
+  worldBlockX       Int?
+  worldBlockY       Int?
+  worldBlockZ       Int?
+
+  worldBlock WorldBlock? @relation(fields: [worldBlockWorldId, worldBlockX, worldBlockY, worldBlockZ], references: [worldId, x, y, z], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([worldBlockWorldId, worldBlockX, worldBlockY, worldBlockZ, placedBlock])
+}
+
+/// A single block edited by a player, stored as a diff over the generated
+/// terrain. A broken block is stored with `block = 0` (Air), so destroyed ground
+/// is persisted too.
+model WorldBlock {
+  worldId   String
+  world     World      @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  x         Int
+  y         Int
+  z         Int
+  block     Int
+  block_log BlockLog[]
+  rotation  Int        @default(0)
+
+  @@id([worldId, x, y, z])
+  @@index([worldId])
+}

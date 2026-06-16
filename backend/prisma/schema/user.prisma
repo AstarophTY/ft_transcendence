@@ -1,0 +1,70 @@
+model User {
+  id            String  @id @default(uuid())
+  email         String? @unique
+  username      String  @unique
+  passwordHash  String?
+  fortyTwoId    Int?    @unique
+  fortyTwoLogin String?
+  avatar        String?
+  role          Role    @default(USER)
+  isVerified    Boolean @default(false)
+  world         World?
+
+  displayName          String?
+  bio                  String?
+  campusId             String?
+  campus               Campus?    @relation("CampusUsers", fields: [campusId], references: [id])
+  coins                Int        @default(0)
+
+  coinsSpent           Int        @default(0)
+  logtimeHours         Float      @default(0)
+  monthLogtimeHours    Float      @default(0)
+  fortyTwoAccessToken  String?
+  fortyTwoRefreshToken String?
+  language             String?
+  theme                String?
+
+  skinColor            String?
+  status               UserStatus @default(ONLINE)
+  statusMessage        String?
+  usernameChangedAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  refreshTokens    RefreshToken[]
+  sentMessages     Message[]      @relation("SentMessages")
+  receivedMessages Message[]      @relation("ReceivedMessages")
+  buildings        Building[]
+  apiKeys          ApiKey[]
+
+  sentFriendRequests     Friendship[] @relation("FriendRequester")
+  receivedFriendRequests Friendship[] @relation("FriendAddressee")
+
+  seasonVotesCast     SeasonVote[] @relation("SeasonVoter")
+  seasonVotesReceived SeasonVote[] @relation("SeasonCandidate")
+  seasonCampusVotes   SeasonCampusVote[] @relation("SeasonCampusVoter")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model ApiKey {
+  id         String    @id @default(uuid())
+  keyHash    String    @unique
+  label      String
+  userId     String
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

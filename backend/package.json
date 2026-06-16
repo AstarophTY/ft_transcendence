@@ -69,5 +69,8 @@
   },
   "overrides": {
     "ws": "^8.21.0"
+  },
+  "prisma": {
+    "schema": "./prisma/schema/"
   }
 }
