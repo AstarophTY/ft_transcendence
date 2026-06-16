@@ -1,49 +1,11 @@
 import { api } from '@/lib/api'
-import type { CampusRef, UserRole } from '@/lib/api'
-import type { UserStatus } from '@/lib/api/account'
-
-export interface AdminStats {
-  total: number
-  admins: number
-  users: number
-  fortyTwo: number
-  local: number
-  newLast7Days: number
-}
-
-export interface AdminUser {
-  id: string
-  username: string
-  email: string | null
-  avatar: string | null
-  role: UserRole
-  displayName: string | null
-  bio: string | null
-  campus: CampusRef | null
-  coins: number
-  logtimeHours: number
-  monthLogtimeHours: number
-  status: UserStatus
-  statusMessage: string | null
-  fortyTwoLogin: string | null
-  isVerified: boolean
-  createdAt: string
-}
-
-export interface SignupPoint {
-  date: string
-  count: number
-}
-
-/** Fields an admin may edit on any account. */
-export interface AdminUserUpdate {
-  email?: string
-  displayName?: string
-  bio?: string
-  campus?: string
-  status?: UserStatus
-  statusMessage?: string
-}
+import {
+  AdminStats,
+  AdminUser,
+  AdminUserUpdate,
+  SignupPoint
+} from "@/types/api/admin.ts";
+import {UserRole} from "@/types/api/api.ts";
 
 export async function getAdminStats(): Promise<AdminStats> {
   const { data } = await api.get<AdminStats>('/admin/stats')

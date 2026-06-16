@@ -8,9 +8,10 @@ import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Center } from '@react-three/drei'
 import * as THREE from 'three'
 import { api } from '@/lib/api'
-import { BlockMetadata } from '@/config/Block.ts'
-import { Block, BlockMeta } from '@/types/Block.ts'
+import { BlockMetadata } from '@/config/block.ts'
+import { Block, BlockMeta } from '@/types/block.ts'
 import { useTranslation } from 'react-i18next'
+import {EditedBlock} from "@/types/hud/editedBlock.ts";
 
 interface VotePreviewProps {
   userId: string | null
@@ -18,14 +19,6 @@ interface VotePreviewProps {
   onVote?: () => void
   canVote?: boolean
   isVoting?: boolean
-}
-
-interface EditedBlock {
-  x: number
-  y: number
-  z: number
-  block: Block
-  rotation?: number
 }
 
 const BASE_MAP = new Map<string, {block: Block, rotation: number}>()

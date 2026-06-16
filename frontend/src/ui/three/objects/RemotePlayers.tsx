@@ -2,13 +2,14 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useMemo, useRef, useState, ElementType } from 'react'
 import * as THREE from 'three'
 import UserBadge from '@/ui/hud/UserBadge'
-import { useAvatar, tintAvatar } from './player/useAvatar'
+import { useAvatar, tintAvatar } from '@/ui/three/objects/player/useAvatar'
 import { Billboard, Html } from '@react-three/drei'
 import { usePlanetStore } from '@/store/planetStore'
 import { MAP_SIZE_BLOCKS, PRIVATE_MAP_SIZE } from '@/ui/three/scenes/worldScene/constants'
-import { Chunk } from '@/types/maps/Chunk'
-import { useRemotePlayersStore, remoteTransforms, RemoteTransform } from '@/store/remotePlayersStore'
+import { Chunk } from '@/types/maps/chunk.ts'
+import { useRemotePlayersStore, remoteTransforms } from '@/store/remotePlayersStore'
 import { useAuth } from '@/store/auth'
+import {RemoteTransform} from "@/types/store/remotePlayerStore.ts";
 
 
 

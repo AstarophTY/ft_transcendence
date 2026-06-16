@@ -17,16 +17,15 @@ import { Separator } from '@/ui/shadcn/separator.tsx'
 import { Badge } from '@/ui/shadcn/badge.tsx'
 import { ToggleGroup, ToggleGroupItem } from '@/ui/shadcn/toggle-group.tsx'
 import { useAdmin } from '@/store/admin.ts'
-import type { AdminUser } from '@/lib/api/admin.ts'
-import StatsGrid from './StatsGrid.tsx'
-import SignupsChart from './SignupsChart.tsx'
-import UserRow from './UserRow.tsx'
-import AdminEditUser from './AdminEditUser.tsx'
-import CampusManager from './CampusManager.tsx'
-import SeasonAdminPanel from './SeasonAdminPanel.tsx'
-
-type RoleFilter = 'all' | 'admin' | 'user'
-type TypeFilter = 'all' | '42' | 'local'
+import StatsGrid from '@/ui/hud/admin/StatsGrid.tsx'
+import SignupsChart from '@/ui/hud/admin/SignupsChart.tsx'
+import UserRow from '@/ui/hud/admin/UserRow.tsx'
+import AdminEditUser from '@/ui/hud/admin/AdminEditUser.tsx'
+import CampusManager from '@/ui/hud/admin/CampusManager.tsx'
+import SeasonAdminPanel from '@/ui/hud/admin/SeasonAdminPanel.tsx'
+import {AdminUser} from "@/types/api/admin.ts";
+import {RoleFilter} from "@/types/hud/admin/roleFilter.ts";
+import {TypeFilter} from "@/types/hud/admin/typeFilter.ts";
 
 function UsersTab({ users }: { users: AdminUser[] }) {
   const { t } = useTranslation()

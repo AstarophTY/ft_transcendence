@@ -5,8 +5,8 @@ import { Badge } from '@/ui/shadcn/badge.tsx'
 import { useAdmin } from '@/store/admin.ts'
 import { useAuth } from '@/store/auth.ts'
 import Avatar from '@/ui/hud/friends/Avatar.tsx'
-import type { AdminUser } from '@/lib/api/admin.ts'
-import type { UserStatus } from '@/lib/api/account.ts'
+import {UserStatus} from "@/types/api/account.ts";
+import {AdminUser} from "@/types/api/admin.ts";
 
 const STATUS_COLOR: Record<UserStatus, string> = {
   ONLINE: 'bg-green-500',

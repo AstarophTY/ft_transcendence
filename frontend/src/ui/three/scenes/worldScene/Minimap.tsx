@@ -3,10 +3,10 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 
-import { Chunk } from '@/types/maps/Chunk.ts'
-import { LocalMap } from '@/types/maps/LocalMap'
-import { Block } from '@/types/Block'
-import { BlockMetadata } from '@/config/Block'
+import { Chunk } from '@/types/maps/chunk.ts'
+import { LocalMap } from '@/types/maps/localMap.ts'
+import { Block } from '@/types/block.ts'
+import { BlockMetadata } from '@/config/block.ts'
 
 export interface MinimapProps {
   localMap: LocalMap

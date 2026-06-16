@@ -10,14 +10,10 @@ import {
 } from '@/ui/shadcn/dialog.tsx'
 import { Badge } from '@/ui/shadcn/badge.tsx'
 import { Separator } from '@/ui/shadcn/separator.tsx'
-import { getFriendProfile, type PublicUser } from '@/lib/api.ts'
+import { getFriendProfile } from '@/lib/api.ts'
 import { toMessage } from '@/lib/apiError.ts'
-import Avatar from './Avatar.tsx'
-
-interface FriendProfileProps {
-  friend: PublicUser | null
-  onOpenChange: (open: boolean) => void
-}
+import Avatar from '@/ui/hud/friends/Avatar.tsx'
+import {PublicUser} from "@/types/api/api.ts";
 
 const STATUS_COLOR: Record<string, string> = {
   ONLINE: 'bg-green-500',
@@ -31,6 +27,11 @@ const STATUS_BADGE: Record<string, 'success' | 'warning' | 'destructive' | 'seco
   AWAY: 'warning',
   DND: 'destructive',
   OFFLINE: 'secondary',
+}
+
+interface FriendProfileProps {
+  friend: PublicUser | null
+  onOpenChange: (open: boolean) => void
 }
 
 export default function FriendProfile({

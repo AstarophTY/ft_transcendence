@@ -4,7 +4,7 @@ import * as THREE from 'three'
 
 import { usePlanetStore } from '@/store/planetStore.ts'
 
-type Params = {
+type useSelectablePlanetAnimationParams = {
   planetRef: React.RefObject<THREE.Group>
   blendRef: React.MutableRefObject<number>
   hovered: boolean
@@ -12,7 +12,7 @@ type Params = {
   totalCount: number
 }
 
-export const useSelectablePlanetAnimation = ({ planetRef, blendRef, hovered, index, totalCount }: Params) => {
+export const useSelectablePlanetAnimation = ({ planetRef, blendRef, hovered, index, totalCount }: useSelectablePlanetAnimationParams) => {
   const baseQuaternion = useMemo(
     () => new THREE.Quaternion().setFromEuler(new THREE.Euler(0.2, -Math.PI / 4, -0.2, 'YXZ')),
     [],

@@ -202,8 +202,8 @@ class TexturePackExtractor:
             json.dump(block_colors, f_json, indent=2)
 
         # Generate the TypeScript configuration files
-        types_path = "frontend/src/types/Block.ts"
-        config_path = "frontend/src/config/Block.ts"
+        types_path = "frontend/src/types/block.ts"
+        config_path = "frontend/src/config/block.ts"
         generate_typescript_files(block_colors, types_path, config_path)
 
     def _scan_zip(self, zip_ref: zipfile.ZipFile) -> List[str]:

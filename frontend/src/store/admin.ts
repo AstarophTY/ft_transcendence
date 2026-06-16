@@ -8,10 +8,6 @@ import {
   resetUserPassword,
   setUserRole,
   updateAdminUser,
-  type AdminStats,
-  type AdminUser,
-  type AdminUserUpdate,
-  type SignupPoint,
 } from '@/lib/api/admin'
 import {
   addCampusMember,
@@ -20,34 +16,10 @@ import {
   listManagedCampuses,
   removeCampusMember,
   updateCampus,
-  type CampusWithMembers,
 } from '@/lib/api/campus'
-import type { UserRole } from '@/lib/api'
 import { toMessage } from '@/lib/apiError'
 import i18n from '@/i18n'
-
-interface AdminState {
-  open: boolean
-  stats: AdminStats | null
-  signups: SignupPoint[]
-  users: AdminUser[]
-  campuses: CampusWithMembers[]
-  loading: boolean
-  editing: AdminUser | null
-
-  setOpen: (open: boolean) => void
-  setEditing: (user: AdminUser | null) => void
-  load: () => Promise<void>
-  changeRole: (id: string, role: UserRole) => Promise<void>
-  removeUser: (user: AdminUser) => Promise<void>
-  saveUser: (id: string, body: AdminUserUpdate) => Promise<boolean>
-  resetPassword: (id: string, newPassword: string) => Promise<boolean>
-  createCampus: (label: string) => Promise<boolean>
-  saveCampus: (id: string, body: { label?: string; coins?: number; seed?: string; regenerate?: boolean }) => Promise<boolean>
-  removeCampus: (campus: CampusWithMembers) => Promise<void>
-  attachMember: (campusId: string, userId: string) => Promise<void>
-  detachMember: (campusId: string, userId: string) => Promise<void>
-}
+import {AdminState} from "@/types/store/admin.ts";
 
 export const useAdmin = create<AdminState>((set, get) => ({
   open: false,

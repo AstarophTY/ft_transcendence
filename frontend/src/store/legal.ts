@@ -1,14 +1,5 @@
 import { create } from 'zustand'
-
-export type LegalTab = 'privacy' | 'terms'
-
-interface LegalState {
-  open: boolean
-  tab: LegalTab
-  /** Open the legal dialog on a specific document. */
-  openLegal: (tab: LegalTab) => void
-  setOpen: (open: boolean) => void
-}
+import {LegalState} from "@/types/store/legal.ts";
 
 export const useLegal = create<LegalState>((set) => ({
   open: false,

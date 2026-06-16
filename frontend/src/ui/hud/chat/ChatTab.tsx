@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useChatChannels } from '@/store/chatChannels.ts'
-import ChannelChat from './ChannelChat.tsx'
+import ChannelChat from '@/ui/hud/chat/ChannelChat.tsx'
 
 export default function ChatTab() {
   const { t } = useTranslation()

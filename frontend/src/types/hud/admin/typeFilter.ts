@@ -1,0 +1,1 @@
+export type TypeFilter = 'all' | '42' | 'local'

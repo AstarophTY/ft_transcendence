@@ -5,8 +5,8 @@ import { MessageSquare, UserMinus, Info, Loader2 } from 'lucide-react'
 import { Button } from '@/ui/shadcn/button.tsx'
 import { useFriends } from '@/store/friends'
 import type { PublicUser } from '@/lib/api.ts'
-import Avatar from './Avatar.tsx'
-import FriendProfile from './FriendProfile.tsx'
+import Avatar from '@/ui/hud/friends/Avatar.tsx'
+import FriendProfile from '@/ui/hud/friends/FriendProfile.tsx'
 
 export default function FriendsList() {
   const { t } = useTranslation()

@@ -1,34 +1,5 @@
 import { api } from '@/lib/api'
-import type { UserRole } from '@/lib/api'
-
-export interface Campus {
-  id: string
-  label: string
-  coins: number
-}
-
-export interface CampusMember {
-  id: string
-  username: string
-  avatar: string | null
-  role: UserRole
-  coins: number
-}
-
-export interface CampusWithMembers extends Campus {
-  /** Members' earned coins + the admin bonus (`coins`). */
-  totalCoins: number
-  users: CampusMember[]
-  world?: {
-    seed: string
-  }
-}
-
-/** Approved campuses — any signed-in user can read these. */
-export async function listCampuses(): Promise<Campus[]> {
-  const { data } = await api.get<Campus[]>('/campus')
-  return data
-}
+import {Campus, CampusWithMembers} from "@/types/api/campus.ts";
 
 // --- campus management (ADMIN) ---------------------------------------------
 

@@ -1,9 +1,9 @@
 import { useRef, useMemo, useLayoutEffect, ElementType } from 'react'
 import * as THREE from 'three'
 
-import { Chunk } from '@/types/maps/Chunk.ts'
-import { Block } from '@/types/Block'
-import { LocalMap } from '@/types/maps/LocalMap'
+import { Chunk } from '@/types/maps/chunk.ts'
+import { Block } from '@/types/block.ts'
+import { LocalMap } from '@/types/maps/localMap.ts'
 
 const InstancedMesh = 'instancedMesh' as unknown as ElementType
 

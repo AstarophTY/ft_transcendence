@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import type { SignupPoint } from '@/lib/api/admin.ts'
+import {SignupPoint} from "@/types/api/admin.ts";
 
 /** Signups-per-day area chart, themed with the shadcn --primary token. */
 export default function SignupsChart({ data }: { data: SignupPoint[] }) {

@@ -1,15 +1,4 @@
-import type { FillerVoxel } from './fillerTypes'
-
-interface GetVoxelInfo {
-  (x: number, z: number): { height: number; color: string }
-}
-
-interface EdgeParams {
-  getVoxelInfo: GetVoxelInfo
-  newScale: number
-  half: number
-  inset: number
-}
+import {EdgeParams, FillerVoxel} from "@/types/three/selectablePlanet.ts";
 
 export const generateTopRightEdge = (
   { getVoxelInfo, newScale, half, inset }: EdgeParams,

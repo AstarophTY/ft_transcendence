@@ -8,41 +8,13 @@ import {
   registerRequest,
   setUnauthorizedHandler,
   tokenStore,
-  type AuthTokens,
 } from '@/lib/api'
 import { decodeAccessToken, isTokenExpired } from '@/lib/jwt'
 import { deleteAccount, getMe } from '@/lib/api/account'
 import { toMessage } from '@/lib/apiError'
 import i18n from '@/i18n'
-
-export interface AuthUser {
-  userId: string
-  email: string | null
-  username: string
-  avatar: string | null
-  role: 'USER' | 'ADMIN'
-  campusId: string | null
-}
-
-interface AuthState {
-  user: AuthUser | null
-  loading: boolean
-  /** True when a brand-new 42 account must accept the Privacy Policy. */
-  requirePrivacy: boolean
-  init: () => void
-  login: (email: string, password: string) => Promise<boolean>
-  register: (
-    email: string,
-    username: string,
-    password: string,
-  ) => Promise<boolean>
-  logout: () => Promise<void>
-  loginWith42: () => void
-  acceptPrivacy: () => void
-  declinePrivacy: () => Promise<void>
-  /** Permanently delete the signed-in account, then drop the local session. */
-  deleteMyAccount: () => Promise<boolean>
-}
+import {AuthState, AuthUser} from "@/types/store/auth.ts";
+import {AuthTokens} from "@/types/api/api.ts";
 
 function userFromToken(accessToken: string): AuthUser | null {
   const payload = decodeAccessToken(accessToken)

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSettings } from '@/store/settings.ts'
-import { SUPPORTED_LANGUAGES } from '@/i18n'
 import {
   Select,
   SelectContent,
@@ -10,10 +9,11 @@ import {
   SelectValue,
 } from '@/ui/shadcn/select.tsx'
 import { ColorPicker } from '@/ui/shadcn/color-picker.tsx'
-import Field from './Field.tsx'
+import Field from '@/ui/hud/settings/Field.tsx'
 import { usePlanetStore } from '@/store/planetStore.ts'
 import { usePlayerAppearance } from '@/ui/three/objects/player/playerAppearance'
 import { DEFAULT_SKIN_COLOR } from '@/config/playerAppearance'
+import {SUPPORTED_LANGUAGES} from "@/config/i18n.ts";
 
 const THEMES = ['light', 'dark'] as const
 

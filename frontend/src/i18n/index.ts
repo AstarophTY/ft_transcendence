@@ -6,9 +6,6 @@ import en from './locales/en.json'
 import fr from './locales/fr.json'
 import es from './locales/es.json'
 
-export const SUPPORTED_LANGUAGES = ['en', 'fr', 'es'] as const
-export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]
-
 void i18n
   .use(LanguageDetector)
   .use(initReactI18next)

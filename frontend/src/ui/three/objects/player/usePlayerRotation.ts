@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
 import React from "react";
 
-type Params = {
+type usePlayerRotationParams = {
   active: boolean
   camera: THREE.Camera
   playerRef: React.RefObject<THREE.Group>
@@ -11,7 +11,7 @@ type Params = {
   keysRef: React.MutableRefObject<Record<string, boolean>>
 }
 
-export const usePlayerRotation = ({ active, camera, playerRef, controlsRef, keysRef }: Params) => {
+export const usePlayerRotation = ({ active, camera, playerRef, controlsRef, keysRef }: usePlayerRotationParams) => {
   useFrame((_, delta) => {
     if (!active || !playerRef.current) return
 

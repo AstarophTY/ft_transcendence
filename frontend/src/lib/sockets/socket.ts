@@ -1,5 +1,5 @@
 import { io, type Socket } from 'socket.io-client'
-import { socketOptions } from './shared'
+import { socketOptions } from '@/lib/sockets/shared'
 
 let socket: Socket | null = null
 

@@ -1,14 +1,14 @@
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
-import { Chunk } from '@/types/maps/Chunk'
-import { LocalMap } from '@/types/maps/LocalMap'
-import { PLAYER_SPEED } from './config'
-import { checkCollisionAt } from './playerCollision'
+import { Chunk } from '@/types/maps/chunk.ts'
+import { LocalMap } from '@/types/maps/localMap.ts'
+import { checkCollisionAt } from '@/ui/three/objects/player/playerCollision'
 import React from "react";
 import { useEditorStore } from '@/store/editorStore'
+import {PLAYER_SPEED} from "@/config/player.ts";
 
-type Params = {
+type usePlayerMovementParams = {
   active: boolean
   camera: THREE.Camera
   playerRef: React.RefObject<THREE.Group>
@@ -17,7 +17,7 @@ type Params = {
   localMap: LocalMap
 }
 
-export const usePlayerMovement = ({ active, camera, playerRef, controlsRef, keysRef, localMap }: Params) => {
+export const usePlayerMovement = ({ active, camera, playerRef, controlsRef, keysRef, localMap }: usePlayerMovementParams) => {
   const setClaimZone = useEditorStore((s) => s.setClaimZone)
   const inClaim = useEditorStore((s) => s.inClaimZone)
   useFrame((_, delta) => {

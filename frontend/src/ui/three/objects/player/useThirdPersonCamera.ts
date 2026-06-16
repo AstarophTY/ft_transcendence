@@ -4,11 +4,11 @@ import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdli
 
 import { PLAYER_BOUNDARY_PADDING } from './config'
 import React from "react";
-import { LocalMap } from '@/types/maps/LocalMap'
-import { Block } from '@/types/Block'
-import { Chunk } from '@/types/maps/Chunk'
+import { LocalMap } from '@/types/maps/localMap.ts'
+import { Block } from '@/types/block.ts'
+import { Chunk } from '@/types/maps/chunk.ts'
 
-type Params = {
+type useThirdPersonCameraParams = {
   active: boolean
   camera: THREE.Camera
   playerRef: React.RefObject<THREE.Group>
@@ -19,7 +19,7 @@ type Params = {
   localMap: LocalMap
 }
 
-export const useThirdPersonCamera = ({ active, camera, playerRef, controlsRef, keysRef, mapSize, localMap }: Params) => {
+export const useThirdPersonCamera = ({ active, camera, playerRef, controlsRef, keysRef, mapSize, localMap }: useThirdPersonCameraParams) => {
   const pitchRef = React.useRef(-0.45) // start at ~26 degrees looking down from above (tpv)
 
   useFrame((_, delta) => {

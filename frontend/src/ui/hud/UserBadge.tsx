@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { UserBadgeProps } from "@/types/User.ts"
+import { UserBadgeProps } from "@/types/user.ts"
 import { cn } from '@/lib/utils.ts'
 
 

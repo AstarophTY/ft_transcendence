@@ -1,12 +1,12 @@
 import { useFrame } from '@react-three/fiber'
-import type { PlanetMap } from '@/types/maps/PlanetMap.ts'
+import type { PlanetMap } from '@/types/maps/planetMap.ts'
 import { useRef, ElementType } from 'react'
 import * as THREE from 'three'
 
 import { usePlanetStore } from '@/store/planetStore.ts'
 
-import SelectablePlanet from '../../objects/SelectablePlanet'
-import { PLANET_SPACING } from './constants'
+import SelectablePlanet from '@/ui/three/objects/SelectablePlanet'
+import {PLANET_SPACING} from "@/config/planetSelection.ts";
 
 const Group = 'group' as unknown as ElementType
 
