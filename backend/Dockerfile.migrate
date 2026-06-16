@@ -9,4 +9,4 @@ RUN npm ci
 COPY prisma ./prisma
 RUN npx prisma generate
 
-CMD ["npx", "prisma", "migrate", "deploy"]
+CMD ["npx", "prisma", "db", "push"]
