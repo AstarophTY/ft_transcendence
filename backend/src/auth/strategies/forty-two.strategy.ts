@@ -11,7 +11,8 @@ interface FortyTwoApiProfile {
   email?: string;
   displayname?: string;
   image?: { link?: string };
-  campus?: { name?: string }[];
+  campus?: { id: number; name?: string }[];
+  campus_users?: { campus_id: number; is_primary: boolean }[];
 }
 
 @Injectable()
@@ -52,13 +53,21 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, 'forty-two') {
     _refreshToken: string,
     profile: FortyTwoApiProfile,
   ): Promise<AuthTokens> {
+    const primaryCampusUser = profile.campus_users?.find(
+      (cu) => cu.is_primary === true,
+    );
+    const primaryCampus = primaryCampusUser
+      ? profile.campus?.find((c) => c.id === primaryCampusUser.campus_id)
+      : undefined;
+    const campusName = primaryCampus?.name ?? profile.campus?.[0]?.name;
+
     return this.auth.validateFortyTwoUser({
       fortyTwoId: profile.id,
       fortyTwoLogin: profile.login,
       email: profile.email,
       avatar: profile.image?.link,
       displayName: profile.displayname,
-      campus: profile.campus?.[0]?.name,
+      campus: campusName,
     });
   }
 }
