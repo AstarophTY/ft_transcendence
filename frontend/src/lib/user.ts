@@ -8,7 +8,7 @@ export const getUserId = () => {
   try {
     const decoded = jwtDecode<{ sub: string }>(token)
     return decoded.sub;
-  } catch (e) {
+  } catch {
     return null;
   }
 }
