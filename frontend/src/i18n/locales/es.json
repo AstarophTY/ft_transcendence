@@ -697,7 +697,10 @@
   "world": {
     "loading": "Cargando el mundo...",
     "connectionLost": "Conexión perdida. Volviendo a la selección de planetas.",
-    "claimZone": "No puedes colocar bloques en la zona protegida",
+    "claimZone": "No puedes modificar bloques en la zona protegida",
+    "claimZone_add": "No puedes colocar bloques en la zona protegida",
+    "claimZone_remove": "No puedes eliminar bloques en la zona protegida",
+    "claimZone_rotate": "No puedes rotar bloques en la zona protegida",
     "insufficientCoins": "Monedas insuficientes — necesitas {{needed}} pero solo tienes {{coins}}",
     "noCoins": "Tu campus se quedó sin monedas",
     "loadFailed": "No se pudieron cargar los mundos"

@@ -399,7 +399,21 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
 
       if (bX >= midX - 2 && bX < midX + 2 && bZ >= midZ - 2 && bZ < midZ + 2) {
         showClaimWalls()
-        toast.error(i18n.t('world.claimZone', { defaultValue: 'You cannot place blocks in the claim zone' }))
+        let msgKey = 'world.claimZone'
+        let defVal = 'You cannot modify blocks in the claim zone'
+
+        if (tool === Tab.Add) {
+          msgKey = 'world.claimZone_add'
+          defVal = 'You cannot place blocks in the claim zone'
+        } else if (tool === Tab.Remove) {
+          msgKey = 'world.claimZone_remove'
+          defVal = 'You cannot remove blocks in the claim zone'
+        } else if (tool === Tab.RotateX || tool === Tab.RotateY || tool === Tab.RotateZ) {
+          msgKey = 'world.claimZone_rotate'
+          defVal = 'You cannot rotate blocks in the claim zone'
+        }
+
+        toast.error(i18n.t(msgKey, { defaultValue: defVal }))
         return;
       }
     }

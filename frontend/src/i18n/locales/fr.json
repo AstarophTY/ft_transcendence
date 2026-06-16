@@ -697,7 +697,10 @@
   "world": {
     "loading": "Chargement du monde...",
     "connectionLost": "Connexion perdue. Retour à la sélection des planètes.",
-    "claimZone": "Tu ne peux pas placer de blocs dans la zone protégée",
+    "claimZone": "Tu ne peux pas modifier de blocs dans la zone protégée",
+    "claimZone_add": "Tu ne peux pas placer de blocs dans la zone protégée",
+    "claimZone_remove": "Tu ne peux pas retirer de blocs dans la zone protégée",
+    "claimZone_rotate": "Tu ne peux pas pivoter de blocs dans la zone protégée",
     "insufficientCoins": "Pas assez de pièces — il en faut {{needed}} mais tu n’en as que {{coins}}",
     "noCoins": "Ton campus n’a plus de pièces",
     "loadFailed": "Échec du chargement des mondes"

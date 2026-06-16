@@ -697,7 +697,10 @@
   "world": {
     "loading": "Loading the world...",
     "connectionLost": "Connection lost. Returning to planet selection.",
-    "claimZone": "You cannot place blocks in the claim zone",
+    "claimZone": "You cannot modify blocks in the claim zone",
+    "claimZone_add": "You cannot place blocks in the claim zone",
+    "claimZone_remove": "You cannot remove blocks in the claim zone",
+    "claimZone_rotate": "You cannot rotate blocks in the claim zone",
     "insufficientCoins": "Not enough coins — you need {{needed}} but only have {{coins}}",
     "noCoins": "Your campus is out of coins",
     "loadFailed": "Failed to load worlds"
