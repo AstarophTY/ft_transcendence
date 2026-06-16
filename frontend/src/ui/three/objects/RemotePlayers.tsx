@@ -155,7 +155,7 @@ const RemotePlayer = ({ id, target }: { id: string; target: RemoteTransform }) =
  * `/world` socket. Membership lives in React state (mount/unmount), while the
  * frequent transform updates are kept in a ref so they never trigger a re-render.
  */
-const RemotePlayers = ({ campusId: _campusId }: { campusId: string }) => {
+const RemotePlayers = () => {
   const ids = useRemotePlayersStore((s) => s.playerIds)
   const localUserId = useAuth((s) => s.user?.userId)
 

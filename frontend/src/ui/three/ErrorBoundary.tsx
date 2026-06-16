@@ -38,7 +38,7 @@ export class WebGLErrorBoundary extends Component<Props, State> {
             <div className="h-14 w-14 rounded-full bg-destructive/10 flex items-center justify-center text-destructive animate-bounce">
               <AlertTriangle className="h-7 w-7" />
             </div>
-            
+
             <div className="space-y-2">
               <h2 className="text-xl font-bold tracking-tight">{i18n.t('errors.webglContextLost')}</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
@@ -46,8 +46,8 @@ export class WebGLErrorBoundary extends Component<Props, State> {
               </p>
             </div>
 
-            <Button 
-              onClick={this.handleRefresh} 
+            <Button
+              onClick={this.handleRefresh}
               className="w-full h-11 font-medium gap-2 shadow-lg hover:shadow-xl transition-all cursor-pointer"
             >
               <RefreshCw className="h-4 w-4" />

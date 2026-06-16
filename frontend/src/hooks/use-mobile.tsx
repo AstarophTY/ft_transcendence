@@ -13,7 +13,7 @@ export function useIsMobile() {
 
     mqlPortrait.addEventListener("change", onChange)
     mqlLandscape.addEventListener("change", onChange)
-    
+
     setIsMobile(mqlPortrait.matches || mqlLandscape.matches)
 
     return () => {

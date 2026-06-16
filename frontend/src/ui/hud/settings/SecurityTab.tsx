@@ -56,10 +56,10 @@ export default function SecurityTab() {
         <Input type="password" value={current} onChange={(e) => setCurrent(e.target.value)} />
       </Field>
       <Field label={t('settings.security.new')}>
-        <Input 
-          type="password" 
-          value={next} 
-          onChange={(e) => setNext(e.target.value)} 
+        <Input
+          type="password"
+          value={next}
+          onChange={(e) => setNext(e.target.value)}
           aria-invalid={passwordInvalid || undefined}
         />
         <PasswordChecklist password={next} />
@@ -68,10 +68,10 @@ export default function SecurityTab() {
         label={t('settings.security.confirm')}
         hint={mismatch ? t('settings.security.mismatch') : undefined}
       >
-        <Input 
-          type="password" 
-          value={confirm} 
-          onChange={(e) => setConfirm(e.target.value)} 
+        <Input
+          type="password"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
           aria-invalid={mismatch || undefined}
         />
       </Field>

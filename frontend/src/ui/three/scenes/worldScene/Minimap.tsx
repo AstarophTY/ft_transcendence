@@ -36,7 +36,7 @@ export const Minimap = ({
     const mCanvas = mapCanvasRef.current
     const ctx = mCanvas.getContext('2d')
     if (!ctx) return
-    
+
     const imageData = ctx.createImageData(mapSize, mapSize)
     const data = imageData.data
 
@@ -44,12 +44,12 @@ export const Minimap = ({
       for (let cz = 0; cz < localMap.depthInChunks; cz++) {
         const chunk = localMap.getChunk(cx, cz)
         if (!chunk) continue
-        
+
         for (let x = 0; x < Chunk.WIDTH; x++) {
           for (let z = 0; z < Chunk.WIDTH; z++) {
             const globalX = cx * Chunk.WIDTH + x
             const globalZ = cz * Chunk.WIDTH + z
-            
+
             let topBlock = Block.Air
             let topY = 0
             for (let y = Chunk.HEIGHT - 1; y >= 0; y--) {
@@ -64,17 +64,17 @@ export const Minimap = ({
                 break
               }
             }
-            
+
             const idx = (globalZ * mapSize + globalX) * 4
             if (topBlock !== Block.Air) {
               const hex = BlockMetadata[topBlock as keyof typeof BlockMetadata]?.color || '#ffffff'
               const r = parseInt(hex.slice(1, 3), 16) || 255
               const g = parseInt(hex.slice(3, 5), 16) || 255
               const b = parseInt(hex.slice(5, 7), 16) || 255
-              
+
               let shade = 0.7 + (topY / Chunk.HEIGHT) * 0.3
               if (topBlock === Block.Water) shade = 0.9
-              
+
               data[idx] = Math.floor(r * shade)
               data[idx + 1] = Math.floor(g * shade)
               data[idx + 2] = Math.floor(b * shade)
@@ -89,7 +89,7 @@ export const Minimap = ({
         }
       }
     }
-    
+
     ctx.putImageData(imageData, 0, 0)
   }, [localMap, mapVersion, mapSize])
 
@@ -102,7 +102,7 @@ export const Minimap = ({
 
     const width = canvas.width
     const height = canvas.height
-    
+
     ctx.clearRect(0, 0, width, height)
 
     let px = 0, pz = 0, ry = 0
@@ -122,10 +122,10 @@ export const Minimap = ({
     const cz = pz + halfMap
 
     const zoom = 4
-    
+
     ctx.save()
     ctx.translate(width / 2, height / 2)
-    
+
     ctx.save()
     ctx.scale(zoom, zoom)
     ctx.translate(-cx, -cz)
@@ -134,7 +134,7 @@ export const Minimap = ({
     ctx.restore()
 
     ctx.rotate(-ry + Math.PI)
-    
+
     ctx.fillStyle = '#ef4444'
     ctx.beginPath()
     ctx.moveTo(0, 6)
@@ -143,11 +143,11 @@ export const Minimap = ({
     ctx.lineTo(-4, -5)
     ctx.closePath()
     ctx.fill()
-    
+
     ctx.lineWidth = 1
     ctx.strokeStyle = '#ffffff'
     ctx.stroke()
-    
+
     ctx.restore()
   })
 

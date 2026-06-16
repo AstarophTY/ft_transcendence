@@ -1,6 +1,6 @@
 import { usePlanetStore } from '@/store/planetStore.ts'
 import { Card } from '@/ui/shadcn/card.tsx'
-import {   
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger
@@ -15,7 +15,7 @@ export default function PlanetQuickSelect() {
 
   const handleSelect = (index: number) => {
     const newOffset = index / (planetCount - 1 || 1)
-    
+
     setTargetOffset(newOffset)
     setActiveIndex(index)
   }
@@ -33,8 +33,8 @@ export default function PlanetQuickSelect() {
                 <button
                 onClick={() => handleSelect(index)}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  isActive 
-                    ? 'bg-foreground scale-125' 
+                  isActive
+                    ? 'bg-foreground scale-125'
                     : 'bg-foreground/50 hover:bg-foreground/75'
                 }`}
                 aria-label={`Select planet ${world.label}`}

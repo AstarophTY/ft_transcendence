@@ -309,9 +309,9 @@ function AuthDialog() {
               <UserBadge user={user} onlyAvatar />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent 
-            side="left" 
-            align="start" 
+          <DropdownMenuContent
+            side="left"
+            align="start"
             sideOffset={8}
             className="w-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
           >
@@ -328,8 +328,8 @@ function AuthDialog() {
           </DropdownMenuContent>
         </DropdownMenu>
       ) : (
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           onClick={() => setDialogOpen(true)}
           className="flex size-12 p-0 rounded-full justify-center items-center hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 border-none shadow-none"
         >
@@ -338,7 +338,7 @@ function AuthDialog() {
       ))}
 
       <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
-        <DialogContent 
+        <DialogContent
           className={cn("pointer-events-auto", !user && "[&>button]:hidden")}
           onInteractOutside={!user ? (e) => e.preventDefault() : undefined}
           onEscapeKeyDown={!user ? (e) => e.preventDefault() : undefined}
@@ -439,9 +439,9 @@ function UserMenu() {
               <UserBadge user={user} onlyAvatar />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent 
-            side="left" 
-            align="start" 
+          <DropdownMenuContent
+            side="left"
+            align="start"
             sideOffset={8}
             className="w-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
           >
@@ -495,7 +495,7 @@ function UserMenu() {
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
-        
+
         <SettingsDialog />
         <SeasonDialog />
         {user.role === 'ADMIN' && <AdminDialog />}

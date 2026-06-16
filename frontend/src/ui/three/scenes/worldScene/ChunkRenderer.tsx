@@ -43,7 +43,7 @@ const ChunkBlockTypeRenderer = ({
       const y = inst.y
 
       const position = new THREE.Vector3(x - halfSize + 0.5, y + 0.5, z - halfSize + 0.5)
-      
+
       // Decode X, Y, and Z rotations (2 bits each)
       const rx = inst.r & 3
       const ry = (inst.r >> 2) & 3

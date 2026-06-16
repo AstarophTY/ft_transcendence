@@ -85,7 +85,7 @@ export default function EditorMode() {
         <ToolBar updateCurrenTool={changeTool} currentTool={currentTool} updateCurrentShape={changeShape} currentShape={currentShape}/>
         <Cross/>
         {currentTool === Tab.Add && (!isMobile || catalogOpen) && (<SearchBlock />)}
-        
+
         {isMobile && currentTool === Tab.Add && !catalogOpen && (
           <button
             onClick={(e) => {
@@ -105,7 +105,7 @@ export default function EditorMode() {
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </button>
         )}
-        
+
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 px-5 py-2 bg-background/60 backdrop-blur-md supports-[backdrop-filter]:bg-background/40 border border-border/30 rounded-full shadow-lg select-none pointer-events-auto text-sm font-mono font-bold text-foreground">
           {isMobile ? (
             <>

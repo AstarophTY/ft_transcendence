@@ -77,7 +77,7 @@ function Satellite({ onClick }: { onClick: (event: ThreeEvent<MouseEvent>) => vo
       </Billboard>
       <BoxGeometry args={[0.2, 0.2, 0.2]} />
       <meshStandardMaterial ref={materialRef} color="#fbbf24" />
-    </mesh>    
+    </mesh>
   )
 }
 
@@ -85,14 +85,12 @@ const SelectablePlanet = ({ map, index, totalCount }: SelectablePlanetProps) => 
   const planetRef = useRef<THREE.Group>(null)
   const blendRef = useRef(0)
   const [hovered, setHovered] = useState(false)
-  
+
   const user = useAuth((s) => s.user)
   const worlds = usePlanetStore((s) => s.worlds)
-  // const activeIndex = usePlanetStore((s) => s.activeIndex)
 
   const isPlayerCampus = user?.campusId && worlds[index]?.campusId === user.campusId;
   const label = worlds[index]?.label || 'Unknown';
-  // const isActive = activeIndex === index
 
   useSelectablePlanetAnimation({ planetRef, blendRef, hovered, index, totalCount })
 

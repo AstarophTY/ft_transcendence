@@ -88,7 +88,7 @@ function getBlockPreview(name: string, color: string): Promise<string> {
         resolve('');
         return;
       }
-      
+
       const oldMaterials = globalBox.material as THREE.Material[];
       globalBox.material = materials;
 
@@ -142,8 +142,8 @@ function getBlockPreview(name: string, color: string): Promise<string> {
 
           // Transparency
           if (
-            blockName.includes('water') || 
-            blockName.includes('glass') || 
+            blockName.includes('water') ||
+            blockName.includes('glass') ||
             blockName === 'ice'
           ) {
             mat.transparent = true;
@@ -175,10 +175,10 @@ function getBlockPreview(name: string, color: string): Promise<string> {
         const materials = Array.from({ length: 6 }).map(() => {
           const mat = new THREE.MeshStandardMaterial({ color: color });
           if (
-            blockName === 'water_still' || 
-            blockName === 'water_flow' || 
-            blockName === 'glass' || 
-            blockName.includes('stained_glass') || 
+            blockName === 'water_still' ||
+            blockName === 'water_flow' ||
+            blockName === 'glass' ||
+            blockName.includes('stained_glass') ||
             blockName === 'ice'
           ) {
             mat.transparent = true;
@@ -212,7 +212,7 @@ export function BlockPreview({ name, color }: { name: string; color: string }) {
 
   if (!dataUrl) {
     return (
-      <div 
+      <div
         className="w-12 h-12 rounded shadow-inner animate-pulse"
         style={{ backgroundColor: color }}
       />
@@ -220,9 +220,9 @@ export function BlockPreview({ name, color }: { name: string; color: string }) {
   }
 
   return (
-    <img 
-      src={dataUrl} 
-      alt={name} 
+    <img
+      src={dataUrl}
+      alt={name}
       className="w-16 h-16 object-contain select-none transition-transform duration-200 hover:scale-110 active:scale-95"
       style={{ imageRendering: 'pixelated' }}
     />
@@ -311,30 +311,30 @@ export function SearchBlock() {
     <div className="
       /* Desktop (Default) */
       absolute top-16 right-16 w-[400px] h-[500px] z-50
-      
+
       /* Mobile Portrait */
       max-md:fixed max-md:bottom-0 max-md:inset-x-0 max-md:top-auto max-md:right-auto max-md:w-full max-md:h-[60vh]
-      
+
       /* Mobile/Tablet Landscape */
       max-lg:landscape:fixed max-lg:landscape:top-0 max-lg:landscape:bottom-0 max-lg:landscape:right-0 max-lg:landscape:left-auto max-lg:landscape:w-[320px] max-lg:landscape:h-full
     ">
-      <motion.div 
+      <motion.div
         key={isMobile ? 'mobile' : 'desktop'}
         drag={!isMobile}
         dragControls={dragControls}
         dragListener={false}
         dragMomentum={false}
         className="
-          flex flex-col h-full w-full space-y-4 p-4 pointer-events-auto 
-          bg-background/60 backdrop-blur-md supports-[backdrop-filter]:bg-background/40 
+          flex flex-col h-full w-full space-y-4 p-4 pointer-events-auto
+          bg-background/60 backdrop-blur-md supports-[backdrop-filter]:bg-background/40
           shadow-lg
-          
+
           /* Desktop */
           rounded-xl border border-border/40
-          
+
           /* Mobile Portrait */
           max-md:rounded-t-2xl max-md:rounded-b-none max-md:border-t max-md:border-x-0 max-md:border-b-0
-          
+
           /* Mobile Landscape */
           max-lg:landscape:rounded-l-2xl max-lg:landscape:rounded-r-none max-lg:landscape:border-l max-lg:landscape:border-y-0 max-lg:landscape:border-r-0
         "
@@ -343,7 +343,7 @@ export function SearchBlock() {
         <div className="hidden max-md:portrait:block w-12 h-1 bg-muted-foreground/30 rounded-full mx-auto -mt-1 mb-2" />
 
         <div className="flex flex-col space-y-2">
-          <div 
+          <div
             className={`flex items-center justify-between pb-1 ${isMobile ? '' : 'cursor-grab active:cursor-grabbing'}`}
             onPointerDown={(e) => !isMobile && dragControls.start(e)}
           >
@@ -366,7 +366,7 @@ export function SearchBlock() {
 
               {/* Close button */}
             {isMobile && (
-              <button 
+              <button
                 onClick={() => setCatalogOpen(false)}
                 className="p-1 rounded-md hover:bg-muted/20 active:scale-95 transition-all text-muted-foreground hover:text-foreground cursor-pointer"
                 aria-label={t('editor.closeCatalog')}

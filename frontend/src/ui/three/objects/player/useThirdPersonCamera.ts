@@ -35,14 +35,14 @@ export const useThirdPersonCamera = ({ active, camera, playerRef, controlsRef, k
       const dir = new THREE.Vector3().subVectors(end, start)
       const maxDist = dir.length()
       dir.normalize()
-      
+
       const step = 0.5
       let currentDist = 0
       let finalPos = end.clone()
 
       while (currentDist <= maxDist) {
         const checkPos = start.clone().addScaledVector(dir, currentDist)
-        
+
         const globalX = Math.floor(checkPos.x + halfSize)
         const globalZ = Math.floor(checkPos.z + halfSize)
         const adjustedY = Math.floor(checkPos.y)

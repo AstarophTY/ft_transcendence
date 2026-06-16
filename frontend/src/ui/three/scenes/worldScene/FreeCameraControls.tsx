@@ -227,7 +227,7 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
           normal = normal.clone().transformDirection(instMatrix)
         }
         const halfSize = mapSize / 2
-        
+
         let targetX = 0
         let targetY = 0
         let targetZ = 0
@@ -253,7 +253,7 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
 
         if (showPreview) {
           previewGroupRef.current.position.set(targetX, targetY, targetZ)
-          
+
           let color = '#fbbf24' // Add: gold
           if (tool === Tab.Remove) {
             color = '#ef4444' // Remove: red
@@ -266,12 +266,12 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
           } else if (tool === Tab.Lookup) {
             color = '#00d9ff'
           }
-          
+
           const matCube = cubePreviewRef.current.material as THREE.MeshBasicMaterial
           const matSphere = spherePreviewRef.current.material as THREE.MeshBasicMaterial
           matCube.color.set(color)
           matSphere.color.set(color)
-          
+
           let radiusX = shapeSizeX - 1
           let radiusY = shapeSizeY - 1
           let radiusZ = shapeSizeZ - 1
@@ -283,7 +283,7 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
           const scaleValX = (radiusX * 2 + 1) * (tool === Tab.Add ? 1.0 : 1.02)
           const scaleValY = (radiusY * 2 + 1) * (tool === Tab.Add ? 1.0 : 1.02)
           const scaleValZ = (radiusZ * 2 + 1) * (tool === Tab.Add ? 1.0 : 1.02)
-          
+
           if (shape === Shape.Sphere && (radiusX > 0 || radiusY > 0 || radiusZ > 0)) {
             cubePreviewRef.current.visible = false
             spherePreviewRef.current.visible = true
@@ -361,7 +361,7 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
 
     const halfSize = mapSize / 2
     let blockPos = point.clone()
-    
+
     if (e.button === 0 && tool === Tab.Add) {
        blockPos.addScaledVector(normal, 0.5)
     } else {
@@ -469,7 +469,7 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
         const block = localMap.getGlobalBlock(x, y, z)
         if (block !== Block.Air && block !== Block.Bedrock) {
           const currentRotation = localMap.getGlobalBlockRotation(x, y, z)
-          
+
           let rx = currentRotation & 3
           let ry = (currentRotation >> 2) & 3
           let rz = (currentRotation >> 4) & 3
@@ -617,7 +617,7 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
         camera.rotation.x += rotSpeed * delta
         camera.rotation.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, camera.rotation.x))
       }
-      
+
       if (keysRef.current.ArrowDown) {
         camera.rotation.x += rotSpeed * delta
         camera.rotation.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, camera.rotation.x))

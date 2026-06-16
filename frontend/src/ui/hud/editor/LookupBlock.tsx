@@ -25,30 +25,30 @@ export function LookupBlock() {
     <div className="
       /* Desktop (Default) */
       absolute top-16 left-16 w-[350px] h-[450px] z-50
-      
+
       /* Mobile Portrait */
       max-md:fixed max-md:bottom-0 max-md:inset-x-0 max-md:top-auto max-md:left-auto max-md:w-full max-md:h-[60vh]
-      
+
       /* Mobile/Tablet Landscape */
       max-lg:landscape:fixed max-lg:landscape:top-0 max-lg:landscape:bottom-0 max-lg:landscape:right-0 max-lg:landscape:left-auto max-lg:landscape:w-[320px] max-lg:landscape:h-full
     ">
-      <motion.div 
+      <motion.div
         key={isMobile ? 'mobile' : 'desktop'}
         drag={!isMobile}
         dragControls={dragControls}
         dragListener={false}
         dragMomentum={false}
         className="
-          flex flex-col h-full w-full p-4 pointer-events-auto 
-          bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 
+          flex flex-col h-full w-full p-4 pointer-events-auto
+          bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60
           shadow-lg
-          
+
           /* Desktop */
           rounded-xl border border-border/40
-          
+
           /* Mobile Portrait */
           max-md:rounded-t-2xl max-md:rounded-b-none max-md:border-t max-md:border-x-0 max-md:border-b-0
-          
+
           /* Mobile Landscape */
           max-lg:landscape:rounded-l-2xl max-lg:landscape:rounded-r-none max-lg:landscape:border-l max-lg:landscape:border-y-0 max-lg:landscape:border-r-0
         "
@@ -57,7 +57,7 @@ export function LookupBlock() {
         <div className="hidden max-md:portrait:block w-12 h-1 bg-muted-foreground/30 rounded-full mx-auto -mt-1 mb-2" />
 
         <div className="flex flex-col space-y-2 mb-4">
-          <div 
+          <div
             className={`flex items-center justify-between pb-1 ${isMobile ? '' : 'cursor-grab active:cursor-grabbing'}`}
             onPointerDown={(e) => !isMobile && dragControls.start(e)}
           >
@@ -81,7 +81,7 @@ export function LookupBlock() {
             <div className="flex flex-col gap-3 pr-3">
               {results.map((record, i) => {
                 const blockMeta = record.placedBlock ? BlockMetadata[record.placedBlock as keyof typeof BlockMetadata] : null;
-                
+
                 return (
                   <Card key={i} className="flex flex-row items-center justify-between p-3 gap-2 bg-muted/30">
                     <div className="flex flex-col gap-2">
@@ -100,31 +100,31 @@ export function LookupBlock() {
                         <span className="text-xs">{new Date(record.date).toLocaleString()}</span>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-1.5 shrink-0 bg-background/40 p-1 rounded-lg border border-border/40 shadow-inner">
                       {/* Previous block state */}
-                      <div 
-                        className="flex items-center justify-center h-10 w-10 rounded-md border border-dashed border-muted-foreground/30 shadow-sm overflow-hidden relative bg-muted/10" 
+                      <div
+                        className="flex items-center justify-center h-10 w-10 rounded-md border border-dashed border-muted-foreground/30 shadow-sm overflow-hidden relative bg-muted/10"
                         title={record.previousBlock && BlockMetadata[record.previousBlock as keyof typeof BlockMetadata] ? `${t('common.before', { defaultValue: 'Before' })}: ${blockLabel(BlockMetadata[record.previousBlock as keyof typeof BlockMetadata].name)}` : `${t('common.before', { defaultValue: 'Before' })}: ${t('editor.air')}`}
                       >
                         {record.previousBlock && BlockMetadata[record.previousBlock as keyof typeof BlockMetadata] ? (
                           <div className="absolute inset-0 flex items-center justify-center scale-75">
-                            <BlockPreview 
-                              name={BlockMetadata[record.previousBlock as keyof typeof BlockMetadata].name} 
-                              color={BlockMetadata[record.previousBlock as keyof typeof BlockMetadata].color} 
+                            <BlockPreview
+                              name={BlockMetadata[record.previousBlock as keyof typeof BlockMetadata].name}
+                              color={BlockMetadata[record.previousBlock as keyof typeof BlockMetadata].color}
                             />
                           </div>
                         ) : (
                           <span className="text-[10px] font-semibold text-muted-foreground/50 select-none">{t('editor.air')}</span>
                         )}
                       </div>
-                      
+
                       {/* Transition arrow */}
                       <span className="text-muted-foreground/50 text-xs font-bold px-0.5 select-none">➔</span>
-                      
+
                       {/* New placed block state */}
-                      <div 
-                        className="flex items-center justify-center h-10 w-10 rounded-md border border-border shadow-sm overflow-hidden relative bg-background" 
+                      <div
+                        className="flex items-center justify-center h-10 w-10 rounded-md border border-border shadow-sm overflow-hidden relative bg-background"
                         title={blockMeta ? `${t('common.after', { defaultValue: 'After' })}: ${blockLabel(blockMeta.name)}` : `${t('common.after', { defaultValue: 'After' })}: ${t('editor.air')}`}
                       >
                         {blockMeta ? (

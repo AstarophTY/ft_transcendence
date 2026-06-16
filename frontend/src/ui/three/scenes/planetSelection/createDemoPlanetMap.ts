@@ -68,7 +68,7 @@ export const createDemoPlanetMap = (profile: DemoPlanetProfile) => {
   return {
     getPreview: (resolution: number = 32): PreviewVoxel[] => {
       const previewData: PreviewVoxel[] = []
-      
+
       // The map has a 64-block flat border on all sides. We crop it out for the preview
       // so the terrain extends all the way to the edges of the 3D cube faces.
       const BORDER_SIZE = 64

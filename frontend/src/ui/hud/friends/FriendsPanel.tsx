@@ -37,7 +37,7 @@ export default function FriendsPanel({ dragControls }: FriendsPanelProps) {
       exit={{ opacity: 0 }}
       className="flex h-full flex-col"
     >
-      <header 
+      <header
         className={cn(
           "flex items-center justify-between border-b p-4 select-none",
           !isMobile && "cursor-grab active:cursor-grabbing"

@@ -35,7 +35,7 @@ const CameraController = () => {
       }
 
       camera.position.lerp(targetPos, delta * 5)
-      
+
       const currentQuaternion = camera.quaternion.clone()
       camera.lookAt(targetLookAt)
       const targetQuaternion = camera.quaternion.clone()
@@ -107,6 +107,8 @@ const PlanetSelectionScene = () => {
       cancelled = true
       clearTimeout(timer)
     }
+    // Re-fetch only when the user's identity changes, not on every `user` object update.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setWorlds, user?.userId])
 
   const planetMaps = useMemo(

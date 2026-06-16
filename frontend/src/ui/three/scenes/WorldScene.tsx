@@ -33,7 +33,7 @@ import { Minimap } from './worldScene/Minimap'
 import { useTranslation } from 'react-i18next'
 
 // Horizontal reach of a tree canopy, in blocks (matches the ±2 leaf offset loop below).
-import { useRemotePlayersStore } from '@/store/remotePlayersStore'
+import { useRemotePlayersStore, type RemotePlayerPayload } from '@/store/remotePlayersStore'
 
 const TREE_CANOPY_RADIUS = 2
 
@@ -367,10 +367,10 @@ const WorldScene = () => {
     }
     socket.on('world:coins', onCoins)
 
-    const onSnapshot = (players: any[]) => {
+    const onSnapshot = (players: RemotePlayerPayload[]) => {
       useRemotePlayersStore.getState().setPlayers(players)
     }
-    const onMove = (payload: any) => {
+    const onMove = (payload: RemotePlayerPayload) => {
       useRemotePlayersStore.getState().upsertPlayer(payload)
     }
     const onLeave = ({ id }: { id: string }) => {
@@ -398,7 +398,7 @@ const WorldScene = () => {
     const join = () => {
       const p = playerRef.current
       const skin = usePlayerAppearance.getState().skinColor
-      
+
       // Send our initial state so we are registered and visible to others
       // immediately upon join, even if we don't move.
       socket.emit('world:join', {
@@ -419,18 +419,18 @@ const WorldScene = () => {
     // standing still and the move sender has nothing new to push.
     const resync = () => {
       lastSent.current = { t: 0, key: '' }
-      
+
       // Trigger an immediate broadcast rather than waiting for the next
       // useFrame (which might be throttled in background tabs).
       const p = playerRef.current
       if (!p) return
-      
+
       const { activeCampusId, isPrivateWorld } = usePlanetStore.getState()
       const skin = usePlayerAppearance.getState().skinColor
       const freecam = currentMode === 'freecam'
       const round = (n: number) => Math.round(n * 50) / 50
 
-      const payload: any = {
+      const payload = {
         p: [round(p.position.x), round(p.position.y), round(p.position.z)],
         r: round(p.rotation.y),
         m: freecam ? 'freecam' : 'player',
@@ -438,7 +438,7 @@ const WorldScene = () => {
         campusId: activeCampusId,
         personalWorld: isPrivateWorld,
       }
-      
+
       // We don't bother with camDir here, the body position is enough for a resync.
       socket.emit('player:move', payload)
     }
@@ -517,6 +517,10 @@ const WorldScene = () => {
       socket.off('player:avatar', onAvatar)
       useRemotePlayersStore.getState().clear()
     }
+    // Re-bind socket listeners only on island change. Including `currentMode` would
+    // tear down and rebuild every listener (and clear remote players) on each editor
+    // toggle; the mode is re-sent every frame by the move sender instead.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeCampusId, isPrivate])
 
   // Broadcast our own transform to the island, throttled and only when it
@@ -596,8 +600,8 @@ const WorldScene = () => {
     const batch = pendingBlocks.current
     pendingBlocks.current = []
 
-    socket.emit('world:edit', { 
-      campusId: activeCampusId, 
+    socket.emit('world:edit', {
+      campusId: activeCampusId,
       blocks: batch,
       personalWorld: isPrivateWorld
     })
@@ -657,7 +661,7 @@ const WorldScene = () => {
       return
     }
 
-    const isMobile = window.matchMedia("(max-width: 767px)").matches || 
+    const isMobile = window.matchMedia("(max-width: 767px)").matches ||
                      window.matchMedia("(max-width: 1023px) and (orientation: landscape)").matches
     if (isMobile) {
       useEditorStore.getState().setCatalogOpen(false)
@@ -681,15 +685,15 @@ const WorldScene = () => {
   const blockAssets = useMemo(() => {
     const assets: Record<
       Exclude<Block, Block.Air>,
-      { 
-        geometry: THREE.BufferGeometry; 
-        material: THREE.Material | THREE.Material[]; 
+      {
+        geometry: THREE.BufferGeometry;
+        material: THREE.Material | THREE.Material[];
       }
     > = {} as unknown as Record<
       Exclude<Block, Block.Air>,
-      { 
-        geometry: THREE.BufferGeometry; 
-        material: THREE.Material | THREE.Material[]; 
+      {
+        geometry: THREE.BufferGeometry;
+        material: THREE.Material | THREE.Material[];
       }
     >
 
@@ -708,14 +712,14 @@ const WorldScene = () => {
         }
         return mat
       })
-      
+
       const texturePath = `/three/assets/blocks/textures/${meta.name.toLowerCase()}.png`
       textureLoader.load(
         texturePath,
         (texture) => {
           texture.magFilter = THREE.NearestFilter
           texture.colorSpace = THREE.SRGBColorSpace
-          
+
           const w = 1 / 6
           const faceUVs = [
             { offset: [2 * w, 0], repeat: [w, 1], rotation: 0 },
@@ -725,17 +729,17 @@ const WorldScene = () => {
             { offset: [3 * w, 0], repeat: [w, 1], rotation: 0 },
             { offset: [w, 0], repeat: [w, 1], rotation: 0 }
           ]
-          
+
           materials.forEach((mat, index) => {
             const faceTex = texture.clone()
             const config = faceUVs[index]
-            
+
             faceTex.repeat.set(config.repeat[0], config.repeat[1])
-            
+
             faceTex.center.set(0.5, 0.5)
             faceTex.offset.set(config.offset[0] + config.repeat[0] / 2 - 0.5, config.offset[1] + config.repeat[1] / 2 - 0.5)
             faceTex.rotation = config.rotation
-            
+
             faceTex.needsUpdate = true
             mat.map = faceTex
 
@@ -748,7 +752,7 @@ const WorldScene = () => {
         undefined,
         () => {}
       )
-      
+
       assets[blockType] = {
         geometry,
         material: materials,
@@ -792,11 +796,11 @@ const WorldScene = () => {
 
   return (
     <group>
-      {(activeCampusId || isPrivate) && <RemotePlayers campusId={activeCampusId || 'personal'} />}
+      {(activeCampusId || isPrivate) && <RemotePlayers />}
 
       {(!localMap || !isLoaded) ? (
-        <Html 
-          fullscreen 
+        <Html
+          fullscreen
           zIndexRange={[100, 100]}
           calculatePosition={(_, __, size) => [size.width / 2, size.height / 2]}
         >

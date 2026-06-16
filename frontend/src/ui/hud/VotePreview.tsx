@@ -44,7 +44,7 @@ for (let x = 0; x < 64; x++) {
 const TEXTURE_MATERIALS = new Map<Exclude<Block, Block.Air>, THREE.Material[]>()
 const getBlockMaterials = (blockType: Exclude<Block, Block.Air>, meta: BlockMeta) => {
   if (TEXTURE_MATERIALS.has(blockType)) return TEXTURE_MATERIALS.get(blockType)!
-  
+
   const textureLoader = new THREE.TextureLoader()
   const mats = Array.from({ length: 6 }).map(() => {
     const mat = new THREE.MeshStandardMaterial({ color: meta.color, envMapIntensity: 0 })
@@ -55,14 +55,14 @@ const getBlockMaterials = (blockType: Exclude<Block, Block.Air>, meta: BlockMeta
     }
     return mat
   })
-  
+
   const texturePath = `/three/assets/blocks/textures/${meta.name.toLowerCase()}.png`
   textureLoader.load(
     texturePath,
     (texture) => {
       texture.magFilter = THREE.NearestFilter
       texture.colorSpace = THREE.SRGBColorSpace
-      
+
       const w = 1 / 6
       const faceUVs = [
         { offset: [2 * w, 0], repeat: [w, 1], rotation: 0 },
@@ -72,11 +72,11 @@ const getBlockMaterials = (blockType: Exclude<Block, Block.Air>, meta: BlockMeta
         { offset: [3 * w, 0], repeat: [w, 1], rotation: 0 },
         { offset: [w, 0], repeat: [w, 1], rotation: 0 }
       ]
-      
+
       mats.forEach((mat, index) => {
         const faceTex = texture.clone()
         const config = faceUVs[index]
-        
+
         faceTex.repeat.set(config.repeat[0], config.repeat[1])
         faceTex.center.set(0.5, 0.5)
         faceTex.offset.set(config.offset[0] + config.repeat[0] / 2 - 0.5, config.offset[1] + config.repeat[1] / 2 - 0.5)
@@ -90,7 +90,7 @@ const getBlockMaterials = (blockType: Exclude<Block, Block.Air>, meta: BlockMeta
     undefined,
     () => {}
   )
-  
+
   TEXTURE_MATERIALS.set(blockType, mats)
   return mats
 }
@@ -108,14 +108,14 @@ const PreviewMap = ({ editedBlocks }: { editedBlocks: EditedBlock[] }) => {
     }
 
     const grouped = new Map<Block, THREE.Matrix4[]>()
-    
+
     const offsetX = -32
     const offsetZ = -32
 
     map.forEach((val, key) => {
        const [x, y, z] = key.split(',').map(Number)
        if (!grouped.has(val.block)) grouped.set(val.block, [])
-       
+
        const matrix = new THREE.Matrix4()
        const position = new THREE.Vector3((x + offsetX) * 2 + 1, y * 2 + 1, (z + offsetZ) * 2 + 1)
        const quaternion = new THREE.Quaternion()
@@ -123,7 +123,7 @@ const PreviewMap = ({ editedBlocks }: { editedBlocks: EditedBlock[] }) => {
           quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), (val.rotation * Math.PI) / 2)
        }
        matrix.compose(position, quaternion, new THREE.Vector3(1, 1, 1))
-       
+
        grouped.get(val.block)!.push(matrix)
     })
 
@@ -136,7 +136,7 @@ const PreviewMap = ({ editedBlocks }: { editedBlocks: EditedBlock[] }) => {
          const meta = BlockMetadata[blockId as keyof typeof BlockMetadata]
          if (!meta) return null
          const materials = getBlockMaterials(blockId as Exclude<Block, Block.Air>, meta)
-         
+
          return (
            <instancedMesh key={blockId} args={[undefined as unknown as THREE.BufferGeometry, undefined as unknown as THREE.Material, matrices.length]} material={materials}
              ref={(mesh) => {
@@ -181,7 +181,7 @@ export const VotePreview = ({ userId, onClose, onVote, canVote, isVoting }: Vote
 
   return (
     <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vh] max-w-[800px] z-[60] max-md:bottom-0 max-md:inset-x-0 max-md:top-auto max-md:left-auto max-md:translate-x-0 max-md:translate-y-0 max-md:w-full max-md:h-[80vh]">
-      <motion.div 
+      <motion.div
         key={isMobile ? 'mobile' : 'desktop'}
         drag={!isMobile}
         dragControls={dragControls}
@@ -191,7 +191,7 @@ export const VotePreview = ({ userId, onClose, onVote, canVote, isVoting }: Vote
       >
         <div className="hidden max-md:portrait:block w-12 h-1 bg-muted-foreground/30 rounded-full mx-auto mt-2 mb-1" />
 
-        <div 
+        <div
           className={`flex items-center justify-between p-4 border-b border-border/40 ${isMobile ? '' : 'cursor-grab active:cursor-grabbing'}`}
           onPointerDown={(e) => !isMobile && dragControls.start(e)}
         >

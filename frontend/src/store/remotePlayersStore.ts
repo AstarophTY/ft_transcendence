@@ -22,28 +22,39 @@ export interface RemoteTransform {
   skin: string
 }
 
-/** 
+/**
  * Non-reactive map for high-frequency transform updates.
  * RemotePlayers.tsx reads from this during the useFrame loop.
  */
 export const remoteTransforms = new Map<string, RemoteTransform>()
 
+/** Wire payload for a remote player's transform, as sent over the `/world` socket. */
+export interface RemotePlayerPayload {
+  id: string
+  u?: string
+  a?: string
+  skin?: string
+  p: [number, number, number]
+  r: number
+  m: PlayerMode
+  c?: [number, number, number]
+  cr?: number
+  cp?: number
+}
+
 interface RemotePlayersState {
   playerIds: string[]
   metadata: Map<string, RemotePlayerMetadata>
-  
   /** Authoritative sync of all players on join. */
-  setPlayers: (players: { id: string; u?: string; a?: string; skin?: string; p: [number, number, number]; r: number; m: PlayerMode; c?: [number, number, number]; cr?: number; cp?: number }[]) => void
-  
+  setPlayers: (players: RemotePlayerPayload[]) => void
   /** Incremental update for a single player. */
-  upsertPlayer: (p: { id: string; u?: string; a?: string; skin?: string; p: [number, number, number]; r: number; m: PlayerMode; c?: [number, number, number]; cr?: number; cp?: number }) => void
-  
+  upsertPlayer: (p: RemotePlayerPayload) => void
   removePlayer: (id: string) => void
   updateAvatar: (id: string, avatar: string | null) => void
   clear: () => void
 }
 
-const updateTransform = (id: string, p: any) => {
+const updateTransform = (id: string, p: RemotePlayerPayload) => {
   const mode: PlayerMode = p.m === 'freecam' ? 'freecam' : 'player'
   const camPos = p.c ?? p.p
   const camYaw = p.cr ?? p.r
@@ -83,7 +94,7 @@ export const useRemotePlayersStore = create<RemotePlayersState>((set, get) => ({
   setPlayers: (players) => {
     const newMetadata = new Map<string, RemotePlayerMetadata>()
     const newIds: string[] = []
-    
+
     // Clear stale transforms
     const present = new Set(players.map(p => p.id))
     for (const id of remoteTransforms.keys()) {
@@ -107,7 +118,7 @@ export const useRemotePlayersStore = create<RemotePlayersState>((set, get) => ({
   upsertPlayer: (p) => {
     const { metadata, playerIds } = get()
     const existing = metadata.get(p.id)
-    
+
     updateTransform(p.id, p)
 
     const updatedMetadata = new Map(metadata)
@@ -143,10 +154,10 @@ export const useRemotePlayersStore = create<RemotePlayersState>((set, get) => ({
 
     const updatedMetadata = new Map(metadata)
     updatedMetadata.set(id, { ...existing, avatar: avatar || '' })
-    
+
     const transform = remoteTransforms.get(id)
     if (transform) transform.avatar = avatar || ''
-    
+
     set({ metadata: updatedMetadata })
   },
 

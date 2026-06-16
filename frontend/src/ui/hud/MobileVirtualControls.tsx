@@ -1,4 +1,4 @@
-import { 
+import {
   ArrowUpToLine,
   ArrowDownToLine,
   Eye,
@@ -155,7 +155,7 @@ export default function MobileVirtualControls() {
   return (
     <div className="fixed inset-0 pointer-events-none z-40 select-none">
       {/* Full-screen tap zone for block placement/interaction */}
-      <div 
+      <div
         className="absolute inset-0 pointer-events-auto z-0 touch-none"
         onPointerDown={(e) => {
           if (e.button !== 0) return
@@ -169,14 +169,14 @@ export default function MobileVirtualControls() {
       />
 
       {/* Left side: Movement Joystick */}
-      <div 
+      <div
         className="absolute pointer-events-auto flex items-end gap-2 z-10
                    portrait:left-8 portrait:bottom-20
                    landscape:left-20 landscape:bottom-10"
       >
         <div className={`p-2 rounded-full backdrop-blur-md border shadow-lg transition-all duration-150 ${
-          leftActive 
-            ? 'bg-background/80 border-primary/40 scale-95 brightness-125' 
+          leftActive
+            ? 'bg-background/80 border-primary/40 scale-95 brightness-125'
             : 'bg-background/30 border-border/30 hover:bg-background/45'
         }`}>
           <Joystick
@@ -218,7 +218,7 @@ export default function MobileVirtualControls() {
       </div>
 
       {/* Right side: Camera Rotation Joystick & Action Button (with Freecam Toggle stacked above) */}
-      <div 
+      <div
         className="absolute pointer-events-auto flex flex-col items-end gap-3 z-10
                    portrait:right-8 portrait:bottom-20
                    landscape:right-10 landscape:bottom-10"
@@ -244,8 +244,8 @@ export default function MobileVirtualControls() {
         )}
 
         <div className={`p-2 rounded-full backdrop-blur-md border shadow-lg transition-all duration-150 ${
-          rightActive 
-            ? 'bg-background/80 border-primary/40 scale-95 brightness-125' 
+          rightActive
+            ? 'bg-background/80 border-primary/40 scale-95 brightness-125'
             : 'bg-background/30 border-border/30 hover:bg-background/45'
         }`}>
           <Joystick

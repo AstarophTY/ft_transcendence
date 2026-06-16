@@ -57,9 +57,9 @@ export default function SettingsDialog() {
               style={isMobile ? undefined : { gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
             >
               {tabs.map(({ id }) => (
-                <TabsTrigger 
-                  key={id} 
-                  value={id} 
+                <TabsTrigger
+                  key={id}
+                  value={id}
                   className={cn(isMobile && "shrink-0 px-4")}
                 >
                   {t(`settings.tabs.${id}`)}

@@ -41,7 +41,7 @@ export default function ChatView({ dragControls }: ChatViewProps) {
       exit={{ opacity: 0, x: 24 }}
       className="flex h-full flex-col"
     >
-      <header 
+      <header
         className={cn(
           "flex items-center gap-2 border-b p-3 select-none",
           !isMobile && "cursor-grab active:cursor-grabbing"

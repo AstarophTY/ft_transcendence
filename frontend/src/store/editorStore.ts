@@ -33,12 +33,12 @@ export const useEditorStore = create<EditorStore>((set) => ({
   setSelectedBlock: (block) => set({ selectedBlock: block }),
   tool: Tab.None,
   setTool: (tool) => set((state) => {
-    const isMobile = window.matchMedia("(max-width: 767px)").matches || 
+    const isMobile = window.matchMedia("(max-width: 767px)").matches ||
                      window.matchMedia("(max-width: 1023px) and (orientation: landscape)").matches
-    const nextCatalogOpen = tool === Tab.Add 
-      ? true 
+    const nextCatalogOpen = tool === Tab.Add
+      ? true
       : (isMobile ? false : state.catalogOpen)
-      
+
     if (tool === Tab.Add && isMobile) {
       useLookupStore.getState().closeLookup()
     }
@@ -48,10 +48,10 @@ export const useEditorStore = create<EditorStore>((set) => ({
     } else {
       useLookupStore.getState().closeLookup()
     }
-    
-    return { 
-      tool: tool, 
-      catalogOpen: nextCatalogOpen 
+
+    return {
+      tool: tool,
+      catalogOpen: nextCatalogOpen
     }
   }),
   shape: Shape.Cube,
@@ -65,7 +65,7 @@ export const useEditorStore = create<EditorStore>((set) => ({
   catalogOpen: false,
   setCatalogOpen: (open) => {
     if (open) {
-      const isMobile = window.matchMedia("(max-width: 767px)").matches || 
+      const isMobile = window.matchMedia("(max-width: 767px)").matches ||
                        window.matchMedia("(max-width: 1023px) and (orientation: landscape)").matches
       if (isMobile) {
         useLookupStore.getState().closeLookup()

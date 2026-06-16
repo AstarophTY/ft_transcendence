@@ -15,7 +15,7 @@ export class IslandMap {
         this.config.baseHeight = config.baseHeight ?? Math.floor(config.maxHeight * 0.28);
         this.config.variationRange = config.variationRange ?? Math.max(1, Math.floor(config.maxHeight * 0.25));
         this.config.relief = config.relief ?? 0.65;
-        
+
         // Primary terrain noise generator
         this.perlin = new Perlin2D(config.seed);
         // Secondary noise generator for biome distributions

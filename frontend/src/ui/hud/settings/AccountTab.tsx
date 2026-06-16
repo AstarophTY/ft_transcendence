@@ -53,10 +53,10 @@ export default function AccountTab() {
         }
       >
         <div className="flex gap-2">
-          <Input 
-            value={username} 
-            onChange={(e) => setUsername(e.target.value)} 
-            disabled={daysLeft > 0} 
+          <Input
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            disabled={daysLeft > 0}
             aria-invalid={!validateUsername(username) && username !== me?.username && username.length > 0 ? true : undefined}
           />
           <Button
@@ -73,19 +73,19 @@ export default function AccountTab() {
           <Input type="email" value={me?.email ?? '—'} disabled />
         </Field>
       ) : (
-        <Field 
+        <Field
           label={t('settings.account.email')}
           hint={!validateEmail(email) && email !== (me?.email ?? '') && email.length > 0 ? t('settings.account.emailInvalid', { defaultValue: 'Please enter a valid email address.' }) : undefined}
         >
           <div className="flex gap-2">
-            <Input 
-              type="email" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               aria-invalid={!validateEmail(email) && email !== (me?.email ?? '') && email.length > 0 ? true : undefined}
             />
-            <Button 
-              onClick={() => void saveProfile({ email })} 
+            <Button
+              onClick={() => void saveProfile({ email })}
               disabled={saving || email === (me?.email ?? '') || !validateEmail(email)}
             >
               {t('settings.save')}

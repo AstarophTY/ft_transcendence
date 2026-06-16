@@ -8,7 +8,6 @@ import { disconnectWorldSocket } from '@/lib/sockets/worldSocket'
 import i18n from '@/i18n'
 import HUDFrame from './ui/hud/HUDFrame'
 import SceneFrame from './ui/three/SceneFrame'
-import { SidebarProvider } from '@/ui/shadcn/sidebar'
 import { TooltipProvider } from '@/ui/shadcn/tooltip'
 
 function App() {
@@ -56,13 +55,11 @@ function App() {
 
   return (
     <TooltipProvider>
-      <SidebarProvider defaultOpen={false}>
-        <div className="relative h-screen w-screen overflow-hidden">
-          <SceneFrame />
-          <HUDFrame />
-          <Toaster />
-        </div>
-      </SidebarProvider>
+      <div className="relative h-screen w-screen overflow-hidden">
+        <SceneFrame />
+        <HUDFrame />
+        <Toaster />
+      </div>
     </TooltipProvider>
   )
 }
