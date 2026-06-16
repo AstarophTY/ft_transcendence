@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { useLayoutEffect, useMemo, useRef, ElementType } from 'react'
-import type { PreviewVoxel } from '@/types/maps/PreviewVoxel.ts'
+import type { PreviewVoxel } from '@/types/maps/previewVoxel.ts'
 
 const Group = 'group' as unknown as ElementType
 const InstancedMesh = 'instancedMesh' as unknown as ElementType
@@ -8,7 +8,7 @@ const BoxGeometry = 'boxGeometry' as unknown as ElementType
 
 type Orientation = 'top' | 'right' | 'front'
 
-type Props = {
+type VoxelFaceProps = {
   orientation: Orientation
   previewVoxels: PreviewVoxel[]
   scale: number
@@ -23,7 +23,7 @@ const tempPosition = new THREE.Vector3()
 const tempScale = new THREE.Vector3()
 const tempColor = new THREE.Color()
 
-const VoxelFace = ({ orientation, previewVoxels, scale, half, inset, getHeight }: Props) => {
+const VoxelFace = ({ orientation, previewVoxels, scale, half, inset, getHeight }: VoxelFaceProps) => {
   const groupPosition: [number, number, number] =
     orientation === 'top' ? [0, 0.5, 0] : orientation === 'right' ? [0.5, 0, 0] : [0, 0, 0.5]
 

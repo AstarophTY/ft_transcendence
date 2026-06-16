@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import type { AdminStats } from '@/lib/api/admin.ts'
+import {AdminStats} from "@/types/api/admin.ts";
 
 export default function StatsGrid({ stats }: { stats: AdminStats }) {
   const { t } = useTranslation()

@@ -4,12 +4,12 @@ import { Billboard, Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { useTranslation } from 'react-i18next'
 
-import type { PlanetMap } from '@/types/maps/PlanetMap.ts'
+import type { PlanetMap } from '@/types/maps/planetMap.ts'
 import { usePlanetStore } from '@/store/planetStore.ts'
 import { useAuth } from '@/store/auth'
 
-import PlanetPreviewFaces from './selectablePlanet/PlanetPreviewFaces'
-import { useSelectablePlanetAnimation } from './selectablePlanet/useSelectablePlanetAnimation'
+import PlanetPreviewFaces from '@/ui/three/objects/selectablePlanet/PlanetPreviewFaces'
+import { useSelectablePlanetAnimation } from '@/ui/three/objects/selectablePlanet/useSelectablePlanetAnimation'
 
 const BoxGeometry = 'boxGeometry' as unknown as ElementType
 

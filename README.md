@@ -412,11 +412,11 @@ LocalMap (1D Grid of Chunks)
         └── 4x SubChunks 16x16x16 (Lazy Allocated Segment)
 ```
 
-* **Lazy Allocation in [SubChunk.ts](frontend/src/types/maps/SubChunk.ts)**: A `SubChunk` (16x16x16 blocks) starts in a uniform state (`isUniform = true`, `uniformBlock = Block.Air`). As long as no different block is placed inside, it consumes minimal memory. Once a different block is placed, a typed `Uint16Array(4096)` array (representing $16^3$ entries) is allocated to store each voxel individually. This technique saves up to 90% of RAM for deep underground solid chunks and empty air chunks.
+* **Lazy Allocation in [subChunk.ts](frontend/src/types/maps/subChunk.ts)**: A `SubChunk` (16x16x16 blocks) starts in a uniform state (`isUniform = true`, `uniformBlock = Block.Air`). As long as no different block is placed inside, it consumes minimal memory. Once a different block is placed, a typed `Uint16Array(4096)` array (representing $16^3$ entries) is allocated to store each voxel individually. This technique saves up to 90% of RAM for deep underground solid chunks and empty air chunks.
 * **Coordinate Mapping via Bit Shifts**:
   * Inside a `SubChunk`, the flat 1D index of a block `(x, y, z)` is calculated using fast bitwise operations: `x + (z << 4) + (y << 8)`.
-  * In [Chunk.ts](frontend/src/types/maps/Chunk.ts), the global height `y` (from 0 to 63) is mapped to the sub-chunk index using a bit shift `y >> 4` (division by 16) and to the local vertical coordinate using a bitwise mask `y & 15` (modulo 16).
-* **Flat Array Representation in [LocalMap.ts](frontend/src/types/maps/LocalMap.ts)**: The global map `LocalMap` stores chunks in a flat 1D array of size `widthInChunks * depthInChunks`. Accessing is done via `chunkX + (chunkZ * widthInChunks)`.
+  * In [chunk.ts](frontend/src/types/maps/chunk.ts), the global height `y` (from 0 to 63) is mapped to the sub-chunk index using a bit shift `y >> 4` (division by 16) and to the local vertical coordinate using a bitwise mask `y & 15` (modulo 16).
+* **Flat Array Representation in [localMap.ts](frontend/src/types/maps/localMap.ts)**: The global map `LocalMap` stores chunks in a flat 1D array of size `widthInChunks * depthInChunks`. Accessing is done via `chunkX + (chunkZ * widthInChunks)`.
 * **Local vs. Global Lookup Optimization**:
   * Global block queries (`getGlobalBlock`) convert global world coordinates into a chunk index using `Math.floor(globalX / Chunk.WIDTH)`.
   * During the exposure check (`isBlockExposed`), the engine first checks if adjacent blocks belong to the same local chunk. If they do, it directly queries the local chunk array, bypassing global calculations and map lookups for over 90% of queries.
@@ -488,7 +488,7 @@ The player is represented by a 3D bounding box (AABB) of radius `PLAYER_RADIUS` 
 Planetary topology and biomes are generated 100% deterministically client-side from a planet-specific seed string.
 
 #### Mathematical Mechanics of Perlin Noise
-The engine incorporates a custom two-dimensional Perlin noise class `Perlin2D.ts`.
+The engine incorporates a custom two-dimensional Perlin noise class `perlin2D.ts`.
 1. **Deterministic Initialization**: From the seed string, a pseudorandom number generator (`seedrandom`) initializes a 256-value permutation table shuffled using the Fisher-Yates algorithm. This table is duplicated to 512 entries to avoid modulo operations during lookups.
 2. **Quintic Fade Curve**: To eliminate grid artifacts and ensure smooth transitions, the fractional coordinate is smoothed using Ken Perlin's quintic fade polynomial:
    $$f(t) = 6t^5 - 15t^4 + 10t^3$$
@@ -518,7 +518,7 @@ Biome types are determined in `IslandMap.getBiomeAt` using a second, independent
 * **Height Blending**: To prevent steep, unrealistic vertical cliffs at biome borders (e.g., transitioning directly from flat plains to a 22-block high mountain), final heights are linearly interpolated. The engine evaluates the raw height of each biome at the point `(x, z)` and performs a weighted interpolation between adjacent biomes based on the biome noise value's position relative to the biome centers (`p0` to `p3`).
 
 #### Block Composition & Deterministic Vegetation
-* **getBiomeBlock in [Biome.ts](frontend/src/generation/terrain/Biome.ts)**: Once the maximum height $H$ is computed at a coordinate $(X, Z)$, the block types along the vertical column are decided based on depth:
+* **getBiomeBlock in [biome.ts](frontend/src/generation/terrain/biome.ts)**: Once the maximum height $H$ is computed at a coordinate $(X, Z)$, the block types along the vertical column are decided based on depth:
   * If the terrain height is 18 or above, or if the biome is Mountain: the peak ($y = H$) is set to Gravel (`Block.Gravel`), and lower levels are set to Stone (`Block.Stone`).
   * In Plains and Forest biomes: the surface ($y = H$) is set to Grass (`Block.Grass`), the subsurface layer ($H-3 \leq y < H$) is set to Dirt (`Block.Dirt`), and the deep layers are Stone (`Block.Stone`).
   * In Desert: the surface and upper subsurface are Sand (`Block.Sand`), deep subsurface is Sandstone (`Block.Sandstone`), and deep layers are Stone (`Block.Stone`).

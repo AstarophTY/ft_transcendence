@@ -6,26 +6,11 @@ import {
   getMe,
   updateProfile,
   uploadAvatar,
-  type ProfileUpdate,
-  type SelfUser,
 } from '@/lib/api/account'
 import { useAuth } from '@/store/auth'
 import { toMessage } from '@/lib/apiError'
 import i18n from '@/i18n'
-
-interface SettingsState {
-  open: boolean
-  me: SelfUser | null
-  loading: boolean
-  saving: boolean
-
-  setOpen: (open: boolean) => void
-  load: () => Promise<void>
-  saveProfile: (body: ProfileUpdate) => Promise<boolean>
-  renameUser: (username: string) => Promise<boolean>
-  updatePassword: (current: string, next: string) => Promise<boolean>
-  changeAvatar: (file: File) => Promise<boolean>
-}
+import {SettingsState} from "@/types/store/settings.ts";
 
 export const useSettings = create<SettingsState>((set, get) => ({
   open: false,

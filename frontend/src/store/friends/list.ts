@@ -11,7 +11,7 @@ import {
 } from '@/lib/api'
 import { toMessage } from '@/lib/apiError'
 import i18n from '@/i18n'
-import type { FriendsState, ListSlice } from './types'
+import {FriendsState, ListSlice} from "@/types/store/friends.ts";
 
 export const createListSlice: StateCreator<FriendsState, [], [], ListSlice> = (
   set,

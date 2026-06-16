@@ -1,6 +1,5 @@
 import type { StateCreator } from 'zustand'
 import { toast } from 'sonner'
-import { tokenStore, type DirectMessage, type Friendship } from '@/lib/api'
 import { connectSocket, disconnectSocket } from '@/lib/sockets/socket'
 import { disconnectWorldSocket } from '@/lib/sockets/worldSocket'
 import { listWorlds } from '@/lib/api/world'
@@ -9,7 +8,9 @@ import { useAdmin } from '@/store/admin'
 import { useChatChannels } from '@/store/chatChannels'
 import { usePlanetStore } from '@/store/planetStore'
 import i18n from '@/i18n'
-import type { FriendsState, SocketSlice } from './types'
+import {tokenStore} from "@/lib/api.ts";
+import {DirectMessage, Friendship} from "@/types/api/api.ts";
+import {FriendsState, SocketSlice} from "@/types/store/friends.ts";
 
 export const createSocketSlice: StateCreator<
   FriendsState,

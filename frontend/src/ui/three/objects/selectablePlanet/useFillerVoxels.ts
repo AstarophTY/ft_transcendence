@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
-import type { PreviewVoxel } from '@/types/maps/PreviewVoxel.ts'
-import type { FillerVoxel } from './fillerTypes'
-import { generateTopRightEdge, generateTopFrontEdge, generateRightFrontEdge } from './generateEdges'
-import { generateCornerOctant } from './generateCorner'
+import type { PreviewVoxel } from '@/types/maps/previewVoxel.ts'
+import { generateTopRightEdge, generateTopFrontEdge, generateRightFrontEdge } from '@/ui/three/objects/selectablePlanet/generateEdges'
+import { generateCornerOctant } from '@/ui/three/objects/selectablePlanet/generateCorner'
+import {FillerVoxel} from "@/types/three/selectablePlanet.ts";
 
-interface HookParams {
+interface useFillerVoxelsParams {
   previewVoxels: PreviewVoxel[]
   newScale: number
   half: number
@@ -18,7 +18,7 @@ export const useFillerVoxels = ({
   half,
   inset,
   getHeight,
-}: HookParams): FillerVoxel[] => {
+}: useFillerVoxelsParams): FillerVoxel[] => {
   const voxelGrid = useMemo(() => {
     const grid: Record<string, PreviewVoxel> = {}
     for (const v of previewVoxels) {

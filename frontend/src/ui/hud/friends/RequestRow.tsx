@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { motion } from 'motion/react'
-import Avatar from './Avatar.tsx'
+import Avatar from '@/ui/hud/friends/Avatar.tsx'
 
 interface RequestRowProps {
   name: string

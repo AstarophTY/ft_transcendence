@@ -4,17 +4,17 @@ import { useEffect, useRef, ElementType } from 'react'
 import * as THREE from 'three'
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
 
-import { useCurvedSceneMaterials } from './player/useCurvedSceneMaterials'
-import { usePlayerInput } from './player/usePlayerInput'
-import { usePlayerMovement } from './player/usePlayerMovement'
-import { usePlayerRotation } from './player/usePlayerRotation'
-import { usePlayerVertical } from './player/usePlayerVertical'
-import { useThirdPersonCamera } from './player/useThirdPersonCamera'
-import { useAvatar, tintAvatar } from './player/useAvatar'
-import { usePlayerAppearance } from './player/playerAppearance'
+import { useCurvedSceneMaterials } from '@/ui/three/objects/player/useCurvedSceneMaterials'
+import { usePlayerInput } from '@/ui/three/objects/player/usePlayerInput'
+import { usePlayerMovement } from '@/ui/three/objects/player/usePlayerMovement'
+import { usePlayerRotation } from '@/ui/three/objects/player/usePlayerRotation'
+import { usePlayerVertical } from '@/ui/three/objects/player/usePlayerVertical'
+import { useThirdPersonCamera } from '@/ui/three/objects/player/useThirdPersonCamera'
+import { useAvatar, tintAvatar } from '@/ui/three/objects/player/useAvatar'
+import { usePlayerAppearance } from '@/ui/three/objects/player/playerAppearance'
 
-import type { PlayerProps } from '@/types/Three'
-import { Chunk } from '@/types/maps/Chunk'
+import type { PlayerProps } from '@/types/three.ts'
+import { Chunk } from '@/types/maps/chunk.ts'
 
 const Primitive = 'primitive' as unknown as ElementType
 

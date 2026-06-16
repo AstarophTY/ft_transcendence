@@ -12,7 +12,7 @@ import {
 } from '@/ui/shadcn/dialog.tsx'
 import { useSettings } from '@/store/settings.ts'
 import { useAuth } from '@/store/auth.ts'
-import Field from './Field.tsx'
+import Field from '@/ui/hud/settings/Field.tsx'
 import { validateUsername, validateEmail } from '@/lib/utils.ts'
 
 const COOLDOWN_DAYS = 30

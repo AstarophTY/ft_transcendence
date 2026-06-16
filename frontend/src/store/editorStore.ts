@@ -1,28 +1,8 @@
 import { create } from 'zustand'
-import { Block } from '@/types/Block'
-import { Tab, Shape } from '@/types/Editor'
-import { useLookupStore } from './lookupStore'
-
-interface EditorStore {
-  inClaimZone: boolean
-  setClaimZone: (state: boolean) => void
-  in_editor: boolean
-  activeEditor: (state: boolean) => void
-  selectedBlock: Block
-  setSelectedBlock: (block: Block) => void
-  tool: Tab
-  setTool: (tool: Tab) => void
-  shape: Shape
-  setShape: (shape: Shape) => void
-  shapeSizeX: number
-  setShapeSizeX: (shapeSize: number) => void
-  shapeSizeY: number
-  setShapeSizeY: (shapeSize: number) => void
-  shapeSizeZ: number
-  setShapeSizeZ: (shapeSize: number) => void
-  catalogOpen: boolean
-  setCatalogOpen: (open: boolean) => void
-}
+import { Block } from '@/types/block.ts'
+import { Tab, Shape } from '@/types/editor.ts'
+import { useLookupStore } from '@/store/lookupStore'
+import {EditorStore} from "@/types/store/editorStore.ts";
 
 export const useEditorStore = create<EditorStore>((set) => ({
   inClaimZone: false,

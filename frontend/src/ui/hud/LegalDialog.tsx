@@ -9,9 +9,9 @@ import {
   DialogTitle,
 } from '@/ui/shadcn/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/shadcn/tabs'
-import { useLegal, type LegalTab } from '@/store/legal'
-
-type LegalSection = { title: string; body: string }
+import { useLegal } from '@/store/legal'
+import {LegalSection} from "@/types/hud/legalSection.ts";
+import {LegalTab} from "@/types/store/legal.ts";
 
 function LegalDoc({ intro, sectionsKey }: { intro: string; sectionsKey: string }) {
   const { t } = useTranslation()

@@ -1,16 +1,16 @@
 import * as THREE from 'three'
 import { useLayoutEffect, useRef, ElementType } from 'react'
-import type { FillerVoxel } from './fillerTypes'
+import {FillerVoxel} from "@/types/three/selectablePlanet.ts";
 
 const InstancedMesh = 'instancedMesh' as unknown as ElementType
 const BoxGeometry = 'boxGeometry' as unknown as ElementType
 
-type Props = {
+type VoxelFillerProps = {
   fillerVoxels: FillerVoxel[]
   newScale: number
 }
 
-const VoxelFiller = ({ fillerVoxels, newScale }: Props) => {
+const VoxelFiller = ({ fillerVoxels, newScale }: VoxelFillerProps) => {
   const instancedMeshRef = useRef<THREE.InstancedMesh>(null)
 
   useLayoutEffect(() => {

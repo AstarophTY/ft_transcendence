@@ -1,12 +1,16 @@
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-import { LocalMap } from '@/types/maps/LocalMap'
-import { PLAYER_GRAVITY, PLAYER_HEIGHT_OFFSET, PLAYER_JUMP_FORCE } from './config'
+import { LocalMap } from '@/types/maps/localMap.ts'
 import { getGroundHeightAt } from './playerTerrain'
 import React from "react";
+import {
+  PLAYER_GRAVITY,
+  PLAYER_HEIGHT_OFFSET,
+  PLAYER_JUMP_FORCE
+} from "@/config/player.ts";
 
-type Params = {
+type usePlayerVerticalParams = {
   active: boolean
   keysRef: React.MutableRefObject<Record<string, boolean>>
   velocityRef: React.MutableRefObject<THREE.Vector3>
@@ -24,7 +28,7 @@ export const usePlayerVertical = ({
   playerRef,
   localMap,
   cameraPos,
-}: Params) => {
+}: usePlayerVerticalParams) => {
   useFrame((_, delta) => {
     if (!playerRef.current) return
 

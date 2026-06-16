@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { motion, AnimatePresence, useDragControls } from 'motion/react'
+import { motion, AnimatePresence, useDragControls } from 'framer-motion'
 import ChatView from '@/ui/hud/friends/ChatView.tsx'
 import FriendsPanel from '@/ui/hud/friends/FriendsPanel.tsx'
 import { useFriends } from '@/store/friends'

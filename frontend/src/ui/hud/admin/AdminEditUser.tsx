@@ -21,8 +21,8 @@ import {
 import { useAdmin } from '@/store/admin.ts'
 import Avatar from '@/ui/hud/friends/Avatar.tsx'
 import Field from '@/ui/hud/settings/Field.tsx'
-import type { UserStatus } from '@/lib/api/account.ts'
 import { cn, PASSWORD_RULES, validateEmail, validatePassword } from '@/lib/utils.ts'
+import {UserStatus} from "@/types/api/account.ts";
 
 const STATUSES: UserStatus[] = ['ONLINE', 'AWAY', 'DND', 'OFFLINE']
 

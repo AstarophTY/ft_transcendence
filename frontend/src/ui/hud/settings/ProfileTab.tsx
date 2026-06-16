@@ -11,9 +11,9 @@ import {
   SelectValue,
 } from '@/ui/shadcn/select.tsx'
 import { useSettings } from '@/store/settings.ts'
-import type { UserStatus } from '@/lib/api/account.ts'
-import Field from './Field.tsx'
-import AvatarPicker from './AvatarPicker.tsx'
+import Field from '@/ui/hud/settings/Field.tsx'
+import AvatarPicker from '@/ui/hud/settings/AvatarPicker.tsx'
+import {UserStatus} from "@/types/api/account.ts";
 
 const STATUSES: UserStatus[] = ['ONLINE', 'AWAY', 'DND', 'OFFLINE']
 

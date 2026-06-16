@@ -1,9 +1,9 @@
-import * as React from "react"
+import {useEffect, useState} from "react";
 
 export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
+  const [isMobile, setIsMobile] = useState<boolean | undefined>(undefined)
 
-  React.useEffect(() => {
+  useEffect(() => {
     const mqlPortrait = window.matchMedia("(max-width: 767px)")
     const mqlLandscape = window.matchMedia("(max-width: 1023px) and (orientation: landscape)")
 
@@ -26,9 +26,9 @@ export function useIsMobile() {
 }
 
 export function useIsTouchDevice() {
-  const [isTouch, setIsTouch] = React.useState<boolean>(false)
+  const [isTouch, setIsTouch] = useState<boolean>(false)
 
-  React.useEffect(() => {
+  useEffect(() => {
     const mql = window.matchMedia("(pointer: coarse)")
     const onChange = () => {
       setIsTouch(mql.matches)

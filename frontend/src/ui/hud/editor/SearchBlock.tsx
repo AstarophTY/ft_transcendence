@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { Input } from '@/ui/shadcn/input.tsx';
 import { Card } from '@/ui/shadcn/card.tsx';
 import { ScrollArea } from '@/ui/shadcn/scroll-area.tsx';
-import { BlocksList } from '@/config/Block.ts';
+import { BlocksList } from '@/config/block.ts';
 import { isPaidBlock } from '@/config/worldBlocks.ts';
 import { useEditorStore } from '@/store/editorStore.ts';
 import { usePlanetStore } from '@/store/planetStore.ts';
@@ -12,7 +12,7 @@ import { GripHorizontal, X, Coins } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile.tsx';
 import { useTranslation } from 'react-i18next';
 import { useWorldEconomy } from '@/store/worldEconomy.ts';
-import { Block } from '@/types/Block';
+import { Block } from '@/types/block.ts';
 import {
   Select,
   SelectContent,

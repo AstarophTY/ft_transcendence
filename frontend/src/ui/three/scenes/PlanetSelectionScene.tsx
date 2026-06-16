@@ -7,11 +7,11 @@ import { usePlanetStore } from '@/store/planetStore.ts'
 import { listWorlds } from '@/lib/api/world'
 import { useAuth } from '@/store/auth'
 
-import { WHEEL_SENSITIVITY } from './planetSelection/constants'
-import { createDemoPlanetMap } from './planetSelection/createDemoPlanetMap'
+import { createDemoPlanetMap } from '@/ui/three/scenes/planetSelection/createDemoPlanetMap'
 import { toast } from 'sonner'
 import i18n from '@/i18n'
-import PlanetRail from './planetSelection/PlanetRail'
+import PlanetRail from '@/ui/three/scenes/planetSelection/PlanetRail'
+import { WHEEL_SENSITIVITY } from '@/config/planetSelection.ts'
 
 const CameraController = () => {
   const { camera } = useThree()

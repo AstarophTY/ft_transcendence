@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/ui/shadcn/button.tsx'
 import { Input } from '@/ui/shadcn/input.tsx'
 import { useSettings } from '@/store/settings.ts'
-import Field from './Field.tsx'
+import Field from '@/ui/hud/settings/Field.tsx'
 import { cn, PASSWORD_RULES, validatePassword } from '@/lib/utils.ts'
 
 function PasswordChecklist({ password }: { password: string }) {

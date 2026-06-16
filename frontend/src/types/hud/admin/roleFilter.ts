@@ -1,0 +1,1 @@
+export type RoleFilter = 'all' | 'admin' | 'user'

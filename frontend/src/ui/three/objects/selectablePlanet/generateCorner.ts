@@ -1,14 +1,4 @@
-import type { FillerVoxel } from './fillerTypes'
-
-interface GetVoxelInfo {
-  (x: number, z: number): { height: number; color: string }
-}
-
-interface CornerParams {
-  getVoxelInfo: GetVoxelInfo
-  newScale: number
-  inset: number
-}
+import {CornerParams, FillerVoxel} from "@/types/three/selectablePlanet.ts";
 
 export const generateCornerOctant = (
   { getVoxelInfo, newScale, inset }: CornerParams,

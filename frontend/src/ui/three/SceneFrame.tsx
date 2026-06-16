@@ -3,11 +3,11 @@ import { Environment, Sky } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import * as THREE from 'three'
 
-import WorldScene from './scenes/WorldScene.tsx'
-import PlanetSelectionScene from './scenes/PlanetSelectionScene'
+import WorldScene from '@/ui/three/scenes/WorldScene.tsx'
+import PlanetSelectionScene from '@/ui/three/scenes/PlanetSelectionScene'
 import { usePlanetStore } from '@/store/planetStore'
 import { useIsTouchDevice } from '@/hooks/use-mobile.tsx'
-import { WebGLErrorBoundary } from './ErrorBoundary.tsx'
+import { WebGLErrorBoundary } from '@/ui/three/ErrorBoundary.tsx'
 
 const AmbientLight = 'ambientLight' as unknown as ElementType
 const HemisphereLight = 'hemisphereLight' as unknown as ElementType

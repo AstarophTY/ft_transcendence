@@ -1,11 +1,11 @@
 import { useMemo } from 'react'
-import type { PreviewVoxel } from '@/types/maps/PreviewVoxel.ts'
+import type { PreviewVoxel } from '@/types/maps/previewVoxel.ts'
 
-import VoxelFace from './VoxelFace'
-import VoxelFiller from './VoxelFiller'
-import { useFillerVoxels } from './useFillerVoxels'
+import VoxelFace from '@/ui/three/objects/selectablePlanet/VoxelFace'
+import VoxelFiller from '@/ui/three/objects/selectablePlanet/VoxelFiller'
+import { useFillerVoxels } from '@/ui/three/objects/selectablePlanet/useFillerVoxels'
 
-type Props = {
+type PlanetPreviewFacesProps = {
   previewVoxels: PreviewVoxel[]
   scale: number
   half: number
@@ -13,7 +13,7 @@ type Props = {
   getHeight: (voxelHeight: number) => number
 }
 
-const PlanetPreviewFaces = ({ previewVoxels, scale, half, inset, getHeight }: Props) => {
+const PlanetPreviewFaces = ({ previewVoxels, scale, half, inset, getHeight }: PlanetPreviewFacesProps) => {
   const halfRes = 1 / (scale * 2)
   const newScale = scale * 2
 

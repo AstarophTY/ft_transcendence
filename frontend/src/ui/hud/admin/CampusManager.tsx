@@ -25,8 +25,8 @@ import {
 } from '@/ui/shadcn/popover.tsx'
 import Avatar from '@/ui/hud/friends/Avatar.tsx'
 import { useAdmin } from '@/store/admin.ts'
-import type { CampusWithMembers } from '@/lib/api/campus.ts'
 import { cn } from '@/lib/utils.ts'
+import {CampusWithMembers} from "@/types/api/campus.ts";
 
 /** Pick a user not yet in the campus and attach them. */
 function AddMemberPicker({ campus }: { campus: CampusWithMembers }) {

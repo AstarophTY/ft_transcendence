@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils.ts'
-import type { DirectMessage } from '@/lib/api.ts'
+import {DirectMessage} from "@/types/api/api.ts";
 
 interface MessageListProps {
   messages: DirectMessage[]

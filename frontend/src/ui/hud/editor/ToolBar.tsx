@@ -1,8 +1,8 @@
 import { LayersPlus, LayersMinus, Rotate3D, Box, Circle, ScanSearch } from 'lucide-react'
 import { Separator } from '@/ui/shadcn/separator'
 import { Button } from '@/ui/shadcn/button.tsx'
-import { ToolBarProps } from "@/types/Editor.ts"
-import { Tab, Shape } from "@/types/Editor.ts"
+import { ToolBarProps } from "@/types/editor.ts"
+import { Tab, Shape } from "@/types/editor.ts"
 import { cn } from '@/lib/utils.ts'
 
 function ShortcutKey({ k }: { k: string }) {

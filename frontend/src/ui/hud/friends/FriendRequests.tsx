@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { Check, X } from 'lucide-react'
 import { useFriends } from '@/store/friends'
-import RequestRow from './RequestRow.tsx'
-import { RequestAction, Section } from './RequestSection.tsx'
+import RequestRow from '@/ui/hud/friends/RequestRow.tsx'
+import { RequestAction, Section } from '@/ui/hud/friends/RequestSection.tsx'
 
 export default function FriendRequests() {
   const { t } = useTranslation()

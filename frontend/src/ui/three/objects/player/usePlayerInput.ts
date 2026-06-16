@@ -3,7 +3,7 @@ import React, { useEffect } from 'react'
 
 import { isEditableTarget, safeLockPointer } from '@/lib/utils'
 
-type Params = {
+type usePlayerInputParams = {
   active: boolean
   domElement: HTMLElement
   controlsRef: React.RefObject<PointerLockControlsImpl>
@@ -12,7 +12,7 @@ type Params = {
 
 let lastUnlockTime = 0
 
-export const usePlayerInput = ({ active, domElement, controlsRef, keysRef }: Params) => {
+export const usePlayerInput = ({ active, domElement, controlsRef, keysRef }: usePlayerInputParams) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore game controls while typing in an input/textarea/etc.

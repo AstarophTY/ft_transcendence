@@ -3,22 +3,22 @@ import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { Button } from '@/ui/shadcn/button.tsx'
 import i18n from '@/i18n'
 
-interface Props {
+interface WebGLErrorBoundaryProps {
   children?: ReactNode
 }
 
-interface State {
+interface WebGLErrorBoundaryState {
   hasError: boolean
   error: Error | null
 }
 
-export class WebGLErrorBoundary extends Component<Props, State> {
-  public state: State = {
+export class WebGLErrorBoundary extends Component<WebGLErrorBoundaryProps, WebGLErrorBoundaryState> {
+  public state: WebGLErrorBoundaryState = {
     hasError: false,
     error: null
   }
 
-  public static getDerivedStateFromError(error: Error): State {
+  public static getDerivedStateFromError(error: Error): WebGLErrorBoundaryState {
     return { hasError: true, error }
   }
 

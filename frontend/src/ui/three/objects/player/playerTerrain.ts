@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 
-import { Block } from '@/types/Block'
-import { LocalMap } from '@/types/maps/LocalMap'
-import { Chunk } from '@/types/maps/Chunk'
+import { Block } from '@/types/block.ts'
+import { LocalMap } from '@/types/maps/localMap.ts'
+import { Chunk } from '@/types/maps/chunk.ts'
 
 export const getGroundHeightAt = (params: {
   localMap: LocalMap

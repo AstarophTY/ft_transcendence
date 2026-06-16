@@ -7,10 +7,10 @@ import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdli
 
 
 import { useEditorStore } from '@/store/editorStore'
-import { Tab, Shape } from '@/types/Editor'
-import { Block } from '@/types/Block'
-import { LocalMap } from '@/types/maps/LocalMap'
-import { Chunk } from '@/types/maps/Chunk'
+import { Tab, Shape } from '@/types/editor.ts'
+import { Block } from '@/types/block.ts'
+import { LocalMap } from '@/types/maps/localMap.ts'
+import { Chunk } from '@/types/maps/chunk.ts'
 import { useIsTouchDevice } from '@/hooks/use-mobile.tsx'
 import { isEditableTarget, safeLockPointer } from '@/lib/utils'
 
@@ -764,7 +764,7 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
 
   return active ? (
     <>
-      {hasPointerLock && <PointerLockControls ref={(node) => { controlsRef.current = node }} selector="#canvas-container" />}
+      {hasPointerLock && <PointerLockControls ref={(node: PointerLockControlsImpl | null) => { controlsRef.current = node }} selector="#canvas-container" />}
       <group ref={previewGroupRef}>
         <mesh ref={cubePreviewRef}>
           <BoxGeometry args={[1.01, 1.01, 1.01]} />

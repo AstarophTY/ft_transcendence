@@ -13,14 +13,11 @@ import {
   listSeasons,
   openVoteNow,
   updateSeason,
-  type Ballot,
-  type Season,
-  type SeasonInput,
-  type SeasonListEntry,
-  type SeasonPhase,
 } from '@/lib/api/season'
 import { toMessage } from '@/lib/apiError'
 import i18n from '@/i18n'
+import {SeasonState} from "@/types/store/season.ts";
+import {Season} from "@/types/api/season.ts";
 
 // A single timer that re-fetches the season exactly when its next phase edge is
 // crossed, so edit/cam gating flips live (e.g. UPCOMING → BUILD) without a page
@@ -45,38 +42,6 @@ function schedulePhaseRefresh(season: Season | null, next: Season | null, refres
   // setTimeout never overflows its 32-bit range.
   const delay = Math.min(Math.max(boundary - Date.now() + 500, 1000), 300_000)
   phaseTimer = setTimeout(() => void refresh(), delay)
-}
-
-interface SeasonState {
-  /** The profile-side vote dialog. */
-  open: boolean
-  ballot: Ballot | null
-  season: Season | null
-  phase: SeasonPhase | null
-  /** A season scheduled to start later, queued behind the running one. */
-  next: Season | null
-  /** Every season (admin overview), newest first. */
-  seasons: SeasonListEntry[]
-  loading: boolean
-
-  setOpen: (open: boolean) => void
-  load: () => Promise<void>
-  /** Lightweight fetch of just the running season (for world-edit gating). */
-  loadCurrent: () => Promise<void>
-  /** Admin: fetch the full list of seasons. */
-  loadSeasons: () => Promise<void>
-  vote: (candidateId: string) => Promise<void>
-  /** Campus-level vote (campus-less accounts). */
-  voteCampus: (campusId: string) => Promise<void>
-
-  // admin actions
-  saveSeason: (body: SeasonInput) => Promise<boolean>
-  editSeason: (body: Partial<SeasonInput>) => Promise<boolean>
-  removeSeason: (id: string) => Promise<void>
-  endBuild: () => Promise<void>
-  openVote: () => Promise<void>
-  closeVote: () => Promise<void>
-  finalize: () => Promise<void>
 }
 
 export const useSeason = create<SeasonState>((set, get) => ({

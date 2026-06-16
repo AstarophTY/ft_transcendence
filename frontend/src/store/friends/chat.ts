@@ -2,7 +2,7 @@ import type { StateCreator } from 'zustand'
 import { toast } from 'sonner'
 import { getConversation, sendMessage } from '@/lib/api'
 import { toMessage } from '@/lib/apiError'
-import type { ChatSlice, FriendsState } from './types'
+import {ChatSlice, FriendsState} from "@/types/store/friends.ts";
 
 export const createChatSlice: StateCreator<FriendsState, [], [], ChatSlice> = (
   set,

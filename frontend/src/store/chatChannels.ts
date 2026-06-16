@@ -1,24 +1,8 @@
 import { create } from 'zustand'
 import { getSocket } from '@/lib/sockets/socket'
-
-export interface ChatMessage {
-  id: string
-  senderId: string
-  senderName: string
-  content: string
-  timestamp: string
-}
-
-const MAX_MESSAGES = 200
-
-interface ChatChannelsState {
-  serverMessages: ChatMessage[]
-
-  /** Call once when the friends socket connects. */
-  setupListeners: () => void
-
-  sendServer: (content: string) => void
-}
+import {ChatMessage} from "@/types/store/chatChannels.ts";
+import {MAX_MESSAGES} from "@/config/chatChannels.ts";
+import {ChatChannelsState} from "@/types/store/chatChannels.ts";
 
 export const useChatChannels = create<ChatChannelsState>((set) => ({
   serverMessages: [],

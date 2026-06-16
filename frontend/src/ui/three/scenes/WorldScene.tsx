@@ -4,36 +4,39 @@ import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { Loader2 } from 'lucide-react'
-import { Chunk } from '@/types/maps/Chunk.ts'
-import type { DemoPlanetProfile } from '@/types/Three'
+import { Chunk } from '@/types/maps/chunk.ts'
+import type { DemoPlanetProfile } from '@/types/three.ts'
 import { usePlanetStore } from '@/store/planetStore.ts'
 import { useEditorStore } from '@/store/editorStore'
-import { getWorld, type WorldBlock } from '@/lib/api/world'
+import { getWorld } from '@/lib/api/world'
 import { connectWorldSocket, getWorldSocket } from '@/lib/sockets/worldSocket'
 import { tokenStore } from '@/lib/api'
 import { toast } from 'sonner'
 import { getUserId } from '@/lib/user'
 import i18n from '@/i18n'
-import { usePlayerAppearance } from '../objects/player/playerAppearance'
+import { usePlayerAppearance } from '@/ui/three/objects/player/playerAppearance'
 import { useWorldEconomy } from '@/store/worldEconomy'
 import { isPaidBlock } from '@/config/worldBlocks'
 import { canEditCurrentWorld, useCanEditCurrentWorld } from '@/lib/permissions'
 import { useSeason } from '@/store/season'
-import Player from '../objects/Player'
-import RemotePlayers from '../objects/RemotePlayers'
-import { ChunkRenderer } from './worldScene/ChunkRenderer'
-import { MAP_SIZE_BLOCKS, PRIVATE_MAP_SIZE } from './worldScene/constants'
-import { FreeCameraControls } from './worldScene/FreeCameraControls'
-import { Block } from '@/types/Block'
-import { BlockMetadata } from '@/config/Block'
-import { LocalMap } from '@/types/maps/LocalMap'
-import { IslandMap, BiomeType, getBiomeBlock } from '@/generation'
-import { useLookupStore, LookupRecord } from '@/store/lookupStore.ts'
-import { Minimap } from './worldScene/Minimap'
+import Player from '@/ui/three/objects/Player'
+import RemotePlayers from '@/ui/three/objects/RemotePlayers'
+import { Minimap } from '@/ui/three/scenes/worldScene/Minimap'
+import { FreeCameraControls } from '@/ui/three/scenes/worldScene/FreeCameraControls'
+import { ChunkRenderer } from '@/ui/three/scenes/worldScene/ChunkRenderer'
+import { Block } from '@/types/block.ts'
+import { BlockMetadata } from '@/config/block.ts'
+import { LocalMap } from '@/types/maps/localMap.ts'
+import { IslandMap, getBiomeBlock } from '@/generation'
+import { useLookupStore } from '@/store/lookupStore.ts'
 import { useTranslation } from 'react-i18next'
 
 // Horizontal reach of a tree canopy, in blocks (matches the ±2 leaf offset loop below).
 import { useRemotePlayersStore, type RemotePlayerPayload } from '@/store/remotePlayersStore'
+import {BiomeType} from "@/types/biome.ts";
+import {WorldBlock} from "@/types/api/world.ts";
+import {MAP_SIZE_BLOCKS, PRIVATE_MAP_SIZE} from "@/config/worldScene.ts";
+import {LookupRecord} from "@/types/store/lookupStore.ts";
 
 const TREE_CANOPY_RADIUS = 2
 
@@ -802,7 +805,7 @@ const WorldScene = () => {
         <Html
           fullscreen
           zIndexRange={[100, 100]}
-          calculatePosition={(_, __, size) => [size.width / 2, size.height / 2]}
+          calculatePosition={(_el: THREE.Object3D, _camera: THREE.Camera, size: { width: number; height: number }) => [size.width / 2, size.height / 2]}
         >
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
             <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary" />

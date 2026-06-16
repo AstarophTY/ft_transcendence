@@ -1,22 +1,5 @@
-import { create } from 'zustand'
-
-export interface LookupRecord {
-  date: string
-  userName: string | null,
-  userAvatar: string,
-  userId: string,
-  placedBlock: number
-  previousBlock: number
-}
-
-interface LookupState {
-  isOpen: boolean
-  isLoading: boolean
-  results: LookupRecord[] | null
-  openLookup: (loading?: boolean) => void
-  closeLookup: () => void
-  setResults: (results: LookupRecord[]) => void
-}
+import { create } from "zustand";
+import { LookupState } from "@/types/store/lookupStore.ts";
 
 export const useLookupStore = create<LookupState>((set) => ({
   isOpen: false,

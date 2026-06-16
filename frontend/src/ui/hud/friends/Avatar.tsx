@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils.ts'
-import { AvatarProps } from "@/types/User.ts"
+import { AvatarProps } from "@/types/user.ts"
 
 const STATUS_DOT: Record<string, string> = {
   ONLINE: 'bg-green-500',

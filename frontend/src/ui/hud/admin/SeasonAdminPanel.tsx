@@ -21,7 +21,8 @@ import { Badge } from '@/ui/shadcn/badge.tsx'
 import { ConfirmDialog } from '@/ui/shadcn/confirm-dialog.tsx'
 import { cn } from '@/lib/utils.ts'
 import { useSeason } from '@/store/season.ts'
-import type { Season, SeasonInput, SeasonPhase } from '@/lib/api/season.ts'
+import {FormState} from "@/types/hud/admin/formState.ts";
+import {Season, SeasonInput, SeasonPhase} from "@/types/api/season.ts";
 
 /** A titled, collapsible section — keeps the bulky season forms out of the way. */
 function Section({
@@ -58,15 +59,6 @@ function toLocalInput(iso: string): string {
 
 const minutesBetween = (a: string, b: string) =>
   Math.max(0, Math.round((new Date(a).getTime() - new Date(b).getTime()) / 60_000))
-
-/** The editable state of one season form (edit or schedule). */
-interface FormState {
-  title: string
-  buildStartsAt: string
-  buildEndsAt: string
-  delay: string
-  duration: string
-}
 
 const EMPTY_FORM: FormState = { title: '', buildStartsAt: '', buildEndsAt: '', delay: '0', duration: '60' }
 

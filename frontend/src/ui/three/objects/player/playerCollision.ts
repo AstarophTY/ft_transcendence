@@ -1,8 +1,8 @@
 
-import { Block } from '@/types/Block'
-import { PLAYER_RADIUS } from './config'
-import { LocalMap } from '@/types/maps/LocalMap'
-import { Chunk } from '@/types/maps/Chunk'
+import { Block } from '@/types/block.ts'
+import { LocalMap } from '@/types/maps/localMap.ts'
+import { Chunk } from '@/types/maps/chunk.ts'
+import {PLAYER_RADIUS} from "@/config/player.ts";
 
 export const checkCollisionAt = (params: {
   x: number

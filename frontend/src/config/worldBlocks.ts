@@ -1,4 +1,4 @@
-import { Block } from '@/types/Block'
+import { Block } from '@/types/block.ts'
 
 /**
  * Blocks that make up the generated world (terrain + trees) — free to place.
