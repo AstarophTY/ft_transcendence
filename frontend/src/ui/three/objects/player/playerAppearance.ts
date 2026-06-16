@@ -2,6 +2,7 @@ import { create } from 'zustand'
 
 import { getMe } from '@/lib/api/account.ts'
 import { DEFAULT_SKIN_COLOR } from '@/config/playerAppearance'
+import { PlayerAppearanceState } from '@/types/three/playerAppearanceState.ts'
 
 export const usePlayerAppearance = create<PlayerAppearanceState>((set, get) => ({
   skinColor: DEFAULT_SKIN_COLOR,

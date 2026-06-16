@@ -2,7 +2,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { PointerLockControls as PointerLockControlsImpl } from 'three-stdlib'
 
-import { PLAYER_BOUNDARY_PADDING } from './config'
+import { PLAYER_BOUNDARY_PADDING } from '@/config/player.ts'
 import React from "react";
 import { LocalMap } from '@/types/maps/localMap.ts'
 import { Block } from '@/types/block.ts'

@@ -11,6 +11,7 @@ import { createDemoPlanetMap } from '@/ui/three/scenes/planetSelection/createDem
 import { toast } from 'sonner'
 import i18n from '@/i18n'
 import PlanetRail from '@/ui/three/scenes/planetSelection/PlanetRail'
+import { WHEEL_SENSITIVITY } from '@/config/planetSelection.ts'
 
 const CameraController = () => {
   const { camera } = useThree()

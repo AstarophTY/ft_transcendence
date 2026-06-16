@@ -1,4 +1,4 @@
-interface PlayerAppearanceState {
+export interface PlayerAppearanceState {
     /** Local player's avatar tint, shared by the 3D model and the world sync. */
     skinColor: string
     loaded: boolean

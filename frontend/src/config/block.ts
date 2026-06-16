@@ -3,7 +3,7 @@ import blockColors from "@/config/block_colors.json";
 
 const colors = blockColors as Record<string, string>;
 
-export const BlockMetadata: Record<Exclude<Block, Block.Air>, BlockMeta> = {
+export const BlockMetadata: Partial<Record<Exclude<Block, Block.Air>, BlockMeta>> = {
   [Block.Stone]: { id: Block.Stone, name: "Stone", color: colors.stone || "#808080", category: "gray" },
   [Block.Dirt]: { id: Block.Dirt, name: "Dirt", color: colors.dirt || "#8b4513", category: "brown" },
   [Block.Grass]: { id: Block.Grass, name: "Grass", color: "#7ca75e", category: "green" },

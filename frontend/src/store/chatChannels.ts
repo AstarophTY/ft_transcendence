@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { getSocket } from '@/lib/sockets/socket'
-import {ChatMessage} from "@/types/social.ts";
+import {ChatMessage} from "@/types/store/chatChannels.ts";
 import {MAX_MESSAGES} from "@/config/chatChannels.ts";
 import {ChatChannelsState} from "@/types/store/chatChannels.ts";
 

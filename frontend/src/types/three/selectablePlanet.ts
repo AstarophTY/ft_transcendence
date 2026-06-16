@@ -15,10 +15,6 @@ export interface CornerParams {
     inset: number
 }
 
-export interface GetVoxelInfo {
-    (x: number, z: number): { height: number; color: string }
-}
-
 export interface EdgeParams {
     getVoxelInfo: GetVoxelInfo
     newScale: number

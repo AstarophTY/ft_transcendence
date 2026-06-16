@@ -5,7 +5,7 @@ import { Button } from '@/ui/shadcn/button.tsx'
 import { Input } from '@/ui/shadcn/input.tsx'
 import { cn } from '@/lib/utils.ts'
 import { useAuth } from '@/store/auth.ts'
-import {ChatMessage} from "@/types/social.ts";
+import {ChatMessage} from "@/types/store/chatChannels.ts";
 
 interface ChannelChatProps {
   messages: ChatMessage[]

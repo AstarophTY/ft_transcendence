@@ -21,6 +21,9 @@ import { canEditCurrentWorld, useCanEditCurrentWorld } from '@/lib/permissions'
 import { useSeason } from '@/store/season'
 import Player from '@/ui/three/objects/Player'
 import RemotePlayers from '@/ui/three/objects/RemotePlayers'
+import { Minimap } from '@/ui/three/scenes/worldScene/Minimap'
+import { FreeCameraControls } from '@/ui/three/scenes/worldScene/FreeCameraControls'
+import { ChunkRenderer } from '@/ui/three/scenes/worldScene/ChunkRenderer'
 import { Block } from '@/types/block.ts'
 import { BlockMetadata } from '@/config/block.ts'
 import { LocalMap } from '@/types/maps/localMap.ts'
@@ -802,7 +805,7 @@ const WorldScene = () => {
         <Html
           fullscreen
           zIndexRange={[100, 100]}
-          calculatePosition={(_, __, size) => [size.width / 2, size.height / 2]}
+          calculatePosition={(_el: THREE.Object3D, _camera: THREE.Camera, size: { width: number; height: number }) => [size.width / 2, size.height / 2]}
         >
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
             <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary" />

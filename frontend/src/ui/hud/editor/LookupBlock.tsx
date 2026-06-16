@@ -79,8 +79,8 @@ export function LookupBlock() {
             </div>
           ) : results && results.length > 0 ? (
             <div className="flex flex-col gap-3 pr-3">
-              {results.map((record, i) => {
-                const blockMeta = record.placedBlock ? BlockMetadata[record.placedBlock as keyof typeof BlockMetadata] : null;
+              {results.map((record, i) => {                const blockMeta = record.placedBlock ? BlockMetadata[record.placedBlock as keyof typeof BlockMetadata] : null;
+                const prevBlockMeta = record.previousBlock ? BlockMetadata[record.previousBlock as keyof typeof BlockMetadata] : null;
 
                 return (
                   <Card key={i} className="flex flex-row items-center justify-between p-3 gap-2 bg-muted/30">
@@ -105,13 +105,13 @@ export function LookupBlock() {
                       {/* Previous block state */}
                       <div
                         className="flex items-center justify-center h-10 w-10 rounded-md border border-dashed border-muted-foreground/30 shadow-sm overflow-hidden relative bg-muted/10"
-                        title={record.previousBlock && BlockMetadata[record.previousBlock as keyof typeof BlockMetadata] ? `${t('common.before', { defaultValue: 'Before' })}: ${blockLabel(BlockMetadata[record.previousBlock as keyof typeof BlockMetadata].name)}` : `${t('common.before', { defaultValue: 'Before' })}: ${t('editor.air')}`}
+                        title={prevBlockMeta ? `${t('common.before', { defaultValue: 'Before' })}: ${blockLabel(prevBlockMeta.name)}` : `${t('common.before', { defaultValue: 'Before' })}: ${t('editor.air')}`}
                       >
-                        {record.previousBlock && BlockMetadata[record.previousBlock as keyof typeof BlockMetadata] ? (
+                        {prevBlockMeta ? (
                           <div className="absolute inset-0 flex items-center justify-center scale-75">
                             <BlockPreview
-                              name={BlockMetadata[record.previousBlock as keyof typeof BlockMetadata].name}
-                              color={BlockMetadata[record.previousBlock as keyof typeof BlockMetadata].color}
+                              name={prevBlockMeta.name}
+                              color={prevBlockMeta.color}
                             />
                           </div>
                         ) : (

@@ -155,7 +155,7 @@ export const Minimap = ({
     <Html
       fullscreen
       zIndexRange={[50, 50]}
-      calculatePosition={(_, __, size) => [size.width / 2, size.height / 2]}
+      calculatePosition={(_el: THREE.Object3D, _camera: THREE.Camera, size: { width: number; height: number }) => [size.width / 2, size.height / 2]}
       style={{ pointerEvents: 'none' }}
     >
       <div className="absolute top-3 pl-18 lg:pl-3">

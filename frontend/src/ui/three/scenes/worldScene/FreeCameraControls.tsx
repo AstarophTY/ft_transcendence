@@ -764,7 +764,7 @@ const BoxGeometry = 'boxGeometry' as unknown as React.ElementType
 
   return active ? (
     <>
-      {hasPointerLock && <PointerLockControls ref={(node) => { controlsRef.current = node }} selector="#canvas-container" />}
+      {hasPointerLock && <PointerLockControls ref={(node: PointerLockControlsImpl | null) => { controlsRef.current = node }} selector="#canvas-container" />}
       <group ref={previewGroupRef}>
         <mesh ref={cubePreviewRef}>
           <BoxGeometry args={[1.01, 1.01, 1.01]} />

@@ -47,11 +47,7 @@ export default function LegalDialog() {
         </DialogHeader>
         <Tabs
           value={tab}
-          onValueChange={(v) => useLegal.setState({
-            open: false,
-            openLegal: undefined,
-            setOpen: undefined,
-            tab: v as LegalTab })}
+          onValueChange={(v) => useLegal.setState({ tab: v as LegalTab })}
         >
           <TabsList>
             <TabsTrigger value="privacy">
