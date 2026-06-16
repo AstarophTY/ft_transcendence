@@ -480,14 +480,16 @@ export class WorldGateway
     delete client.data.campusId;
 
     const room = this.room(campusId);
+    const userId = client.data.userId as string;
+
+    // Broadcast leave event using the server instance before the client leaves the room
+    this.server.to(room).emit('player:leave', { id: userId });
     void client.leave(room);
 
-    const userId = client.data.userId as string;
     const roomPlayers = this.players.get(campusId);
     if (roomPlayers?.delete(userId) && roomPlayers.size === 0) {
       this.players.delete(campusId);
     }
-    client.to(room).emit('player:leave', { id: userId });
   }
 
   /** Validate an incoming transform; returns null if malformed. */
