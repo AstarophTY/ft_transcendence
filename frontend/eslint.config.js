@@ -4,7 +4,6 @@ import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 import typescript from '@typescript-eslint/eslint-plugin'
 import typescriptParser from '@typescript-eslint/parser'
-import { fixupPluginRules } from '@eslint/compat'
 
 export default [
   { ignores: ['dist'] },
@@ -24,7 +23,7 @@ export default [
     },
     plugins: {
       react,
-      'react-hooks': fixupPluginRules(reactHooks),
+      'react-hooks': reactHooks,
       '@typescript-eslint': typescript,
     },
     rules: {
