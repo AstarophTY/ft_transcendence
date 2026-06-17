@@ -6,13 +6,13 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
-import { AppModule } from './app.module';
+import { AuthModule } from '@/auth/auth.module';
 
 async function bootstrap(): Promise<void> {
   dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
 
 
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AuthModule);
   const config = app.get(ConfigService);
 
 
