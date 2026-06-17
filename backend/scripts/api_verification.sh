@@ -1,7 +1,6 @@
 #!/usr/bin/env sh
 
 set -e
-# this script checks if the 42 api credentials are valid
 
 CLIENT_ID="${API_42_CLIENT_ID}"
 CLIENT_SECRET="${API_42_CLIENT_SECRET}"

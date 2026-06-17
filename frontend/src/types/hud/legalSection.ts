@@ -1,1 +1,0 @@
-export type LegalSection = { title: string; body: string }

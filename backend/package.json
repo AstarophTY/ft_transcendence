@@ -33,7 +33,7 @@
     "dotenv": "^16.4.7",
     "helmet": "^7.0.0",
     "ioredis": "^5.11.0",
-    "multer": "^2.1.1",
+    "multer": "^2.2.0",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
@@ -68,7 +68,8 @@
     "@prisma/engines@5.22.0": true
   },
   "overrides": {
-    "ws": "^8.21.0"
+    "ws": "^8.21.0",
+    "multer": "^2.2.0"
   },
   "prisma": {
     "schema": "./prisma/schema/"

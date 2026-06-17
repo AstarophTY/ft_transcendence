@@ -1,10 +1,5 @@
 .PHONY: all up down build logs ssl jwt clean re ps
 
-ifneq (,$(wildcard .env))
-    include .env
-    export
-endif
-
 all: ssl jwt up
 
 ssl:

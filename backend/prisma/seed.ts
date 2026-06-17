@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main(): Promise<void> {
-  // Seed intentionally empty: Prisma is configured with no models yet.
+
 }
 
 main()
