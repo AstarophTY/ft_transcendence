@@ -1,16 +1,45 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from '@/auth/dto/login.dto';
+import { PrismaService } from '@/prisma/prisma.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class LoginService {
-  login(loginDto: LoginDto) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService,
+  ) {}
+
+  async login(loginDto: LoginDto) {
+    const { username, password } = loginDto;
+
+    // Find user by username
+    const user = await this.prisma.user.findUnique({
+      where: { username },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Verify password hash
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Generate JWT access token
+    const payload = { sub: user.id, username: user.username };
+    const accessToken = await this.jwtService.signAsync(payload);
+
     return {
-      message: 'Login successful (mock)',
+      message: 'Login successful',
       user: {
-        id: 1,
-        username: loginDto.username,
+        id: user.id,
+        username: user.username,
       },
-      accessToken: `mock-jwt-token-for-${loginDto.username}`,
+      accessToken,
     };
   }
 }
