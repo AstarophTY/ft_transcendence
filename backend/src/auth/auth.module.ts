@@ -1,9 +1,15 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { AuthController } from '@/auth/auth.controller';
-import { AuthService } from '@/auth/auth.service';
+import { JwtModule } from '@nestjs/jwt';
+import { LoginController } from '@/auth/controllers/login.controller';
+import { SignupController } from '@/auth/controllers/signup.controller';
+import { FortyTwoController } from '@/auth/controllers/fortytwo.controller';
+import { LoginService } from '@/auth/services/login.service';
+import { SignupService } from '@/auth/services/signup.service';
+import { FortyTwoService } from '@/auth/services/fortytwo.service';
+import { PrismaModule } from '@/prisma/prisma.module';
 
 @Module({
   imports: [
@@ -12,11 +18,25 @@ import { AuthService } from '@/auth/auth.service';
       envFilePath: ['.env', '../.env'],
     }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
+    PrismaModule,
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        secret: config.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: config.get<any>('JWT_EXPIRES_IN', '15m'),
+        },
+      }),
+    }),
   ],
-  controllers: [AuthController],
+  controllers: [LoginController, SignupController, FortyTwoController],
   providers: [
-    AuthService,
+    LoginService,
+    SignupService,
+    FortyTwoService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
 export class AuthModule {}
+
+
