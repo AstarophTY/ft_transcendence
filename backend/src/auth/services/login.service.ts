@@ -14,22 +14,18 @@ export class LoginService {
   async login(loginDto: LoginDto) {
     const { username, password } = loginDto;
 
-    // Find user by username
     const user = await this.prisma.user.findUnique({
       where: { username },
     });
-
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Verify password hash
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Generate JWT access token
     const payload = { sub: user.id, username: user.username };
     const accessToken = await this.jwtService.signAsync(payload);
 

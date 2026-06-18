@@ -5,8 +5,10 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { JwtModule } from '@nestjs/jwt';
 import { LoginController } from '@/auth/controllers/login.controller';
 import { SignupController } from '@/auth/controllers/signup.controller';
+import { FortyTwoController } from '@/auth/controllers/fortytwo.controller';
 import { LoginService } from '@/auth/services/login.service';
 import { SignupService } from '@/auth/services/signup.service';
+import { FortyTwoService } from '@/auth/services/fortytwo.service';
 import { PrismaModule } from '@/prisma/prisma.module';
 
 @Module({
@@ -27,12 +29,14 @@ import { PrismaModule } from '@/prisma/prisma.module';
       }),
     }),
   ],
-  controllers: [LoginController, SignupController],
+  controllers: [LoginController, SignupController, FortyTwoController],
   providers: [
     LoginService,
     SignupService,
+    FortyTwoService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
 export class AuthModule {}
+
 
