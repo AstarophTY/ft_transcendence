@@ -33,6 +33,7 @@ export class SignupService {
       user: {
         id: user.id,
         username: user.username,
+        campus: user.campus,
       },
     };
   }

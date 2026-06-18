@@ -66,8 +66,26 @@ export class FortyTwoService {
       throw new UnauthorizedException('Failed to retrieve 42 user profile');
     }
 
-    const profileData = (await profileResponse.json()) as { login: string };
+    const profileData = (await profileResponse.json()) as {
+      login: string;
+      campus?: { id: number; name: string }[];
+      campus_users?: { campus_id: number; is_primary: boolean }[];
+    };
     const fortyTwoUsername = profileData.login;
+
+    let campus: string | null = null;
+    if (profileData.campus_users && profileData.campus) {
+      const primaryCampusUser = profileData.campus_users.find((cu) => cu.is_primary);
+      if (primaryCampusUser) {
+        const primaryCampus = profileData.campus.find((c) => c.id === primaryCampusUser.campus_id);
+        if (primaryCampus) {
+          campus = primaryCampus.name;
+        }
+      }
+    }
+    if (!campus && profileData.campus && profileData.campus.length > 0) {
+      campus = profileData.campus[0].name;
+    }
 
     if (!fortyTwoUsername) {
       throw new UnauthorizedException('Invalid 42 user profile data');
@@ -83,6 +101,14 @@ export class FortyTwoService {
         data: {
           username: fortyTwoUsername,
           passwordHash,
+          campus,
+        },
+      });
+    } else {
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          campus,
         },
       });
     }

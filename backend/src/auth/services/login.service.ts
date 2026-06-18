@@ -34,6 +34,7 @@ export class LoginService {
       user: {
         id: user.id,
         username: user.username,
+        campus: user.campus,
       },
       accessToken,
     };
