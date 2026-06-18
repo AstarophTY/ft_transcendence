@@ -81,5 +81,10 @@
   },
   "overrides": {
     "ws": "^8.21.0"
+  },
+  "imports": {
+    "#components/*": "./src/components/*.tsx",
+    "#lib/*": "./src/lib/*.ts",
+    "#hooks/*": "./src/hooks/*.ts"
   }
 }
