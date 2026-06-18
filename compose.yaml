@@ -55,7 +55,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: transcendence_backend
     restart: on-failure:5
     env_file: .env
@@ -69,6 +69,8 @@ services:
       migrate:
         condition: service_completed_successfully
     volumes:
+      - ./backend:/app
+      - /app/node_modules
       - uploads:/app/uploads
     networks:
       - transcendence_net
