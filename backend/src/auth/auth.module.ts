@@ -10,6 +10,8 @@ import { LoginService } from '@/auth/services/login.service';
 import { SignupService } from '@/auth/services/signup.service';
 import { FortyTwoService } from '@/auth/services/fortytwo.service';
 import { PrismaModule } from '@/prisma/prisma.module';
+import { FriendsModule } from '@/friends/friends.module';
+import { ChatModule } from '@/chat/chat.module';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { PrismaModule } from '@/prisma/prisma.module';
         },
       }),
     }),
+    FriendsModule,
+    ChatModule,
   ],
   controllers: [LoginController, SignupController, FortyTwoController],
   providers: [
@@ -36,6 +40,7 @@ import { PrismaModule } from '@/prisma/prisma.module';
     FortyTwoService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
+  exports: [JwtModule],
 })
 export class AuthModule {}
 
