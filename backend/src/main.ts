@@ -52,8 +52,9 @@ async function bootstrap(): Promise<void> {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api/docs', app, document);
 
+  const frontendUrl = config.get<string>('FRONTEND_URL', 'https://localhost');
   app.enableCors({
-    origin: config.get<string>('FRONTEND_URL', 'https://localhost'),
+    origin: [frontendUrl, 'null'],
     credentials: true,
   });
 
