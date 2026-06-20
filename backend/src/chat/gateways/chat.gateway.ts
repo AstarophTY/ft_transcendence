@@ -1,3 +1,4 @@
+import { Inject, Logger, forwardRef } from "@nestjs/common";
 import type { OnGatewayConnection, OnGatewayDisconnect } from "@nestjs/websockets";
 import {
   ConnectedSocket,
@@ -7,11 +8,10 @@ import {
   WebSocketServer,
 } from "@nestjs/websockets";
 import type { Server, Socket } from "socket.io";
-import type { JwtService } from "@nestjs/jwt";
-import type { ConfigService } from "@nestjs/config";
-import { Inject, Logger, forwardRef } from "@nestjs/common";
-import type { OnlineUsersService } from "@/chat/services/online-users.service";
-import type { ChatService } from "@/chat/services/chat.service";
+import { JwtService } from "@nestjs/jwt";
+import { ConfigService } from "@nestjs/config";
+import { OnlineUsersService } from "@/chat/services/online-users.service";
+import { ChatService } from "@/chat/services/chat.service";
 import { FriendshipsService } from "@/friends/services/friendships.service";
 
 @WebSocketGateway({

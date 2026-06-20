@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException, forwardRef } from "@nestjs/common";
-import type { PrismaService } from "@/prisma/prisma.service";
+import { PrismaService } from "@/prisma/prisma.service";
 import { FriendshipStatus } from "@prisma/client";
 import { ChatGateway } from "@/chat/gateways/chat.gateway";
 

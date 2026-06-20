@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagg
 import { JwtAuthGuard } from "@/auth/guards/jwt-auth.guard";
 import type { UserPayload } from "@/auth/decorators/current-user.decorator";
 import { CurrentUser } from "@/auth/decorators/current-user.decorator";
-import type { ChatService } from "@/chat/services/chat.service";
+import { ChatService } from "@/chat/services/chat.service";
 
 @ApiTags("chat")
 @ApiBearerAuth("JWT-auth")

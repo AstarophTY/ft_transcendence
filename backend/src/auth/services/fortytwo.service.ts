@@ -1,8 +1,8 @@
 import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
-import type { ConfigService } from "@nestjs/config";
+import { ConfigService } from "@nestjs/config";
 import type { User } from "@prisma/client";
-import type { JwtService } from "@nestjs/jwt";
-import type { PrismaService } from "@/prisma/prisma.service";
+import { JwtService } from "@nestjs/jwt";
+import { PrismaService } from "@/prisma/prisma.service";
 import * as bcrypt from "bcrypt";
 import * as crypto from "node:crypto";
 

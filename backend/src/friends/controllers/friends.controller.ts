@@ -14,10 +14,10 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagg
 import { JwtAuthGuard } from "@/auth/guards/jwt-auth.guard";
 import type { UserPayload } from "@/auth/decorators/current-user.decorator";
 import { CurrentUser } from "@/auth/decorators/current-user.decorator";
-import type { FriendshipsService } from "@/friends/services/friendships.service";
-import type { FriendRequestsService } from "@/friends/services/friend-requests.service";
-import type { UserSearchService } from "@/friends/services/user-search.service";
-import type { SendRequestDto } from "../dto/send-request.dto";
+import { FriendshipsService } from "@/friends/services/friendships.service";
+import { FriendRequestsService } from "@/friends/services/friend-requests.service";
+import { UserSearchService } from "@/friends/services/user-search.service";
+import { SendRequestDto } from "../dto/send-request.dto";
 
 @ApiTags("friends")
 @ApiBearerAuth("JWT-auth")

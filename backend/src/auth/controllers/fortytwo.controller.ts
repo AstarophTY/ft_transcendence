@@ -1,8 +1,8 @@
 import { BadRequestException, Controller, Get, Logger, Query, Res } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
-import type { ConfigService } from "@nestjs/config";
+import { ConfigService } from "@nestjs/config";
 import type { Response } from "express";
-import type { FortyTwoService } from "@/auth/services/fortytwo.service";
+import { FortyTwoService } from "@/auth/services/fortytwo.service";
 
 @ApiTags("auth")
 @Controller("auth/42")

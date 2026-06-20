@@ -1,6 +1,6 @@
 import { ConflictException, Injectable } from "@nestjs/common";
 import type { SignupDto } from "@/auth/dto/signup.dto";
-import type { PrismaService } from "@/prisma/prisma.service";
+import { PrismaService } from "@/prisma/prisma.service";
 import * as bcrypt from "bcrypt";
 
 @Injectable()

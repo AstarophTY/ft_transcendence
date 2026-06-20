@@ -3,6 +3,7 @@ import { APP_GUARD } from "@nestjs/core";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { JwtModule } from "@nestjs/jwt";
+import type { SignOptions } from "jsonwebtoken";
 import { LoginController } from "@/auth/controllers/login.controller";
 import { SignupController } from "@/auth/controllers/signup.controller";
 import { FortyTwoController } from "@/auth/controllers/fortytwo.controller";
@@ -28,7 +29,7 @@ import { ChatModule } from "@/chat/chat.module";
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>("JWT_SECRET"),
         signOptions: {
-          expiresIn: config.get<string>("JWT_EXPIRES_IN", "15m"),
+          expiresIn: config.get<string>("JWT_EXPIRES_IN", "15m") as SignOptions["expiresIn"],
         },
       }),
     }),
