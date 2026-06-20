@@ -1,7 +1,7 @@
 import { registerScene } from '@/engine/scene-registry'
-import { DefaultCanvas } from './DefaultCanvas'
-import { DefaultHUD } from './DefaultHUD'
-import { DefaultGUI } from './DefaultGUI'
+import { DefaultCanvas } from '@/scenes/default/DefaultCanvas'
+import { DefaultHUD } from '@/scenes/default/DefaultHUD'
+import { DefaultGUI } from '@/scenes/default/DefaultGUI'
 
 registerScene({
   id: 'default',
