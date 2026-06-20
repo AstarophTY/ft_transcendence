@@ -1,10 +1,9 @@
-import { PrismaClient } from '@prisma/client';
+/* eslint-disable no-console */
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-async function main(): Promise<void> {
-
-}
+async function main(): Promise<void> {}
 
 main()
   .then(async () => {

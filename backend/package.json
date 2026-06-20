@@ -6,7 +6,7 @@
     "start": "node dist/main",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main",
-    "lint": "oxlint",
+    "lint": "oxlint && oxfmt",
     "test": "node --require ts-node/register/transpile-only --test \"src/**/*.spec.ts\"",
     "test:watch": "node --require ts-node/register/transpile-only --watch --test \"src/**/*.spec.ts\"",
     "prisma:generate": "prisma generate --allow-no-models",
@@ -56,20 +56,21 @@
     "@types/passport-local": "^1.0.38",
     "@types/passport-oauth2": "^1.8.0",
     "globals": "^16.1.0",
+    "oxfmt": "^0.55.0",
     "oxlint": "^1.70.0",
     "prisma": "^6.19.3",
     "ts-node": "^10.9.0",
     "typescript": "^5.0.0",
     "vite-tsconfig-paths": "^6.1.1"
   },
+  "overrides": {
+    "multer": "^2.2.0",
+    "ws": "^8.21.0"
+  },
   "allowScripts": {
     "prisma@5.22.0": true,
     "@prisma/client@5.22.0": true,
     "@prisma/engines@5.22.0": true
-  },
-  "overrides": {
-    "ws": "^8.21.0",
-    "multer": "^2.2.0"
   },
   "prisma": {
     "schema": "./prisma/schema/"

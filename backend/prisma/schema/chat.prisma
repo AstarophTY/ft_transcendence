@@ -1,0 +1,22 @@
+model Message {
+  id         Int      @id @default(autoincrement())
+  content    String
+  senderId   Int
+  receiverId Int
+  createdAt  DateTime @default(now())
+
+  sender   User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([senderId, receiverId])
+  @@index([receiverId, senderId])
+}
+
+model GlobalMessage {
+  id        Int      @id @default(autoincrement())
+  content   String
+  senderId  Int
+  createdAt DateTime @default(now())
+
+  sender User @relation("GlobalMessages", fields: [senderId], references: [id], onDelete: Cascade)
+}

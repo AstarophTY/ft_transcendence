@@ -1,18 +1,18 @@
-import { Controller, Post, Body } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { SignupService } from '@/auth/services/signup.service';
-import { SignupDto } from '@/auth/dto/signup.dto';
+import { Body, Controller, Post } from "@nestjs/common";
+import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { SignupService } from "@/auth/services/signup.service";
+import { SignupDto } from "@/auth/dto/signup.dto";
 
-@ApiTags('auth')
-@Controller('auth/signup')
+@ApiTags("auth")
+@Controller("auth/signup")
 export class SignupController {
-  constructor(private readonly signupService: SignupService) {}
+  public constructor(private readonly signupService: SignupService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Register a new user' })
-  @ApiResponse({ status: 201, description: 'User successfully created' })
-  @ApiResponse({ status: 400, description: 'Validation failed' })
-  signup(@Body() signupDto: SignupDto) {
+  @ApiOperation({ summary: "Register a new user" })
+  @ApiResponse({ description: "User successfully created", status: 201 })
+  @ApiResponse({ description: "Validation failed", status: 400 })
+  public async signup(@Body() signupDto: SignupDto): Promise<unknown> {
     return this.signupService.signup(signupDto);
   }
 }
