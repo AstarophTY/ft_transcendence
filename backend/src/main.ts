@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AuthModule } from '@/auth/auth.module';
@@ -20,6 +21,7 @@ async function bootstrap(): Promise<void> {
   app.use(
     helmet({
       crossOriginResourcePolicy: { policy: 'cross-origin' },
+      contentSecurityPolicy: false,
     }),
   );
   app.use(cookieParser());
@@ -31,6 +33,25 @@ async function bootstrap(): Promise<void> {
     }),
   );
 
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Transcendence API')
+    .setDescription('The Transcendence API endpoints documentation')
+    .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
+    .build();
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api/docs', app, document);
+
   app.enableCors({
     origin: config.get<string>('FRONTEND_URL', 'https://localhost'),
     credentials: true,
@@ -40,3 +61,4 @@ async function bootstrap(): Promise<void> {
 }
 
 void bootstrap();
+
