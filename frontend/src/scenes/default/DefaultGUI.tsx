@@ -1,33 +1,13 @@
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { useSceneStore } from '@/engine/scene-store'
 
 export function DefaultGUI() {
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="absolute top-4 right-4 pointer-events-auto">
-          Hello
-        </Button>
-      </DialogTrigger>
+  const setGuiOpen = useSceneStore((scene) => scene.setGuiOpen)
 
-      <DialogContent showCloseButton={false}>
-        <DialogHeader>
-          <DialogTitle>World</DialogTitle>
-        </DialogHeader>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button className="w-full">Continue</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+  return (
+    <div className="flex flex-col gap-3">
+      <h2 className="text-base font-semibold">Menu</h2>
+      <Button variant="outline" className="w-full justify-start" onClick={() => setGuiOpen(false)}>Resume</Button>
+    </div>
   )
 }
