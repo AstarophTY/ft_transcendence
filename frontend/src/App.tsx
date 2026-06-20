@@ -1,5 +1,8 @@
+import '@/scenes/default'
+import { SceneLayer } from '@/engine/SceneLayer'
+
 function App() {
-  return <h1>Hello World</h1>
+  return <SceneLayer />
 }
 
 export default App
