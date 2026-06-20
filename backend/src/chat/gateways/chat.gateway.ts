@@ -1,34 +1,33 @@
+import type { OnGatewayConnection, OnGatewayDisconnect } from "@nestjs/websockets";
 import {
   ConnectedSocket,
   MessageBody,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-} from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import { Inject, forwardRef, Logger } from '@nestjs/common';
-import { OnlineUsersService } from '@/chat/services/online-users.service';
-import { ChatService } from '@/chat/services/chat.service';
-import { FriendshipsService } from '@/friends/services/friendships.service';
+} from "@nestjs/websockets";
+import type { Server, Socket } from "socket.io";
+import type { JwtService } from "@nestjs/jwt";
+import type { ConfigService } from "@nestjs/config";
+import { Inject, Logger, forwardRef } from "@nestjs/common";
+import type { OnlineUsersService } from "@/chat/services/online-users.service";
+import type { ChatService } from "@/chat/services/chat.service";
+import { FriendshipsService } from "@/friends/services/friendships.service";
 
 @WebSocketGateway({
-  path: '/ws',
   cors: {
-    origin: '*',
     credentials: true,
+    origin: "*",
   },
+  path: "/ws",
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
-  server!: Server;
+  public server!: Server;
 
   private readonly logger = new Logger(ChatGateway.name);
 
-  constructor(
+  public constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly onlineUsersService: OnlineUsersService,
@@ -37,11 +36,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly friendshipsService: FriendshipsService,
   ) {}
 
-  async handleConnection(client: Socket) {
+  public async handleConnection(client: Socket): Promise<void> {
     try {
-      const token =
-        client.handshake.auth?.token ||
-        client.handshake.headers?.authorization;
+      const token = client.handshake.auth?.token || client.handshake.headers?.authorization;
 
       if (!token) {
         this.logger.warn(`Disconnecting client ${client.id}: No token provided`);
@@ -49,10 +46,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return;
       }
 
-      const jwtToken = token.startsWith('Bearer ') ? token.slice(7) : token;
-      
+      const jwtToken = token.startsWith("Bearer ") ? token.slice(7) : token;
+
       const payload = await this.jwtService.verifyAsync(jwtToken, {
-        secret: this.configService.get<string>('JWT_SECRET'),
+        secret: this.configService.get<string>("JWT_SECRET"),
       });
 
       client.data.user = payload;
@@ -61,40 +58,42 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.onlineUsersService.addSocket(userId, client.id);
       this.logger.log(`User ${payload.username} (ID: ${userId}) connected on socket ${client.id}`);
 
-      await this.broadcastPresence(userId, 'ONLINE');
+      await this.broadcastPresence(userId, "ONLINE");
 
       const friends = await this.friendshipsService.getFriends(userId);
       const onlineFriendIds = friends
         .filter((f) => this.onlineUsersService.isOnline(f.id))
         .map((f) => f.id);
 
-      client.emit('friends:online_list', onlineFriendIds);
+      client.emit("friends:online_list", onlineFriendIds);
     } catch (error) {
-      this.logger.error(`Connection authentication failed: ${(error as any).message}`);
+      this.logger.error(`Connection authentication failed: ${(error as Error).message}`);
       client.disconnect();
     }
   }
 
-  async handleDisconnect(client: Socket) {
-    const user = client.data.user;
+  public async handleDisconnect(client: Socket): Promise<void> {
+    const { user } = client.data;
     if (user) {
       const userId = user.sub;
       this.onlineUsersService.removeSocket(userId, client.id);
       this.logger.log(`User ${user.username} (ID: ${userId}) disconnected socket ${client.id}`);
 
       if (!this.onlineUsersService.isOnline(userId)) {
-        await this.broadcastPresence(userId, 'OFFLINE');
+        await this.broadcastPresence(userId, "OFFLINE");
       }
     }
   }
 
-  @SubscribeMessage('dm:send')
-  async handleSendMessage(
+  @SubscribeMessage("dm:send")
+  public async handleSendMessage(
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { receiverId: number; content: string },
-  ) {
-    const user = client.data.user;
-    if (!user) return;
+  ): Promise<void> {
+    const { user } = client.data;
+    if (!user) {
+      return;
+    }
 
     const senderId = user.sub;
     const { receiverId, content } = data;
@@ -108,26 +107,28 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       const receiverSockets = this.onlineUsersService.getSockets(receiverId);
       for (const socketId of receiverSockets) {
-        this.server.to(socketId).emit('dm:message', message);
+        this.server.to(socketId).emit("dm:message", message);
       }
 
       const senderSockets = this.onlineUsersService.getSockets(senderId);
       for (const socketId of senderSockets) {
-        this.server.to(socketId).emit('dm:sent', message);
+        this.server.to(socketId).emit("dm:sent", message);
       }
     } catch (error) {
-      this.logger.error(`Failed to send message: ${(error as any).message}`);
-      client.emit('error', { message: 'Failed to send message' });
+      this.logger.error(`Failed to send message: ${(error as Error).message}`);
+      client.emit("error", { message: "Failed to send message" });
     }
   }
 
-  @SubscribeMessage('global:send')
-  async handleSendGlobalMessage(
+  @SubscribeMessage("global:send")
+  public async handleSendGlobalMessage(
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { content: string },
-  ) {
-    const user = client.data.user;
-    if (!user) return;
+  ): Promise<void> {
+    const { user } = client.data;
+    if (!user) {
+      return;
+    }
 
     const senderId = user.sub;
     const { content } = data;
@@ -138,39 +139,41 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     try {
       const message = await this.chatService.saveGlobalMessage(senderId, content);
-      this.server.emit('global:message', message);
+      this.server.emit("global:message", message);
     } catch (error) {
-      this.logger.error(`Failed to send global message: ${(error as any).message}`);
-      client.emit('error', { message: 'Failed to send global message' });
+      this.logger.error(`Failed to send global message: ${(error as Error).message}`);
+      client.emit("error", { message: "Failed to send global message" });
     }
   }
 
-  private async broadcastPresence(userId: number, status: 'ONLINE' | 'OFFLINE') {
+  private async broadcastPresence(userId: number, status: "ONLINE" | "OFFLINE"): Promise<void> {
     try {
       const friends = await this.friendshipsService.getFriends(userId);
       const user = await this.friendshipsService.prisma.user.findUnique({
-        where: { id: userId },
         select: { id: true, username: true },
+        where: { id: userId },
       });
 
-      if (!user) return;
+      if (!user) {
+        return;
+      }
 
       for (const friend of friends) {
         const friendSockets = this.onlineUsersService.getSockets(friend.id);
         for (const socketId of friendSockets) {
-          this.server.to(socketId).emit('presence:change', {
+          this.server.to(socketId).emit("presence:change", {
+            status,
             userId,
             username: user.username,
-            status,
           });
         }
       }
     } catch (error) {
-      this.logger.error(`Failed to broadcast presence: ${(error as any).message}`);
+      this.logger.error(`Failed to broadcast presence: ${(error as Error).message}`);
     }
   }
 
-  emitToUser(userId: number, event: string, data: any) {
+  public emitToUser(userId: number, event: string, data: unknown): void {
     const sockets = this.onlineUsersService.getSockets(userId);
     for (const socketId of sockets) {
       this.server.to(socketId).emit(event, data);

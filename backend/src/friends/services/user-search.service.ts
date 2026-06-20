@@ -1,18 +1,29 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Injectable } from "@nestjs/common";
+import type { PrismaService } from "@/prisma/prisma.service";
 
 @Injectable()
 export class UserSearchService {
-  constructor(private readonly prisma: PrismaService) {}
+  public constructor(private readonly prisma: PrismaService) {}
 
-  async searchUsers(userId: number, query: string) {
-    if (!query || query.trim().length === 0) return [];
-    
+  public async searchUsers(
+    userId: number,
+    query: string,
+  ): Promise<
+    {
+      id: number;
+      username: string;
+      campus: string | null;
+    }[]
+  > {
+    if (!query || query.trim().length === 0) {
+      return [];
+    }
+
     return this.prisma.user.findMany({
       where: {
         username: {
           contains: query,
-          mode: 'insensitive',
+          mode: "insensitive",
         },
         id: {
           not: userId,

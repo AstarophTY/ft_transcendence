@@ -1,119 +1,135 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Injectable } from "@nestjs/common";
+import type { PrismaService } from "@/prisma/prisma.service";
 
 @Injectable()
 export class ChatService {
-  constructor(private readonly prisma: PrismaService) {}
+  public constructor(private readonly prisma: PrismaService) {}
 
-  async saveMessage(senderId: number, receiverId: number, content: string) {
+  public async saveMessage(
+    senderId: number,
+    receiverId: number,
+    content: string,
+  ): Promise<unknown> {
     return this.prisma.message.create({
       data: {
-        senderId,
-        receiverId,
         content,
+        receiverId,
+        senderId,
       },
       include: {
-        sender: {
-          select: { id: true, username: true, campus: true },
-        },
         receiver: {
-          select: { id: true, username: true, campus: true },
+          select: { campus: true, id: true, username: true },
+        },
+        sender: {
+          select: { campus: true, id: true, username: true },
         },
       },
     });
   }
 
-  async getMessageHistory(userId: number, friendId: number, limit = 100, skip = 0) {
+  public async getMessageHistory(
+    userId: number,
+    friendId: number,
+    limit = 100,
+    skip = 0,
+  ): Promise<unknown> {
     return this.prisma.message.findMany({
+      include: {
+        receiver: {
+          select: { id: true, username: true },
+        },
+        sender: {
+          select: { id: true, username: true },
+        },
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+      skip,
+      take: limit,
       where: {
         OR: [
           { senderId: userId, receiverId: friendId },
           { senderId: friendId, receiverId: userId },
         ],
       },
-      orderBy: {
-        createdAt: 'asc',
-      },
-      take: limit,
-      skip: skip,
-      include: {
-        sender: {
-          select: { id: true, username: true },
-        },
-        receiver: {
-          select: { id: true, username: true },
-        },
-      },
     });
   }
 
-  async getConversations(userId: number) {
+  public async getConversations(userId: number): Promise<unknown> {
     const messages = await this.prisma.message.findMany({
-      where: {
-        OR: [
-          { senderId: userId },
-          { receiverId: userId },
-        ],
+      include: {
+        receiver: {
+          select: { campus: true, id: true, username: true },
+        },
+        sender: {
+          select: { campus: true, id: true, username: true },
+        },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
-      include: {
-        sender: {
-          select: { id: true, username: true, campus: true },
-        },
-        receiver: {
-          select: { id: true, username: true, campus: true },
-        },
+      where: {
+        OR: [{ senderId: userId }, { receiverId: userId }],
       },
     });
 
-    const conversationsMap = new Map<number, any>();
+    interface Conversation {
+      user: { id: number; username: string; campus: string | null };
+      lastMessage: {
+        id: number;
+        content: string;
+        createdAt: Date;
+        senderId: number;
+      };
+    }
+
+    const conversationsMap = new Map<number, Conversation>();
 
     for (const msg of messages) {
       const otherUser = msg.senderId === userId ? msg.receiver : msg.sender;
       if (!conversationsMap.has(otherUser.id)) {
         conversationsMap.set(otherUser.id, {
-          user: otherUser,
           lastMessage: {
-            id: msg.id,
             content: msg.content,
             createdAt: msg.createdAt,
+            id: msg.id,
             senderId: msg.senderId,
           },
+          user: otherUser,
         });
       }
     }
 
-    return Array.from(conversationsMap.values());
+    return [...conversationsMap.values()];
   }
 
-  async saveGlobalMessage(senderId: number, content: string) {
+  public async saveGlobalMessage(senderId: number, content: string): Promise<unknown> {
     return this.prisma.globalMessage.create({
       data: {
-        senderId,
         content,
+        senderId,
       },
       include: {
         sender: {
-          select: { id: true, username: true, campus: true },
+          select: { campus: true, id: true, username: true },
         },
       },
     });
   }
 
-  async getGlobalMessageHistory(limit = 100, skip = 0) {
+  public async getGlobalMessageHistory(limit = 100, skip = 0): Promise<unknown> {
     return this.prisma.globalMessage.findMany({
-      orderBy: {
-        createdAt: 'asc',
-      },
-      take: limit,
-      skip: skip,
       include: {
         sender: {
           select: { id: true, username: true },
         },
       },
+      orderBy: {
+        createdAt: "asc",
+      },
+      skip,
+      take: limit,
     });
   }
 }
