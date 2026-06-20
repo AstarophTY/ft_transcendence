@@ -25,6 +25,19 @@ export class ChatController {
     return this.chatService.getConversations(user.sub);
   }
 
+  @Get('global')
+  @ApiOperation({ summary: 'Get global chat message history' })
+  @ApiResponse({ status: 200, description: 'Global message history returned.' })
+  getGlobalHistory(
+    @Query('limit') limit?: number,
+    @Query('skip') skip?: number,
+  ) {
+    return this.chatService.getGlobalMessageHistory(
+      limit ? Number(limit) : 100,
+      skip ? Number(skip) : 0,
+    );
+  }
+
   @Get('messages/:friendId')
   @ApiOperation({ summary: 'Get message history with a specific friend' })
   @ApiResponse({ status: 200, description: 'Message history returned.' })

@@ -87,4 +87,33 @@ export class ChatService {
 
     return Array.from(conversationsMap.values());
   }
+
+  async saveGlobalMessage(senderId: number, content: string) {
+    return this.prisma.globalMessage.create({
+      data: {
+        senderId,
+        content,
+      },
+      include: {
+        sender: {
+          select: { id: true, username: true, campus: true },
+        },
+      },
+    });
+  }
+
+  async getGlobalMessageHistory(limit = 100, skip = 0) {
+    return this.prisma.globalMessage.findMany({
+      orderBy: {
+        createdAt: 'asc',
+      },
+      take: limit,
+      skip: skip,
+      include: {
+        sender: {
+          select: { id: true, username: true },
+        },
+      },
+    });
+  }
 }

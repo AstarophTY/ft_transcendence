@@ -21,4 +21,5 @@ model User {
 
   sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
+  globalMessages   GlobalMessage[] @relation("GlobalMessages")
 }

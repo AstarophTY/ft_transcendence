@@ -121,6 +121,30 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage('global:send')
+  async handleSendGlobalMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { content: string },
+  ) {
+    const user = client.data.user;
+    if (!user) return;
+
+    const senderId = user.sub;
+    const { content } = data;
+
+    if (!content || content.trim().length === 0) {
+      return;
+    }
+
+    try {
+      const message = await this.chatService.saveGlobalMessage(senderId, content);
+      this.server.emit('global:message', message);
+    } catch (error) {
+      this.logger.error(`Failed to send global message: ${(error as any).message}`);
+      client.emit('error', { message: 'Failed to send global message' });
+    }
+  }
+
   private async broadcastPresence(userId: number, status: 'ONLINE' | 'OFFLINE') {
     try {
       const friends = await this.friendshipsService.getFriends(userId);
